@@ -20,8 +20,6 @@ mod ast;
 #[grammar = "grammar.pest"]
 struct LoopParser;
 
-// fn parse_comp_verb()
-
 fn build_pure_ast_from_expression(pair: Pair<Rule>) -> ASTNode {
     // this code will be called if there i
     match pair.as_rule() {
@@ -136,7 +134,7 @@ fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedASTNode {
 
             PollutedASTNode::Macro(Macro::If {
                 comp: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-                terms: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
+                terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
             })
         }
         Rule::macroIfElse => {
@@ -144,8 +142,8 @@ fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedASTNode {
 
             PollutedASTNode::Macro(Macro::IfElse {
                 comp: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-                if_terms: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-                else_terms: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
+                if_terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
+                else_terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
             })
         }
 

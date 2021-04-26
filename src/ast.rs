@@ -41,12 +41,12 @@ pub enum Macro {
     },
     If {
         comp: Box<ASTNode>,
-        terms: Box<ASTNode>,
+        terms: Box<PollutedASTNode>,
     },
     IfElse {
         comp: Box<ASTNode>,
-        if_terms: Box<ASTNode>,
-        else_terms: Box<ASTNode>,
+        if_terms: Box<PollutedASTNode>,
+        else_terms: Box<PollutedASTNode>,
     },
 }
 
