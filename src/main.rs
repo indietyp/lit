@@ -1,9 +1,8 @@
-extern crate pest;
-
-#[macro_use]
-extern crate pest_derive;
 #[macro_use]
 extern crate enum_display_derive;
+extern crate pest;
+#[macro_use]
+extern crate pest_derive;
 
 use std::fs::read_to_string;
 use std::str::FromStr;

@@ -1,8 +1,11 @@
-use crate::ast::Node::{BinaryOp, Ident, NaturalNumber};
-use lit::random_identifier;
-use num_bigint::BigUint;
 use std::fmt::Display;
 use std::ops::Deref;
+
+use num_bigint::BigUint;
+
+use lit::random_identifier;
+
+use crate::ast::Node::{BinaryOp, Ident, NaturalNumber};
 
 #[derive(Debug, Clone)]
 pub enum ComparisonVerb {

@@ -1,11 +1,13 @@
+use core::option::Option::Some;
+use std::str::FromStr;
+
+use num_bigint::BigUint;
+use pest::iterators::Pair;
+
 use crate::ast::{
     ComparisonVerb, Control, Macro, MacroBinaryAssignOperation, Node, OperatorVerb, PollutedNode,
 };
 use crate::Rule;
-use core::option::Option::Some;
-use num_bigint::BigUint;
-use pest::iterators::Pair;
-use std::str::FromStr;
 
 fn build_pure_ast_from_expression(pair: Pair<Rule>) -> Node {
     match pair.as_rule() {
