@@ -1,3 +1,5 @@
+use num_bigint::BigUint;
+
 pub enum ComparisonVerb {
     Equal,
     NotEqual,
@@ -17,7 +19,7 @@ pub enum OperatorVerb {
 pub enum ASTNode {
     // Smallest Units
     Identifier(String),
-    NaturalNumber(BigUInt),
+    NaturalNumber(BigUint),
     Terms(Vec<ASTNode>),
 
     // Assignment and Expressions

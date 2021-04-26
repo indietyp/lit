@@ -5,92 +5,111 @@
 //
 
 // Defaults
-WHITESPACE = _{ WHITE_SPACE }
+WHITESPACE = _{ " " | "\t" }
 
-grammar = { SOI ~ program ~ EOI }
+grammar = _{ SOI ~ Terms ~ EOI }
 
 // Terminals:
-IDENTIFIER = @{ ASCII_ALPHA+ }
+IDENT = @{ ASCII_ALPHA+ }
 
-OPERATOR = { SIMPLE_OPERATOR |  ADVANCED_OPERATOR}
-SIMPLE_OPERATOR = { "+" | "-" }
-ADVANCED_OPERATOR = { "*" }
+OP_PLUS = { "+" }
+OP_MINUS = { "-" }
+OP_MULTIPLY = { "*" }
+
+SIMPLE_OPERATOR = _{ OP_PLUS | OP_MINUS }
+EXT_OPERATOR = _{ OP_MULTIPLY }
+OPERATOR = _{ SIMPLE_OPERATOR |  EXT_OPERATOR }
 
 VALUE = @{ ASCII_DIGIT+ }
-EXPRESSION_SEPARATOR = _{ (";" | ";" ~ NEWLINE | NEWLINE) }
+SEP = _{ (";" | ";"? ~ NEWLINE+) }
 
 // Comparison Collection
-comp_eq = { IDENTIFIER ~ ("=" | "==") ~ VALUE }
-comp_ne = { IDENTIFIER ~ "!=" ~ VALUE }
-comp_ge = { IDENTIFIER ~ ">=" ~ VALUE }
-comp_gt = { IDENTIFIER ~ ">"  ~ VALUE }
-comp_le = { IDENTIFIER ~ "<=" ~ VALUE }
-comp_lt = { IDENTIFIER ~ "<"  ~ VALUE }
+compEqual = { IDENT ~ ("=" | "==") ~ VALUE }
+compNotEqual = { IDENT ~ "!=" ~ VALUE }
+compGreaterEqual = { IDENT ~ ">=" ~ VALUE }
+compGreaterThan = { IDENT ~ ">"  ~ VALUE }
+compLessEqual = { IDENT ~ "<=" ~ VALUE }
+compLessThan = { IDENT ~ "<"  ~ VALUE }
 
-COMPARISON = {
-    comp_eq
-    | comp_ne
+comp = _{
+    compEqual
+    | compNotEqual
 }
 
 // Core Language:
-expression = {
-    IDENTIFIER ~ ":=" ~
-    IDENTIFIER ~ SIMPLE_OPERATOR ~ VALUE
+assign = {
+    IDENT ~ ":=" ~
+    IDENT ~ SIMPLE_OPERATOR ~ VALUE
 }
 
 loop_ = {
-    "LOOP" ~ IDENTIFIER ~ "DO"
-    ~ program ~
+    "LOOP" ~ IDENT ~ "DO" ~ SEP
+    ~ Terms ~
     "END"
 }
 
 while_ = {
-    "WHILE" ~ comp_ne ~ "DO"
-    ~ program ~
+    "WHILE" ~ compNotEqual ~ "DO" ~ SEP
+    ~ Terms ~
     "END"
 }
 
 // macros
+macroAssignToIdent = {
+    IDENT ~ ":=" ~
+    IDENT
+}
+macroAssignToZero =   {
+    IDENT ~ ":=" ~
+    "0"
+}
+macroAssignToValue = {
+    IDENT ~ ":=" ~
+    VALUE
+}
+macroAssignToIdentOpIdent = {
+    IDENT ~ ":=" ~
+    IDENT ~ OPERATOR ~ IDENT
+}
+macroAssignToIdentExtOpValue = {
+    IDENT ~ ":=" ~
+    IDENT ~ EXT_OPERATOR ~ VALUE
+}
 
-macro_set_var_to_var = { IDENTIFIER ~ ":=" ~ IDENTIFIER }
-macro_set_var_to_0 =   { IDENTIFIER ~ ":=" ~ "0" }
-macro_set_var_to_val = { IDENTIFIER ~ ":=" ~ VALUE }
-macro_set_var_to_op_vars = { IDENTIFIER ~ ":=" ~ IDENTIFIER ~ OPERATOR ~ IDENTIFIER }
-macro_set_var_to_adv_var_val = { IDENTIFIER ~ ":=" ~ IDENTIFIER ~ OPERATOR ~ VALUE }
-
-macro_if = {
-    "IF" ~ comp_ne ~ "THEN"
-    ~ program ~
+macroIf = {
+    "IF" ~ compNotEqual ~ "THEN" ~ SEP
+    ~ Terms ~
     "END"
 }
-macro_if_else = {
-    "IF" ~ comp_ne ~ "THEN"
-    ~ program ~
-    "ELSE"
-    ~ program ~
+macroIfElse = {
+    "IF" ~ compNotEqual ~ "THEN" ~ SEP
+    ~ Terms ~
+    "ELSE" ~ SEP
+    ~ Terms ~
     "END"
 }
 
-macro_ = {
-    macro_set_var_to_var
-    | macro_set_var_to_0
-    | macro_set_var_to_val
-    | macro_set_var_to_op_vars
-    | macro_set_var_to_adv_var_val
-    | macro_if
-    | macro_if_else
+macro_ = _{
+    macroAssignToIdentExtOpValue
+    | macroAssignToIdentOpIdent
+    | macroAssignToIdent
+    | macroAssignToZero
+    | macroAssignToValue
+    | macroIf
+    | macroIfElse
 }
 
 // Expression Collection:
-term = {
-    ( expression
-    | loop_
+Expression = _{
+    loop_
     | while_
-    | macro_)
+    | assign
+    | macro_
 }
 
-program = _{
-    term ~
-    (EXPRESSION_SEPARATOR ~ term)+ ~
-    EXPRESSION_SEPARATOR?
+Terms = _{
+    NEWLINE* ~
+    Expression ~
+    (SEP ~ Expression)* ~
+    SEP?
 }
