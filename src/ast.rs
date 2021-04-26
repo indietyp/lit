@@ -21,32 +21,32 @@ pub enum OperatorVerb {
 #[derive(Debug)]
 pub enum Macro {
     AssignToIdent {
-        lhs: Box<ASTNode>,
-        rhs: Box<ASTNode>,
+        lhs: Box<Node>,
+        rhs: Box<Node>,
     },
     AssignToZero {
-        lhs: Box<ASTNode>,
+        lhs: Box<Node>,
     },
     AssignToValue {
-        lhs: Box<ASTNode>,
-        rhs: Box<ASTNode>,
+        lhs: Box<Node>,
+        rhs: Box<Node>,
     },
     AssignToOpIdent {
-        lhs: Box<ASTNode>,
-        rhs: Box<ASTNode>,
+        lhs: Box<Node>,
+        rhs: Box<Node>,
     },
     AssignToOpValue {
-        lhs: Box<ASTNode>,
-        rhs: Box<ASTNode>,
+        lhs: Box<Node>,
+        rhs: Box<Node>,
     },
     If {
-        comp: Box<ASTNode>,
-        terms: Box<PollutedASTNode>,
+        comp: Box<Node>,
+        terms: Box<PollutedNode>,
     },
     IfElse {
-        comp: Box<ASTNode>,
-        if_terms: Box<PollutedASTNode>,
-        else_terms: Box<PollutedASTNode>,
+        comp: Box<Node>,
+        if_terms: Box<PollutedNode>,
+        else_terms: Box<PollutedNode>,
     },
 }
 
@@ -62,35 +62,35 @@ pub enum Control<Node> {
 
 // TODO: UnaryExpression?
 #[derive(Debug)]
-pub enum ASTNode {
+pub enum Node {
     // Smallest Units
     Ident(String),
     NaturalNumber(BigUint),
-    Terms(Vec<ASTNode>),
+    Terms(Vec<Node>),
 
     // Assignment and Expressions
     Comparison {
         verb: ComparisonVerb,
-        lhs: Box<ASTNode>,
-        rhs: Box<ASTNode>,
+        lhs: Box<Node>,
+        rhs: Box<Node>,
     },
     BinaryOp {
         verb: OperatorVerb,
-        lhs: Box<ASTNode>,
-        rhs: Box<ASTNode>,
+        lhs: Box<Node>,
+        rhs: Box<Node>,
     },
     Assign {
-        lhs: Box<ASTNode>,
-        rhs: Box<ASTNode>,
+        lhs: Box<Node>,
+        rhs: Box<Node>,
     },
-    Control(Control<ASTNode>),
+    Control(Control<Node>),
 }
 
 #[derive(Debug)]
-pub enum PollutedASTNode {
-    ASTNode(ASTNode),
+pub enum PollutedNode {
+    ASTNode(Node),
     Macro(Macro),
     NoOp,
 
-    Control(Control<PollutedASTNode>),
+    Control(Control<PollutedNode>),
 }

@@ -5,8 +5,8 @@ extern crate pest_derive;
 #[macro_use]
 extern crate enum_display_derive;
 
-use crate::ast::ASTNode::Comparison;
-use crate::ast::{ASTNode, ComparisonVerb, Control, Macro, OperatorVerb, PollutedASTNode};
+use crate::ast::Node::Comparison;
+use crate::ast::{ComparisonVerb, Control, Macro, Node, OperatorVerb, PollutedNode};
 use num_bigint::BigUint;
 use pest::error::Error;
 use pest::iterators::Pair;
@@ -20,12 +20,12 @@ mod ast;
 #[grammar = "grammar.pest"]
 struct LoopParser;
 
-fn build_pure_ast_from_expression(pair: Pair<Rule>) -> ASTNode {
+fn build_pure_ast_from_expression(pair: Pair<Rule>) -> Node {
     // this code will be called if there i
     match pair.as_rule() {
         // Terminal Encoding
-        Rule::IDENT => ASTNode::Ident(String::from(pair.as_str())),
-        Rule::VALUE => ASTNode::NaturalNumber(BigUint::from_str(pair.as_str()).unwrap()),
+        Rule::IDENT => Node::Ident(String::from(pair.as_str())),
+        Rule::VALUE => Node::NaturalNumber(BigUint::from_str(pair.as_str()).unwrap()),
 
         // Comparison
         Rule::compEqual
@@ -40,7 +40,7 @@ fn build_pure_ast_from_expression(pair: Pair<Rule>) -> ASTNode {
             let verb = pair.next().unwrap().as_str();
             let rhs = Box::new(build_pure_ast_from_expression(pair.next().unwrap()));
 
-            ASTNode::Comparison {
+            Node::Comparison {
                 lhs,
                 verb: match verb {
                     "=" | "==" => ComparisonVerb::Equal,
@@ -62,7 +62,7 @@ fn build_pure_ast_from_expression(pair: Pair<Rule>) -> ASTNode {
             let verb = pair.next().unwrap().as_str();
             let rhs = Box::new(build_pure_ast_from_expression(pair.next().unwrap()));
 
-            ASTNode::BinaryOp {
+            Node::BinaryOp {
                 lhs,
                 verb: match verb {
                     "+" => OperatorVerb::Plus,
@@ -78,7 +78,7 @@ fn build_pure_ast_from_expression(pair: Pair<Rule>) -> ASTNode {
         Rule::assign => {
             let mut pair = pair.into_inner();
 
-            ASTNode::Assign {
+            Node::Assign {
                 lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
                 rhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
             }
@@ -87,13 +87,13 @@ fn build_pure_ast_from_expression(pair: Pair<Rule>) -> ASTNode {
     }
 }
 
-fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedASTNode {
+fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedNode {
     match pair.as_rule() {
         // Macros
         Rule::macroAssignToIdent => {
             let mut pair = pair.into_inner();
 
-            PollutedASTNode::Macro(Macro::AssignToIdent {
+            PollutedNode::Macro(Macro::AssignToIdent {
                 lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
                 rhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
             })
@@ -101,14 +101,14 @@ fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedASTNode {
         Rule::macroAssignToZero => {
             let mut pair = pair.into_inner();
 
-            PollutedASTNode::Macro(Macro::AssignToZero {
+            PollutedNode::Macro(Macro::AssignToZero {
                 lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
             })
         }
         Rule::macroAssignToValue => {
             let mut pair = pair.into_inner();
 
-            PollutedASTNode::Macro(Macro::AssignToValue {
+            PollutedNode::Macro(Macro::AssignToValue {
                 lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
                 rhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
             })
@@ -116,7 +116,7 @@ fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedASTNode {
         Rule::macroAssignToIdentOpIdent => {
             let mut pair = pair.into_inner();
 
-            PollutedASTNode::Macro(Macro::AssignToOpIdent {
+            PollutedNode::Macro(Macro::AssignToOpIdent {
                 lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
                 rhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
             })
@@ -124,7 +124,7 @@ fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedASTNode {
         Rule::macroAssignToIdentExtOpValue => {
             let mut pair = pair.into_inner();
 
-            PollutedASTNode::Macro(Macro::AssignToOpValue {
+            PollutedNode::Macro(Macro::AssignToOpValue {
                 lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
                 rhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
             })
@@ -132,7 +132,7 @@ fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedASTNode {
         Rule::macroIf => {
             let mut pair = pair.into_inner();
 
-            PollutedASTNode::Macro(Macro::If {
+            PollutedNode::Macro(Macro::If {
                 comp: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
                 terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
             })
@@ -140,7 +140,7 @@ fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedASTNode {
         Rule::macroIfElse => {
             let mut pair = pair.into_inner();
 
-            PollutedASTNode::Macro(Macro::IfElse {
+            PollutedNode::Macro(Macro::IfElse {
                 comp: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
                 if_terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
                 else_terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
@@ -151,7 +151,7 @@ fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedASTNode {
         Rule::loop_ => {
             let mut pair = pair.into_inner();
 
-            PollutedASTNode::Control(Control::Loop {
+            PollutedNode::Control(Control::Loop {
                 ident: Box::new(build_ast_from_expression(pair.next().unwrap())),
                 terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
             })
@@ -159,7 +159,7 @@ fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedASTNode {
         Rule::while_ => {
             let mut pair = pair.into_inner();
 
-            PollutedASTNode::Control(Control::While {
+            PollutedNode::Control(Control::While {
                 comp: Box::new(build_ast_from_expression(pair.next().unwrap())),
                 terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
             })
@@ -172,14 +172,14 @@ fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedASTNode {
                 terms.push(build_ast_from_expression(term))
             }
 
-            PollutedASTNode::Control(Control::Terms(terms))
+            PollutedNode::Control(Control::Terms(terms))
         }
-        Rule::EOI => PollutedASTNode::NoOp,
-        _ => PollutedASTNode::ASTNode(build_pure_ast_from_expression(pair)),
+        Rule::EOI => PollutedNode::NoOp,
+        _ => PollutedNode::ASTNode(build_pure_ast_from_expression(pair)),
     }
 }
 
-fn parse(source: &str) -> Result<Vec<PollutedASTNode>, Error<Rule>> {
+fn parse(source: &str) -> Result<Vec<PollutedNode>, Error<Rule>> {
     let mut ast = vec![];
 
     let pairs = LoopParser::parse(Rule::grammar, source)?;
