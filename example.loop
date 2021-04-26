@@ -15,7 +15,7 @@ IF y != 0 THEN
     y := y + 1
 END
 
-IF x != 0 THEN
+IF x > y THEN
     x := x + 1
 ELSE
     x := x - 1

@@ -35,6 +35,7 @@ LE = { "<=" }
 compEqual = { IDENT ~ EQ ~ VALUE }
 compNotEqual = { IDENT ~ NE ~ VALUE }
 compGreaterEqual = { IDENT ~ GE ~ VALUE }
+compGreaterThanIdent = { IDENT ~ GT  ~ IDENT }
 compGreaterThan = { IDENT ~ GT  ~ VALUE }
 compLessEqual = { IDENT ~ LE ~ VALUE }
 compLessThan = { IDENT ~ LT  ~ VALUE }
@@ -98,7 +99,7 @@ macroIf = {
     "END"
 }
 macroIfElse = {
-    "IF" ~ compNotEqual ~ "THEN" ~ SEP
+    "IF" ~ compGreaterThanIdent ~ "THEN" ~ SEP
     ~ terms ~
     "ELSE" ~ SEP
     ~ terms ~

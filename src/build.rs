@@ -1,8 +1,8 @@
-use crate::ast::{ComparisonVerb, Control, Macro, Node, OperatorVerb, PollutedNode};
-use alloc::boxed::Box;
-use alloc::string::String;
+use crate::ast::{
+    ComparisonVerb, Control, Macro, MacroBinaryAssignOperation, Node, OperatorVerb, PollutedNode,
+};
+use crate::Rule;
 use core::option::Option::Some;
-use lit::ast::{ComparisonVerb, Control, Macro, Node, OperatorVerb, PollutedNode};
 use num_bigint::BigUint;
 use pest::iterators::Pair;
 use std::str::FromStr;
@@ -17,6 +17,7 @@ fn build_pure_ast_from_expression(pair: Pair<Rule>) -> Node {
         Rule::compEqual
         | Rule::compNotEqual
         | Rule::compGreaterThan
+        | Rule::compGreaterThanIdent
         | Rule::compGreaterEqual
         | Rule::compLessThan
         | Rule::compLessEqual => {
@@ -94,9 +95,11 @@ pub fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedNode {
 
             PollutedNode::Macro(Macro::AssignToOpIdent {
                 lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-                rhs_lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-                rhs_verb: OperatorVerb::from(pair.next().unwrap().as_str()),
-                rhs_rhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
+                rhs: MacroBinaryAssignOperation {
+                    lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
+                    verb: OperatorVerb::from(pair.next().unwrap().as_str()),
+                    rhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
+                },
             })
         }
 
@@ -105,9 +108,11 @@ pub fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedNode {
 
             PollutedNode::Macro(Macro::AssignToOpExtIdent {
                 lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-                rhs_lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-                rhs_verb: OperatorVerb::from(pair.next().unwrap().as_str()),
-                rhs_rhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
+                rhs: MacroBinaryAssignOperation {
+                    lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
+                    verb: OperatorVerb::from(pair.next().unwrap().as_str()),
+                    rhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
+                },
             })
         }
         Rule::macroAssignToIdentExtOpValue => {
@@ -115,9 +120,11 @@ pub fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedNode {
 
             PollutedNode::Macro(Macro::AssignToOpExtValue {
                 lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-                rhs_lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-                rhs_verb: OperatorVerb::from(pair.next().unwrap().as_str()),
-                rhs_rhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
+                rhs: MacroBinaryAssignOperation {
+                    lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
+                    verb: OperatorVerb::from(pair.next().unwrap().as_str()),
+                    rhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
+                },
             })
         }
         Rule::macroIf => {

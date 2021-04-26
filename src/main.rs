@@ -35,8 +35,15 @@ fn parse(source: &str) -> Result<Vec<PollutedNode>, Error<Rule>> {
     Ok(ast)
 }
 
+fn purify(ast: &mut Vec<PollutedNode>) -> Node {
+    let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
+
+    wrapped.purify()
+}
+
 fn main() {
     let unparsed = read_to_string("example.loop").expect("Cannot read example file");
-    let polluted = parse(&unparsed).expect("Unsuccessful Parse");
-    println!("{:#?}", polluted)
+    let mut polluted = parse(&unparsed).expect("Unsuccessful Parse");
+    let ast = purify(&mut polluted);
+    println!("{:#?}", ast)
 }
