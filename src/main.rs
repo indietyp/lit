@@ -2,9 +2,11 @@ extern crate pest;
 
 #[macro_use]
 extern crate pest_derive;
+#[macro_use]
+extern crate enum_display_derive;
 
 use crate::ast::ASTNode::Comparison;
-use crate::ast::{ASTNode, ComparisonVerb, Macro, OperatorVerb, PollutedASTNode};
+use crate::ast::{ASTNode, ComparisonVerb, Control, Macro, OperatorVerb, PollutedASTNode};
 use num_bigint::BigUint;
 use pest::error::Error;
 use pest::iterators::Pair;
@@ -25,7 +27,7 @@ fn build_pure_ast_from_expression(pair: Pair<Rule>) -> ASTNode {
     match pair.as_rule() {
         // Terminal Encoding
         Rule::IDENT => ASTNode::Ident(String::from(pair.as_str())),
-        Rule::VALUE => ASTNode::UInt(BigUint::from_str(pair.as_str()).unwrap()),
+        Rule::VALUE => ASTNode::NaturalNumber(BigUint::from_str(pair.as_str()).unwrap()),
 
         // Comparison
         Rule::compEqual
@@ -83,28 +85,13 @@ fn build_pure_ast_from_expression(pair: Pair<Rule>) -> ASTNode {
                 rhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
             }
         }
-        Rule::loop_ => {
-            let mut pair = pair.into_inner();
-
-            ASTNode::Loop {
-                ident: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-                terms: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-            }
-        }
-        Rule::while_ => {
-            let mut pair = pair.into_inner();
-
-            ASTNode::While {
-                comp: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-                terms: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-            }
-        }
-        _ => panic!("You should not reach this, {}", pair.as_str()),
+        _ => panic!("You should not reach this, {:#?}", pair.as_rule()),
     }
 }
 
 fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedASTNode {
     match pair.as_rule() {
+        // Macros
         Rule::macroAssignToIdent => {
             let mut pair = pair.into_inner();
 
@@ -161,6 +148,35 @@ fn build_ast_from_expression(pair: Pair<Rule>) -> PollutedASTNode {
                 else_terms: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
             })
         }
+
+        // Control Structures
+        Rule::loop_ => {
+            let mut pair = pair.into_inner();
+
+            PollutedASTNode::Control(Control::Loop {
+                ident: Box::new(build_ast_from_expression(pair.next().unwrap())),
+                terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
+            })
+        }
+        Rule::while_ => {
+            let mut pair = pair.into_inner();
+
+            PollutedASTNode::Control(Control::While {
+                comp: Box::new(build_ast_from_expression(pair.next().unwrap())),
+                terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
+            })
+        }
+        Rule::terms => {
+            let mut pair = pair.into_inner();
+            let mut terms = vec![];
+
+            while let Some(term) = pair.next() {
+                terms.push(build_ast_from_expression(term))
+            }
+
+            PollutedASTNode::Control(Control::Terms(terms))
+        }
+        Rule::EOI => PollutedASTNode::NoOp,
         _ => PollutedASTNode::ASTNode(build_pure_ast_from_expression(pair)),
     }
 }
@@ -179,4 +195,5 @@ fn parse(source: &str) -> Result<Vec<PollutedASTNode>, Error<Rule>> {
 fn main() {
     let unparsed = read_to_string("example.loop").expect("Cannot read example file");
     let polluted = parse(&unparsed).expect("Unsuccessful Parse");
+    println!("{:#?}", polluted)
 }

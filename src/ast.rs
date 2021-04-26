@@ -1,5 +1,7 @@
 use num_bigint::BigUint;
+use std::fmt::Display;
 
+#[derive(Debug)]
 pub enum ComparisonVerb {
     Equal,
     NotEqual,
@@ -9,46 +11,14 @@ pub enum ComparisonVerb {
     LessThanEqual,
 }
 
+#[derive(Debug)]
 pub enum OperatorVerb {
     Plus,
     Minus,
     Multiply,
 }
 
-// TODO: UnaryExpression?
-pub enum ASTNode {
-    // Smallest Units
-    Ident(String),
-    UInt(BigUint),
-    Terms(Vec<ASTNode>),
-
-    // Assignment and Expressions
-    Comparison {
-        verb: ComparisonVerb,
-        lhs: Box<ASTNode>,
-        rhs: Box<ASTNode>,
-    },
-    BinaryOp {
-        verb: OperatorVerb,
-        lhs: Box<ASTNode>,
-        rhs: Box<ASTNode>,
-    },
-    Assign {
-        lhs: Box<ASTNode>,
-        rhs: Box<ASTNode>,
-    },
-
-    // Control Structures
-    Loop {
-        ident: Box<ASTNode>,
-        terms: Box<ASTNode>,
-    },
-    While {
-        comp: Box<ASTNode>,
-        terms: Box<ASTNode>,
-    },
-}
-
+#[derive(Debug)]
 pub enum Macro {
     AssignToIdent {
         lhs: Box<ASTNode>,
@@ -80,7 +50,47 @@ pub enum Macro {
     },
 }
 
+// Control Structures have in their body potentially
+// polluted information, these need to changed/unpolluted via
+// macro expansion
+#[derive(Debug)]
+pub enum Control<Node> {
+    Terms(Vec<Node>),
+    Loop { ident: Box<Node>, terms: Box<Node> },
+    While { comp: Box<Node>, terms: Box<Node> },
+}
+
+// TODO: UnaryExpression?
+#[derive(Debug)]
+pub enum ASTNode {
+    // Smallest Units
+    Ident(String),
+    NaturalNumber(BigUint),
+    Terms(Vec<ASTNode>),
+
+    // Assignment and Expressions
+    Comparison {
+        verb: ComparisonVerb,
+        lhs: Box<ASTNode>,
+        rhs: Box<ASTNode>,
+    },
+    BinaryOp {
+        verb: OperatorVerb,
+        lhs: Box<ASTNode>,
+        rhs: Box<ASTNode>,
+    },
+    Assign {
+        lhs: Box<ASTNode>,
+        rhs: Box<ASTNode>,
+    },
+    Control(Control<ASTNode>),
+}
+
+#[derive(Debug)]
 pub enum PollutedASTNode {
     ASTNode(ASTNode),
     Macro(Macro),
+    NoOp,
+
+    Control(Control<PollutedASTNode>),
 }
