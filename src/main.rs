@@ -44,5 +44,5 @@ fn main() {
     let unparsed = read_to_string("example.loop").expect("Cannot read example file");
     let mut polluted = parse(&unparsed).expect("Unsuccessful Parse");
     let ast = purify(&mut polluted);
-    println!("{:#?}", ast)
+    println!("{}", ast.display(4, None))
 }
