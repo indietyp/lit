@@ -214,14 +214,22 @@ impl Macro {
                         lhs: Box::new(Node::Ident(tmp1.clone())),
                         rhs: MacroBinaryAssignOperation {
                             lhs: match *comp.clone() {
-                                Node::Comparison { lhs, rhs, verb } => lhs,
+                                Node::Comparison {
+                                    lhs,
+                                    rhs: _,
+                                    verb: _,
+                                } => lhs,
                                 _ => panic!(
                                     "Comparison for IF ... THEN ... ELSE needs to be comparison!"
                                 ),
                             },
                             verb: OperatorVerb::Minus,
                             rhs: match *comp.clone() {
-                                Node::Comparison { lhs, rhs, verb } => rhs,
+                                Node::Comparison {
+                                    lhs: _,
+                                    rhs,
+                                    verb: _,
+                                } => rhs,
                                 _ => panic!(
                                     "Comparison for IF ... THEN ... ELSE needs to be comparison!"
                                 ),
@@ -316,9 +324,17 @@ impl Node {
                 terms
                     .iter()
                     .flat_map(|node| match node {
-                        Node::Control(Control::Terms(t)) => {
-                            t.iter().flat_map(|term| term.flatten()).collect()
-                        }
+                        Node::Control(Control::Terms(t)) => t
+                            .iter()
+                            .flat_map(|term| {
+                                let flat = term.flatten();
+
+                                match flat {
+                                    Node::Control(Control::Terms(t)) => t,
+                                    _ => vec![flat],
+                                }
+                            })
+                            .collect(),
                         Node::Control(Control::Loop { ident, terms }) => {
                             vec![Node::Control(Control::Loop {
                                 ident: ident.clone(),
@@ -331,7 +347,7 @@ impl Node {
                                 terms: Box::new(terms.flatten()),
                             })]
                         }
-                        _ => vec![node],
+                        _ => vec![node.clone()],
                     })
                     .collect(),
             )),

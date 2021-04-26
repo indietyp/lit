@@ -38,7 +38,7 @@ fn parse(source: &str) -> Result<Vec<PollutedNode>, Error<Rule>> {
 fn purify(ast: &mut Vec<PollutedNode>) -> Node {
     let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
 
-    wrapped.purify()
+    wrapped.purify().flatten()
 }
 
 fn main() {
