@@ -7,16 +7,16 @@
 // Defaults
 WHITESPACE = _{ WHITE_SPACE }
 
-// grammar = { "Hello World!" }
+grammar = { SOI ~ program ~ EOI }
 
 // Terminals:
-IDENTIFIER = { ASCII_ALPHA+ }
+IDENTIFIER = @{ ASCII_ALPHA+ }
 
 OPERATOR = { SIMPLE_OPERATOR |  ADVANCED_OPERATOR}
 SIMPLE_OPERATOR = { "+" | "-" }
 ADVANCED_OPERATOR = { "*" }
 
-VALUE = { ASCII_DIGIT+ }
+VALUE = @{ ASCII_DIGIT+ }
 EXPRESSION_SEPARATOR = _{ (";" | ";" ~ NEWLINE | NEWLINE) }
 
 // Comparison Collection
@@ -33,7 +33,7 @@ COMPARISON = {
 }
 
 // Core Language:
-assignment = {
+expression = {
     IDENTIFIER ~ ":=" ~
     IDENTIFIER ~ SIMPLE_OPERATOR ~ VALUE
 }
@@ -82,14 +82,15 @@ macro_ = {
 }
 
 // Expression Collection:
-expression = {
-    ( assignment
+term = {
+    ( expression
     | loop_
     | while_
     | macro_)
 }
 
-program = {
-    expression ~
-    (EXPRESSION_SEPARATOR ~ expression)+
+program = _{
+    term ~
+    (EXPRESSION_SEPARATOR ~ term)+ ~
+    EXPRESSION_SEPARATOR?
 }
