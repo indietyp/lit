@@ -83,6 +83,10 @@ macroAssignToIdentOpIdent = {
     IDENT ~ ":=" ~
     IDENT ~ OPERATOR ~ IDENT
 }
+macroAssignToIdentExtOpIdent = {
+    IDENT ~ ":=" ~
+    IDENT ~ EXT_OPERATOR ~ IDENT
+}
 macroAssignToIdentExtOpValue = {
     IDENT ~ ":=" ~
     IDENT ~ EXT_OPERATOR ~ VALUE
