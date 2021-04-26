@@ -4,7 +4,7 @@ pub enum ComparisonVerb {
     Equal,
     NotEqual,
     GreaterThan,
-    GreaterEqual,
+    GreaterThanEqual,
     LessThan,
     LessThanEqual,
 }
@@ -18,17 +18,22 @@ pub enum OperatorVerb {
 // TODO: UnaryExpression?
 pub enum ASTNode {
     // Smallest Units
-    Identifier(String),
-    NaturalNumber(BigUint),
+    Ident(String),
+    UInt(BigUint),
     Terms(Vec<ASTNode>),
 
     // Assignment and Expressions
-    BinaryOperation {
+    Comparison {
+        verb: ComparisonVerb,
+        lhs: Box<ASTNode>,
+        rhs: Box<ASTNode>,
+    },
+    BinaryOp {
         verb: OperatorVerb,
         lhs: Box<ASTNode>,
         rhs: Box<ASTNode>,
     },
-    Assignment {
+    Assign {
         lhs: Box<ASTNode>,
         rhs: Box<ASTNode>,
     },
@@ -45,25 +50,33 @@ pub enum ASTNode {
 }
 
 pub enum Macro {
-    AssignToVariable {
+    AssignToIdent {
         lhs: Box<ASTNode>,
         rhs: Box<ASTNode>,
     },
     AssignToZero {
         lhs: Box<ASTNode>,
-        rhs: Box<ASTNode>,
     },
     AssignToValue {
         lhs: Box<ASTNode>,
         rhs: Box<ASTNode>,
     },
-    AssignToOpVariables {
+    AssignToOpIdent {
         lhs: Box<ASTNode>,
         rhs: Box<ASTNode>,
     },
     AssignToOpValue {
         lhs: Box<ASTNode>,
         rhs: Box<ASTNode>,
+    },
+    If {
+        comp: Box<ASTNode>,
+        terms: Box<ASTNode>,
+    },
+    IfElse {
+        comp: Box<ASTNode>,
+        if_terms: Box<ASTNode>,
+        else_terms: Box<ASTNode>,
     },
 }
 

@@ -7,7 +7,7 @@
 // Defaults
 WHITESPACE = _{ " " | "\t" }
 
-grammar = _{ SOI ~ Terms ~ EOI }
+grammar = _{ SOI ~ terms ~ EOI }
 
 // Terminals:
 IDENT = @{ ASCII_ALPHA+ }
@@ -23,13 +23,21 @@ OPERATOR = _{ SIMPLE_OPERATOR |  EXT_OPERATOR }
 VALUE = @{ ASCII_DIGIT+ }
 SEP = _{ (";" | ";"? ~ NEWLINE+) }
 
+// Comparison Operators (needed for capture)
+EQ = { "=" | "==" }
+NE = { "!=" }
+GT = { ">" }
+GE = { ">=" }
+LT = { "<" }
+LE = { "<=" }
+
 // Comparison Collection
-compEqual = { IDENT ~ ("=" | "==") ~ VALUE }
-compNotEqual = { IDENT ~ "!=" ~ VALUE }
-compGreaterEqual = { IDENT ~ ">=" ~ VALUE }
-compGreaterThan = { IDENT ~ ">"  ~ VALUE }
-compLessEqual = { IDENT ~ "<=" ~ VALUE }
-compLessThan = { IDENT ~ "<"  ~ VALUE }
+compEqual = { IDENT ~ EQ ~ VALUE }
+compNotEqual = { IDENT ~ NE ~ VALUE }
+compGreaterEqual = { IDENT ~ GE ~ VALUE }
+compGreaterThan = { IDENT ~ GT  ~ VALUE }
+compLessEqual = { IDENT ~ LE ~ VALUE }
+compLessThan = { IDENT ~ LT  ~ VALUE }
 
 comp = _{
     compEqual
@@ -37,20 +45,24 @@ comp = _{
 }
 
 // Core Language:
+binaryOp = {
+    IDENT ~ SIMPLE_OPERATOR ~ VALUE
+}
+
 assign = {
     IDENT ~ ":=" ~
-    IDENT ~ SIMPLE_OPERATOR ~ VALUE
+    binaryOp
 }
 
 loop_ = {
     "LOOP" ~ IDENT ~ "DO" ~ SEP
-    ~ Terms ~
+    ~ terms ~
     "END"
 }
 
 while_ = {
     "WHILE" ~ compNotEqual ~ "DO" ~ SEP
-    ~ Terms ~
+    ~ terms ~
     "END"
 }
 
@@ -78,14 +90,14 @@ macroAssignToIdentExtOpValue = {
 
 macroIf = {
     "IF" ~ compNotEqual ~ "THEN" ~ SEP
-    ~ Terms ~
+    ~ terms ~
     "END"
 }
 macroIfElse = {
     "IF" ~ compNotEqual ~ "THEN" ~ SEP
-    ~ Terms ~
+    ~ terms ~
     "ELSE" ~ SEP
-    ~ Terms ~
+    ~ terms ~
     "END"
 }
 
@@ -100,16 +112,16 @@ macro_ = _{
 }
 
 // Expression Collection:
-Expression = _{
+expression = _{
     loop_
     | while_
     | assign
     | macro_
 }
 
-Terms = _{
+terms = _{
     NEWLINE* ~
-    Expression ~
-    (SEP ~ Expression)* ~
+    expression ~
+    (SEP ~ expression)* ~
     SEP?
 }
