@@ -1,7 +1,95 @@
 //
 // Created by intellij-pest on 2021-04-26
-// grammar
+// LOOP main grammar as defined theoretical computer science and logic
 // Author: bmahmoud
 //
 
-grammar = { "Hello World!" }
+// Defaults
+WHITESPACE = _{ WHITE_SPACE }
+
+// grammar = { "Hello World!" }
+
+// Terminals:
+IDENTIFIER = { ASCII_ALPHA+ }
+
+OPERATOR = { SIMPLE_OPERATOR |  ADVANCED_OPERATOR}
+SIMPLE_OPERATOR = { "+" | "-" }
+ADVANCED_OPERATOR = { "*" }
+
+VALUE = { ASCII_DIGIT+ }
+EXPRESSION_SEPARATOR = _{ (";" | ";" ~ NEWLINE | NEWLINE) }
+
+// Comparison Collection
+comp_eq = { IDENTIFIER ~ ("=" | "==") ~ VALUE }
+comp_ne = { IDENTIFIER ~ "!=" ~ VALUE }
+comp_ge = { IDENTIFIER ~ ">=" ~ VALUE }
+comp_gt = { IDENTIFIER ~ ">"  ~ VALUE }
+comp_le = { IDENTIFIER ~ "<=" ~ VALUE }
+comp_lt = { IDENTIFIER ~ "<"  ~ VALUE }
+
+COMPARISON = {
+    comp_eq
+    | comp_ne
+}
+
+// Core Language:
+assignment = {
+    IDENTIFIER ~ ":=" ~
+    IDENTIFIER ~ SIMPLE_OPERATOR ~ VALUE
+}
+
+loop_ = {
+    "LOOP" ~ IDENTIFIER ~ "DO"
+    ~ program ~
+    "END"
+}
+
+while_ = {
+    "WHILE" ~ comp_ne ~ "DO"
+    ~ program ~
+    "END"
+}
+
+// macros
+
+macro_set_var_to_var = { IDENTIFIER ~ ":=" ~ IDENTIFIER }
+macro_set_var_to_0 =   { IDENTIFIER ~ ":=" ~ "0" }
+macro_set_var_to_val = { IDENTIFIER ~ ":=" ~ VALUE }
+macro_set_var_to_op_vars = { IDENTIFIER ~ ":=" ~ IDENTIFIER ~ OPERATOR ~ IDENTIFIER }
+macro_set_var_to_adv_var_val = { IDENTIFIER ~ ":=" ~ IDENTIFIER ~ OPERATOR ~ VALUE }
+
+macro_if = {
+    "IF" ~ comp_ne ~ "THEN"
+    ~ program ~
+    "END"
+}
+macro_if_else = {
+    "IF" ~ comp_ne ~ "THEN"
+    ~ program ~
+    "ELSE"
+    ~ program ~
+    "END"
+}
+
+macro_ = {
+    macro_set_var_to_var
+    | macro_set_var_to_0
+    | macro_set_var_to_val
+    | macro_set_var_to_op_vars
+    | macro_set_var_to_adv_var_val
+    | macro_if
+    | macro_if_else
+}
+
+// Expression Collection:
+expression = {
+    ( assignment
+    | loop_
+    | while_
+    | macro_)
+}
+
+program = {
+    expression ~
+    (EXPRESSION_SEPARATOR ~ expression)+
+}
