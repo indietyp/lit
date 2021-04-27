@@ -2,7 +2,11 @@ use num_bigint::BigUint;
 
 use crate::ast::control::Control;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
+use crate::eval::assign::AssignExec;
+use crate::eval::loop_::LoopExec;
+use crate::eval::terms::TermsExec;
 use crate::eval::traits::Executable;
+use crate::eval::while_::WhileExec;
 use crate::types::LineNo;
 
 // Note(bmahmoud): in the future we could also support unary expressions?
@@ -135,7 +139,18 @@ impl Node {
         }
     }
 
-    pub fn executable() -> Box<dyn Executable> {
-        todo!()
+    pub fn executable(&self) -> Box<dyn Executable> {
+        match self {
+            Node::Ident(_)
+            | Node::NaturalNumber(_)
+            | Node::Comparison { .. }
+            | Node::BinaryOp { .. } => panic!(
+                "Cannot create direct executable from Ident, NaturalNumber, BinaryOp or Comparison"
+            ),
+            Node::Assign { .. } => Box::new(AssignExec::new(self.clone())),
+            Node::Control(Control::While { .. }) => Box::new(WhileExec::new(self.clone())),
+            Node::Control(Control::Terms(_)) => Box::new(TermsExec::new(self.clone())),
+            Node::Control(Control::Loop { .. }) => Box::new(LoopExec::new(self.clone())),
+        }
     }
 }

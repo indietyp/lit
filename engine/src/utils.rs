@@ -1,5 +1,6 @@
-use crate::ast::context::CompileContext;
 use rand::Rng;
+
+use crate::ast::context::CompileContext;
 
 pub fn private_identifier(context: &mut CompileContext) -> String {
     let mut rng = rand::thread_rng();

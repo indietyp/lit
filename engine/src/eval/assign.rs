@@ -4,7 +4,7 @@ use crate::eval::traits::Executable;
 use crate::eval::types::{ChangeSet, Variables};
 use crate::types::LineNo;
 
-struct AssignExec {
+pub struct AssignExec {
     lhs: String, // always an ident
     rhs: BinaryOpExec,
 

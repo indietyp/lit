@@ -1,14 +1,15 @@
+use num_bigint::BigUint;
+
 use crate::ast::control::Control;
 use crate::ast::node::Node;
 use crate::eval::traits::Executable;
 use crate::eval::types::{ChangeSet, Variables};
 use crate::types::LineNo;
-use num_bigint::BigUint;
 
-struct LoopExec {
+pub struct LoopExec {
     lno: LineNo,
     ident: String,
-    terms: dyn Executable,
+    terms: Box<dyn Executable>,
 
     init: bool,
 
@@ -19,7 +20,7 @@ struct LoopExec {
 impl Executable for LoopExec {
     fn step(&mut self, locals: &mut Variables) -> Option<(usize, ChangeSet)> {
         // if not init copy the iteration count into our state
-        if !init {
+        if !self.init {
             // count setting our own value as a step -> for introspection;
             self.iters = locals
                 .get(self.ident.as_str())

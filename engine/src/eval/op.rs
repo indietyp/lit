@@ -1,10 +1,12 @@
+use std::fmt::Binary;
+use std::ops::{Add, Sub};
+
+use num_bigint::BigUint;
+
 use crate::ast::node::Node;
 use crate::ast::verbs::OperatorVerb;
 use crate::eval::traits::Executable;
 use crate::eval::types::{ExecutionResult, Variables};
-use num_bigint::BigUint;
-use std::fmt::Binary;
-use std::ops::{Add, Sub};
 
 pub struct BinaryOpExec {
     lhs: String,
@@ -13,7 +15,7 @@ pub struct BinaryOpExec {
 }
 
 impl Executable for BinaryOpExec {
-    fn step(&mut self, locals: &Variables) -> ExecutionResult {
+    fn step(&mut self, locals: &mut Variables) -> Option<ExecutionResult> {
         // You CANNOT step into a BinaryOp, you can only exec()
         panic!("BinaryOpExec cannot step, use exec instead!");
     }

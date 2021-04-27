@@ -6,7 +6,7 @@ use crate::eval::types::{ChangeSet, Variables};
 
 pub struct WhileExec {
     comp: ComparisonExec,
-    terms: dyn Executable,
+    terms: Box<dyn Executable>,
 
     check: bool,
     exhausted: bool, // continue
@@ -45,7 +45,7 @@ impl Executable for WhileExec {
                 lno: _,
             }) => WhileExec {
                 comp: ComparisonExec::new(*comp.clone()),
-                terms: *terms.clone().executable(),
+                terms: terms.clone().executable(),
                 check: true,
                 exhausted: false,
             },

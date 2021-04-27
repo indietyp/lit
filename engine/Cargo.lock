@@ -110,6 +110,7 @@ dependencies = [
  "bitflags",
  "enum-display-derive",
  "num-bigint",
+ "num-traits",
  "pest",
  "pest_derive",
  "rand",

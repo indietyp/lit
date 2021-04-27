@@ -4,7 +4,7 @@ use crate::eval::traits::Executable;
 use crate::eval::types::{ChangeSet, Variables};
 
 pub struct TermsExec {
-    terms: Vec<dyn Executable>,
+    terms: Vec<Box<dyn Executable>>,
 
     ptr: usize,
 }
@@ -16,7 +16,7 @@ impl Executable for TermsExec {
             return None;
         }
 
-        let mut term: dyn Executable = self.terms.get(ptr).unwrap();
+        let mut term = self.terms.get(self.ptr).unwrap();
         let result = term.step(locals);
 
         if result.is_none() {
@@ -40,9 +40,13 @@ impl Executable for TermsExec {
         }
     }
 
-    fn renew(&self) -> Self {
+    fn renew(&self) -> TermsExec {
         TermsExec {
-            terms: self.terms.iter().map(|term| term.renew()).collect(),
+            terms: self
+                .terms
+                .iter()
+                .map(|term| Box::new(term.renew()))
+                .collect(),
             ptr: 0,
         }
     }

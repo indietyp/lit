@@ -3,7 +3,11 @@ use crate::eval::types::{ExecutionResult, Variables};
 
 pub trait Executable {
     fn step(&mut self, locals: &mut Variables) -> Option<ExecutionResult>;
-    fn new(node: Node) -> Self;
+    fn new(node: Node) -> Self
+    where
+        Self: Sized;
 
-    fn renew(&self) -> Self;
+    fn renew(&self) -> Self
+    where
+        Self: Sized;
 }

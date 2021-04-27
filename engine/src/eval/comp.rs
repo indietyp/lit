@@ -1,11 +1,12 @@
+use num_bigint::BigUint;
+
 use crate::ast::node::Node;
 use crate::ast::node::Node::Comparison;
 use crate::ast::verbs::ComparisonVerb;
 use crate::eval::traits::Executable;
 use crate::eval::types::{ChangeSet, Variables};
-use num_bigint::BigUint;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 enum ComparisonSide {
     Ident(String),
     NaturalNumber(BigUint),
@@ -54,11 +55,11 @@ impl ComparisonExec {
     pub fn exec(&self, locals: &Variables) -> bool {
         let lhs = match self.lhs.clone() {
             ComparisonSide::Ident(i) => locals.get(i.as_str()).unwrap_or(&BigUint::zero()),
-            ComparisonSide::NaturalNumber(n) => n,
+            ComparisonSide::NaturalNumber(n) => &n,
         };
         let rhs = match self.rhs.clone() {
             ComparisonSide::Ident(i) => locals.get(i.as_str()).unwrap_or(&BigUint::zero()),
-            ComparisonSide::NaturalNumber(n) => n,
+            ComparisonSide::NaturalNumber(n) => &n,
         };
 
         match self.verb {
