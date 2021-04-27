@@ -1,13 +1,11 @@
-use std::fmt::Binary;
 use std::ops::{Add, Sub};
 
 use num_bigint::BigUint;
 
 use crate::ast::node::Node;
 use crate::ast::verbs::OperatorVerb;
-use crate::eval::traits::Executable;
-use crate::eval::types::{ExecutionResult, Variables};
-use num_traits::Zero;
+use crate::eval::types::Variables;
+use num_traits::{CheckedSub, Zero};
 
 #[derive(Clone)]
 pub struct BinaryOpExec {
@@ -53,7 +51,7 @@ impl BinaryOpExec {
 
         match self.verb {
             OperatorVerb::Plus => lhs.add(self.rhs.clone()),
-            OperatorVerb::Minus => BigUint::zero().min(lhs.sub(self.rhs.clone())),
+            OperatorVerb::Minus => lhs.checked_sub(&self.rhs).unwrap_or_else(BigUint::zero),
             OperatorVerb::Multiply => panic!("You cannot multiply in LOOP/WHILE"),
         }
     }

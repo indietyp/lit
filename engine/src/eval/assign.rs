@@ -1,6 +1,5 @@
 use crate::ast::node::Node;
 use crate::eval::op::BinaryOpExec;
-use crate::eval::traits::Executable;
 use crate::eval::types::{ChangeSet, Variables};
 use crate::types::LineNo;
 
@@ -21,6 +20,7 @@ impl AssignExec {
 
         let value = self.rhs.exec(locals);
         locals.insert(self.lhs.clone(), value);
+        self.exhausted = true;
 
         Some((self.lno.0, vec![self.lhs.clone()]))
     }

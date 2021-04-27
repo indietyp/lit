@@ -2,11 +2,6 @@ use num_bigint::BigUint;
 
 use crate::ast::control::Control;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
-use crate::eval::assign::AssignExec;
-use crate::eval::loop_::LoopExec;
-use crate::eval::terms::TermsExec;
-use crate::eval::traits::Executable;
-use crate::eval::while_::WhileExec;
 use crate::types::LineNo;
 
 // Note(bmahmoud): in the future we could also support unary expressions?

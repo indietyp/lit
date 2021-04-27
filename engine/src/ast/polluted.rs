@@ -1,4 +1,4 @@
-use std::io::empty;
+
 
 use num_bigint::BigUint;
 
@@ -6,10 +6,10 @@ use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::macro_::Macro;
 use crate::ast::node::Node;
-use crate::ast::node::Node::Ident;
+
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::flags::CompilationFlags;
-use crate::utils::{private_identifier, private_random_identifier};
+use crate::utils::{private_identifier};
 
 #[derive(Debug, Clone)]
 pub enum PollutedNode {
@@ -30,7 +30,7 @@ impl PollutedNode {
             PollutedNode::Control(Control::Loop { lno, ident, terms }) => {
                 if context.flags.contains(CompilationFlags::LOOP) {
                     Node::Control(Control::Loop {
-                        lno: lno.clone(),
+                        lno: *lno,
                         ident: Box::new(ident.expand(context)),
                         terms: Box::new(terms.expand(context)),
                     })
@@ -40,13 +40,13 @@ impl PollutedNode {
 
                     Node::Control(Control::Terms(vec![
                         Macro::AssignToIdent {
-                            lno: lno.clone(),
+                            lno: *lno,
                             lhs: Box::new(Node::Ident(tmp1.clone())),
                             rhs: Box::new(ident.clone().expand(context)),
                         }
                         .expand(context),
                         Node::Control(Control::While {
-                            lno: lno.clone(),
+                            lno: *lno,
                             comp: Box::new(Node::Comparison {
                                 lhs: Box::new(Node::Ident(tmp1.clone())),
                                 verb: ComparisonVerb::NotEqual,
@@ -55,10 +55,10 @@ impl PollutedNode {
                             terms: Box::new(Node::Control(Control::Terms(vec![
                                 terms.expand(context),
                                 Node::Assign {
-                                    lno: lno.clone(),
+                                    lno: *lno,
                                     lhs: Box::new(Node::Ident(tmp1.clone())),
                                     rhs: Box::new(Node::BinaryOp {
-                                        lhs: Box::new(Node::Ident(tmp1.clone())),
+                                        lhs: Box::new(Node::Ident(tmp1)),
                                         verb: OperatorVerb::Minus,
                                         rhs: Box::new(Node::NaturalNumber(BigUint::from(1u8))),
                                     }),
@@ -78,7 +78,7 @@ impl PollutedNode {
                 );
 
                 Node::Control(Control::While {
-                    lno: lno.clone(),
+                    lno: *lno,
                     comp: Box::new(comp.expand(context)),
                     terms: Box::new(terms.expand(context)),
                 })

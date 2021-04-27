@@ -2,7 +2,6 @@ use crate::ast::control::Control;
 use crate::ast::node::Node;
 use crate::eval::comp::ComparisonExec;
 use crate::eval::exec::Exec;
-use crate::eval::traits::Executable;
 use crate::eval::types::{ChangeSet, Variables};
 
 pub struct WhileExec {
@@ -20,7 +19,8 @@ impl WhileExec {
         // B) exhaust current terms
         // C) if exhausted set check to true and re-step
         if self.check {
-            self.exhausted = !self.comp.exec(locals)
+            self.exhausted = !self.comp.exec(locals);
+            self.check = false;
         }
 
         if self.exhausted {
@@ -45,8 +45,8 @@ impl WhileExec {
                 terms,
                 lno: _,
             }) => WhileExec {
-                comp: ComparisonExec::new(*comp.clone()),
-                terms: Box::new(Exec::new(*terms.clone())),
+                comp: ComparisonExec::new(*comp),
+                terms: Box::new(Exec::new(*terms)),
                 check: true,
                 exhausted: false,
             },

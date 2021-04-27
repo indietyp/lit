@@ -13,6 +13,7 @@ mod ast;
 mod build;
 mod eval;
 mod flags;
+mod runtime;
 mod types;
 pub mod utils;
 
@@ -21,10 +22,29 @@ pub mod utils;
 pub(crate) struct LoopParser;
 
 fn main() {
-    let source = read_to_string("example.loop").expect("Cannot read example file");
-    let ast = Builder::parse_and_purify(
+    let source = read_to_string("example2.loop").expect("Cannot read example file");
+    println!(
+        "{}",
+        Builder::parse_and_compile(
+            &source,
+            Some(CompilationFlags::WHILE | CompilationFlags::RETAIN_LNO)
+        )
+        .display(4, None)
+    );
+
+    let mut runtime = Builder::all(
         &source,
         Some(CompilationFlags::WHILE | CompilationFlags::RETAIN_LNO),
     );
-    println!("{}", ast.display(4, None))
+
+    // let running = true;
+    while runtime.is_running() {
+        let result = runtime.step();
+        if let Some((lno, _)) = result {
+            let lines = source.lines().collect::<Vec<&str>>();
+            println!("{}: {}", lno, lines.get(lno - 1).unwrap_or(&"<Not Found>"));
+        }
+    }
+
+    println!("{:?}", runtime.context())
 }

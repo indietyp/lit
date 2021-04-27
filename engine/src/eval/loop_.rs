@@ -6,6 +6,7 @@ use crate::eval::exec::Exec;
 use crate::eval::types::{ChangeSet, Variables};
 use crate::types::LineNo;
 use num_traits::Zero;
+use std::ops::AddAssign;
 
 pub struct LoopExec {
     lno: LineNo,
@@ -27,6 +28,7 @@ impl LoopExec {
                 .get(self.ident.as_str())
                 .unwrap_or(&BigUint::zero())
                 .clone();
+            self.init = true;
 
             return Some((self.lno.0, vec![String::from("<internal variable>")]));
         }
@@ -39,12 +41,12 @@ impl LoopExec {
         let result = self.terms.step(locals);
         if result.is_none() {
             self.terms = Box::new(self.terms.renew());
-            self.cur += 1u32;
+            self.cur.add_assign(1u32);
 
             return self.step(locals);
         }
 
-        return result;
+        result
     }
 
     pub fn new(node: Node) -> Self {
@@ -54,7 +56,7 @@ impl LoopExec {
                     Node::Ident(m) => m,
                     _ => unreachable!(),
                 },
-                terms: Box::new(Exec::new(*terms.clone())),
+                terms: Box::new(Exec::new(*terms)),
                 lno,
                 init: false,
                 cur: BigUint::zero(),

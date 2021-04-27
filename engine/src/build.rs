@@ -11,8 +11,10 @@ use crate::ast::macro_::{Macro, MacroAssign};
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
+use crate::eval::exec::Exec;
 use crate::flags::CompilationFlags;
 use crate::pest::Parser;
+use crate::runtime::Runtime;
 use crate::types::LineNo;
 use crate::LoopParser;
 use crate::Rule;
@@ -191,7 +193,7 @@ impl Builder {
                 let mut pair = pair.into_inner();
                 let mut terms = vec![];
 
-                while let Some(term) = pair.next() {
+                for term in pair {
                     terms.push(Builder::build(term))
                 }
 
@@ -216,12 +218,20 @@ impl Builder {
     pub fn compile(ast: &mut Vec<PollutedNode>, flags: Option<CompilationFlags>) -> Node {
         let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
 
-        let mut context = CompileContext::new(flags.unwrap_or(CompilationFlags::default()));
+        let mut context = CompileContext::new(flags.unwrap_or_default());
         // TODO: if flags are new, display then set the new lno
         wrapped.expand(&mut context).flatten()
     }
 
-    pub fn parse_and_purify(source: &str, flags: Option<CompilationFlags>) -> Node {
+    pub fn eval(ast: Node) -> Runtime {
+        Runtime::new(Exec::new(ast))
+    }
+
+    pub fn parse_and_compile(source: &str, flags: Option<CompilationFlags>) -> Node {
         Builder::compile(&mut Builder::parse(source).unwrap(), flags)
+    }
+
+    pub fn all(source: &str, flags: Option<CompilationFlags>) -> Runtime {
+        Builder::eval(Builder::parse_and_compile(source, flags))
     }
 }

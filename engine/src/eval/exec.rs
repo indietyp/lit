@@ -7,7 +7,6 @@ use crate::ast::node::Node;
 use crate::eval::assign::AssignExec;
 use crate::eval::loop_::LoopExec;
 use crate::eval::terms::TermsExec;
-use crate::eval::traits::Executable;
 use crate::eval::types::{ExecutionResult, Variables};
 use crate::eval::while_::WhileExec;
 
@@ -36,10 +35,10 @@ impl Exec {
             | Node::BinaryOp { .. } => panic!(
                 "Cannot create direct executable from Ident, NaturalNumber, BinaryOp or Comparison"
             ),
-            Node::Assign { .. } => Exec::Assign(AssignExec::new(node.clone())),
-            Node::Control(Control::While { .. }) => Exec::While(WhileExec::new(node.clone())),
-            Node::Control(Control::Terms(_)) => Exec::Terms(TermsExec::new(node.clone())),
-            Node::Control(Control::Loop { .. }) => Exec::Loop(LoopExec::new(node.clone())),
+            Node::Assign { .. } => Exec::Assign(AssignExec::new(node)),
+            Node::Control(Control::While { .. }) => Exec::While(WhileExec::new(node)),
+            Node::Control(Control::Terms(_)) => Exec::Terms(TermsExec::new(node)),
+            Node::Control(Control::Loop { .. }) => Exec::Loop(LoopExec::new(node)),
         }
     }
 

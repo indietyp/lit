@@ -1,9 +1,9 @@
 use num_bigint::BigUint;
 
 use crate::ast::node::Node;
-use crate::ast::node::Node::Comparison;
+
 use crate::ast::verbs::ComparisonVerb;
-use crate::eval::traits::Executable;
+
 use crate::eval::types::{ChangeSet, Variables};
 use num_traits::Zero;
 
@@ -54,15 +54,15 @@ impl ComparisonExec {
         let lhs = match self.lhs.clone() {
             ComparisonSide::Ident(i) => locals
                 .get(i.as_str())
-                .map(|i| i.clone())
-                .unwrap_or(BigUint::zero()),
+                .cloned()
+                .unwrap_or_else(BigUint::zero),
             ComparisonSide::NaturalNumber(n) => n,
         };
         let rhs = match self.rhs.clone() {
             ComparisonSide::Ident(i) => locals
                 .get(i.as_str())
-                .map(|i| i.clone())
-                .unwrap_or(BigUint::zero()),
+                .cloned()
+                .unwrap_or_else(BigUint::zero),
             ComparisonSide::NaturalNumber(n) => n,
         };
 
