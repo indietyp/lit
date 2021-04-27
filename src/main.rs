@@ -16,7 +16,7 @@ pub mod utils;
 pub(crate) struct LoopParser;
 
 fn main() {
-    let source = read_to_string("./example.loop").expect("Cannot read example file");
+    let source = read_to_string("example.loop").expect("Cannot read example file");
     let ast = Builder::parse_and_purify(&source);
     println!("{}", ast.display(4, None))
 }
