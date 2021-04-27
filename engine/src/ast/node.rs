@@ -2,6 +2,7 @@ use num_bigint::BigUint;
 
 use crate::ast::control::Control;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
+use crate::eval::traits::Executable;
 use crate::types::LineNo;
 
 // Note(bmahmoud): in the future we could also support unary expressions?
@@ -13,8 +14,8 @@ pub enum Node {
 
     // Assignment and Expressions
     Comparison {
-        verb: ComparisonVerb,
         lhs: Box<Node>,
+        verb: ComparisonVerb,
         rhs: Box<Node>,
     },
     BinaryOp {
@@ -132,5 +133,9 @@ impl Node {
                 prefix = prefix
             )),
         }
+    }
+
+    pub fn executable() -> Box<dyn Executable> {
+        todo!()
     }
 }

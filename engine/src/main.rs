@@ -11,6 +11,7 @@ use crate::flags::CompilationFlags;
 
 mod ast;
 mod build;
+mod eval;
 mod flags;
 mod types;
 pub mod utils;
