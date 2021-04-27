@@ -55,14 +55,14 @@ impl Node {
                             .collect(),
                         Node::Control(Control::Loop { lno, ident, terms }) => {
                             vec![Node::Control(Control::Loop {
-                                lno: lno.clone(),
+                                lno: *lno,
                                 ident: ident.clone(),
                                 terms: Box::new(terms.flatten()),
                             })]
                         }
                         Node::Control(Control::While { lno, comp, terms }) => {
                             vec![Node::Control(Control::While {
-                                lno: lno.clone(),
+                                lno: *lno,
                                 comp: comp.clone(),
                                 terms: Box::new(terms.flatten()),
                             })]
@@ -72,12 +72,12 @@ impl Node {
                     .collect(),
             )),
             Node::Control(Control::Loop { lno, ident, terms }) => Node::Control(Control::Loop {
-                lno: lno.clone(),
+                lno: *lno,
                 ident: ident.clone(),
                 terms: Box::new(terms.flatten()),
             }),
             Node::Control(Control::While { lno, comp, terms }) => Node::Control(Control::While {
-                lno: lno.clone(),
+                lno: *lno,
                 comp: comp.clone(),
                 terms: Box::new(terms.flatten()),
             }),
@@ -93,24 +93,24 @@ impl Node {
         match self {
             Node::Ident(s) => s.clone(),
             Node::NaturalNumber(n) => n.to_string(),
-            Node::Comparison { lhs, verb, rhs } => String::from(format!(
+            Node::Comparison { lhs, verb, rhs } => format!(
                 "{} {} {}",
                 lhs.display(indent, cur),
                 verb.display(),
                 rhs.display(indent, cur)
-            )),
-            Node::BinaryOp { lhs, verb, rhs } => String::from(format!(
+            ),
+            Node::BinaryOp { lhs, verb, rhs } => format!(
                 "{} {} {}",
                 lhs.display(indent, cur),
                 verb.display(),
                 rhs.display(indent, cur)
-            )),
-            Node::Assign { lno: _, lhs, rhs } => String::from(format!(
+            ),
+            Node::Assign { lno: _, lhs, rhs } => format!(
                 "{}{} := {}",
                 prefix,
                 lhs.display(indent, cur),
                 rhs.display(indent, cur)
-            )),
+            ),
             Node::Control(Control::Terms(terms)) => terms
                 .iter()
                 .map(|term| term.display(indent, cur))
@@ -120,37 +120,22 @@ impl Node {
                 lno: _,
                 ident,
                 terms,
-            }) => String::from(format!(
+            }) => format!(
                 "{prefix}LOOP {} DO\n{}\n{prefix}END",
                 ident.display(indent, cur),
                 terms.display(indent, cur.map(|c| c + 1)),
                 prefix = prefix
-            )),
+            ),
             Node::Control(Control::While {
                 lno: _,
                 comp,
                 terms,
-            }) => String::from(format!(
+            }) => format!(
                 "{prefix}WHILE {} DO\n{}\n{prefix}END",
                 comp.display(indent, cur),
                 terms.display(indent, cur.map(|c| c + 1)),
                 prefix = prefix
-            )),
-        }
-    }
-
-    pub fn executable(&self) -> Box<dyn Executable> {
-        match self {
-            Node::Ident(_)
-            | Node::NaturalNumber(_)
-            | Node::Comparison { .. }
-            | Node::BinaryOp { .. } => panic!(
-                "Cannot create direct executable from Ident, NaturalNumber, BinaryOp or Comparison"
             ),
-            Node::Assign { .. } => Box::new(AssignExec::new(self.clone())),
-            Node::Control(Control::While { .. }) => Box::new(WhileExec::new(self.clone())),
-            Node::Control(Control::Terms(_)) => Box::new(TermsExec::new(self.clone())),
-            Node::Control(Control::Loop { .. }) => Box::new(LoopExec::new(self.clone())),
         }
     }
 }

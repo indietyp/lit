@@ -1,22 +1,22 @@
 use crate::ast::control::Control;
 use crate::ast::node::Node;
-use crate::eval::traits::Executable;
+use crate::eval::exec::Exec;
 use crate::eval::types::{ChangeSet, Variables};
 
 pub struct TermsExec {
-    terms: Vec<Box<dyn Executable>>,
+    terms: Vec<Exec>,
 
     ptr: usize,
 }
 
-impl Executable for TermsExec {
-    fn step(&mut self, locals: &mut Variables) -> Option<(usize, ChangeSet)> {
+impl TermsExec {
+    pub fn step(&mut self, locals: &mut Variables) -> Option<(usize, ChangeSet)> {
         // try single one, until exhausted, then increment ptr and just re-call ourselves
         if self.ptr >= self.terms.len() {
             return None;
         }
 
-        let mut term = self.terms.get(self.ptr).unwrap();
+        let term = self.terms.get_mut(self.ptr).unwrap();
         let result = term.step(locals);
 
         if result.is_none() {
@@ -27,23 +27,20 @@ impl Executable for TermsExec {
         result
     }
 
-    fn new(node: Node) -> Self {
+    pub fn new(node: Node) -> Self {
         match node {
             Node::Control(Control::Terms(terms)) => TermsExec {
-                terms: terms
-                    .iter()
-                    .map(|term| &term.executable().clone())
-                    .collect(),
+                terms: terms.iter().map(|term| Exec::new(term.clone())).collect(),
                 ptr: 0,
             },
             _ => unreachable!(),
         }
     }
 
-    fn reset(&mut self) {
-        self.ptr = 0;
-        for mut term in self.terms {
-            term.reset();
+    pub fn renew(&self) -> Self {
+        TermsExec {
+            terms: self.terms.iter().map(|term| term.renew()).collect(),
+            ptr: 0,
         }
     }
 }

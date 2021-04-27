@@ -9,19 +9,15 @@ use crate::eval::traits::Executable;
 use crate::eval::types::{ExecutionResult, Variables};
 use num_traits::Zero;
 
+#[derive(Clone)]
 pub struct BinaryOpExec {
     lhs: String,
     verb: OperatorVerb,
     rhs: BigUint,
 }
 
-impl Executable for BinaryOpExec {
-    fn step(&mut self, locals: &mut Variables) -> Option<ExecutionResult> {
-        // You CANNOT step into a BinaryOp, you can only exec()
-        panic!("BinaryOpExec cannot step, use exec instead!");
-    }
-
-    fn new(node: Node) -> Self {
+impl BinaryOpExec {
+    pub fn new(node: Node) -> Self {
         // The type narrowing is done already elsewhere, not _super_ clean, but good enough
         match node {
             Node::BinaryOp { lhs, verb, rhs } => BinaryOpExec {
@@ -39,7 +35,13 @@ impl Executable for BinaryOpExec {
         }
     }
 
-    fn reset(&mut self) {}
+    pub fn renew(&self) -> Self {
+        BinaryOpExec {
+            lhs: self.lhs.clone(),
+            verb: self.verb.clone(),
+            rhs: self.rhs.clone(),
+        }
+    }
 }
 
 impl BinaryOpExec {

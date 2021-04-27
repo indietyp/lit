@@ -4,6 +4,7 @@ use crate::eval::traits::Executable;
 use crate::eval::types::{ChangeSet, Variables};
 use crate::types::LineNo;
 
+#[derive(Clone)]
 pub struct AssignExec {
     lhs: String, // always an ident
     rhs: BinaryOpExec,
@@ -12,8 +13,8 @@ pub struct AssignExec {
     exhausted: bool,
 }
 
-impl Executable for AssignExec {
-    fn step(&mut self, locals: &mut Variables) -> Option<(usize, ChangeSet)> {
+impl AssignExec {
+    pub fn step(&mut self, locals: &mut Variables) -> Option<(usize, ChangeSet)> {
         if self.exhausted {
             return None;
         }
@@ -24,7 +25,7 @@ impl Executable for AssignExec {
         Some((self.lno.0, vec![self.lhs.clone()]))
     }
 
-    fn new(node: Node) -> Self {
+    pub fn new(node: Node) -> Self {
         match node {
             Node::Assign { lhs, rhs, lno } => AssignExec {
                 lhs: match *lhs {
@@ -39,8 +40,12 @@ impl Executable for AssignExec {
         }
     }
 
-    fn reset(&mut self) {
-        self.rhs.reset();
-        self.exhausted = false;
+    pub fn renew(&self) -> Self {
+        AssignExec {
+            lhs: self.lhs.clone(),
+            rhs: self.rhs.renew(),
+            lno: self.lno,
+            exhausted: false,
+        }
     }
 }

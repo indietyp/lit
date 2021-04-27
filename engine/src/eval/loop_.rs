@@ -2,7 +2,7 @@ use num_bigint::BigUint;
 
 use crate::ast::control::Control;
 use crate::ast::node::Node;
-use crate::eval::traits::Executable;
+use crate::eval::exec::Exec;
 use crate::eval::types::{ChangeSet, Variables};
 use crate::types::LineNo;
 use num_traits::Zero;
@@ -10,7 +10,7 @@ use num_traits::Zero;
 pub struct LoopExec {
     lno: LineNo,
     ident: String,
-    terms: Box<dyn Executable>,
+    terms: Box<Exec>,
 
     init: bool,
 
@@ -18,8 +18,8 @@ pub struct LoopExec {
     iters: BigUint,
 }
 
-impl Executable for LoopExec {
-    fn step(&mut self, locals: &mut Variables) -> Option<(usize, ChangeSet)> {
+impl LoopExec {
+    pub fn step(&mut self, locals: &mut Variables) -> Option<(usize, ChangeSet)> {
         // if not init copy the iteration count into our state
         if !self.init {
             // count setting our own value as a step -> for introspection;
@@ -38,7 +38,7 @@ impl Executable for LoopExec {
 
         let result = self.terms.step(locals);
         if result.is_none() {
-            self.terms.reset();
+            self.terms = Box::new(self.terms.renew());
             self.cur += 1u32;
 
             return self.step(locals);
@@ -47,14 +47,14 @@ impl Executable for LoopExec {
         return result;
     }
 
-    fn new(node: Node) -> Self {
+    pub fn new(node: Node) -> Self {
         match node {
             Node::Control(Control::Loop { lno, ident, terms }) => LoopExec {
                 ident: match *ident {
                     Node::Ident(m) => m,
                     _ => unreachable!(),
                 },
-                terms: terms.executable(),
+                terms: Box::new(Exec::new(*terms.clone())),
                 lno,
                 init: false,
                 cur: BigUint::zero(),
@@ -64,11 +64,15 @@ impl Executable for LoopExec {
         }
     }
 
-    fn reset(&mut self) {
-        self.terms.reset();
+    pub fn renew(&self) -> Self {
+        LoopExec {
+            lno: self.lno,
+            ident: self.ident.clone(),
+            terms: Box::new(self.terms.renew()),
 
-        self.init = false;
-        self.cur = BigUint::zero();
-        self.iters = BigUint::zero();
+            init: false,
+            cur: BigUint::zero(),
+            iters: BigUint::zero(),
+        }
     }
 }
