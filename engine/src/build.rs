@@ -5,6 +5,7 @@ use num_bigint::BigUint;
 use pest::error::Error;
 use pest::iterators::{Pair, Pairs};
 
+use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::macro_::{Macro, MacroAssign};
 use crate::ast::node::Node;
@@ -215,10 +216,9 @@ impl Builder {
     pub fn compile(ast: &mut Vec<PollutedNode>, flags: Option<CompilationFlags>) -> Node {
         let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
 
+        let context = CompileContext::new(flags.unwrap_or(CompilationFlags::default()));
         // TODO: if flags are new, display then set the new lno
-        wrapped
-            .expand(flags.unwrap_or(CompilationFlags::default()))
-            .flatten()
+        wrapped.expand(context).flatten()
     }
 
     pub fn parse_and_purify(source: &str, flags: Option<CompilationFlags>) -> Node {

@@ -2,6 +2,7 @@ use std::io::empty;
 
 use num_bigint::BigUint;
 
+use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::macro_::Macro;
 use crate::ast::node::Node;
@@ -20,22 +21,20 @@ pub enum PollutedNode {
 }
 
 impl PollutedNode {
-    pub fn expand(&self, flags: CompilationFlags) -> Node {
-        let flags = flags.clone();
-
+    pub fn expand(&self, context: CompileContext) -> Node {
         match self {
             // Control Nodes
             PollutedNode::Control(Control::Terms(t)) => Node::Control(Control::Terms(
-                t.iter().map(|term| term.expand(flags)).collect(),
+                t.iter().map(|term| term.expand(context)).collect(),
             )),
             PollutedNode::Control(Control::Loop { lno, ident, terms }) => {
-                if flags.contains(CompilationFlags::LOOP) {
+                if context.flags.contains(CompilationFlags::LOOP) {
                     Node::Control(Control::Loop {
                         lno: lno.clone(),
-                        ident: Box::new(ident.expand(flags)),
-                        terms: Box::new(terms.expand(flags)),
+                        ident: Box::new(ident.expand(context)),
+                        terms: Box::new(terms.expand(context)),
                     })
-                } else if flags.contains(CompilationFlags::WHILE) {
+                } else if context.flags.contains(CompilationFlags::WHILE) {
                     // rewrite as WHILE
                     let tmp1 = private_random_identifier();
 
@@ -43,9 +42,9 @@ impl PollutedNode {
                         Macro::AssignToIdent {
                             lno: lno.clone(),
                             lhs: Box::new(Node::Ident(tmp1.clone())),
-                            rhs: Box::new(ident.clone().expand(flags)),
+                            rhs: Box::new(ident.clone().expand(context)),
                         }
-                        .expand(flags),
+                        .expand(context),
                         Node::Control(Control::While {
                             lno: lno.clone(),
                             comp: Box::new(Node::Comparison {
@@ -54,7 +53,7 @@ impl PollutedNode {
                                 rhs: Box::new(Node::NaturalNumber(BigUint::from(0u8))),
                             }),
                             terms: Box::new(Node::Control(Control::Terms(vec![
-                                terms.expand(flags),
+                                terms.expand(context),
                                 Node::Assign {
                                     lno: lno.clone(),
                                     lhs: Box::new(Node::Ident(tmp1.clone())),
@@ -74,19 +73,19 @@ impl PollutedNode {
 
             PollutedNode::Control(Control::While { lno, comp, terms }) => {
                 assert!(
-                    flags.contains(CompilationFlags::WHILE),
+                    context.contains(CompilationFlags::WHILE),
                     "Cannot replicate WHILE in LOOP mode!",
                 );
 
                 Node::Control(Control::While {
                     lno: lno.clone(),
-                    comp: Box::new(comp.expand(flags)),
-                    terms: Box::new(terms.expand(flags)),
+                    comp: Box::new(comp.expand(context)),
+                    terms: Box::new(terms.expand(context)),
                 })
             }
             PollutedNode::NoOp => Node::Control(Control::Terms(vec![])),
             PollutedNode::Pure(n) => n.clone(),
-            PollutedNode::Macro(m) => m.expand(flags),
+            PollutedNode::Macro(m) => m.expand(context),
         }
     }
 }

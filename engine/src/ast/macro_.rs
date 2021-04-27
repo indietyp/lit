@@ -1,5 +1,6 @@
 use num_bigint::BigUint;
 
+use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
@@ -76,7 +77,7 @@ impl Macro {
         }
     }
 
-    pub fn expand(&self, flags: CompilationFlags) -> Node {
+    pub fn expand(&self, context: CompileContext) -> Node {
         match self {
             Macro::AssignToIdent { lno, lhs, rhs } => Node::Assign {
                 lno: lno.clone(),
@@ -102,13 +103,13 @@ impl Macro {
                     }),
                 ]))),
             })
-            .expand(flags),
+            .expand(context),
             Macro::AssignToValue { lno, lhs, rhs } => Node::Control(Control::Terms(vec![
                 Macro::AssignToZero {
                     lno: lno.clone(),
                     lhs: lhs.clone(),
                 }
-                .expand(flags),
+                .expand(context),
                 Node::Assign {
                     lno: lno.clone(),
                     lhs: lhs.clone(),
@@ -125,7 +126,7 @@ impl Macro {
                     lhs: lhs.clone(),
                     rhs: rhs.lhs.clone(),
                 }
-                .expand(flags),
+                .expand(context),
                 PollutedNode::Control(Control::Loop {
                     lno: lno.clone(),
                     ident: Box::new(PollutedNode::Pure(*rhs.rhs.clone())),
@@ -141,14 +142,14 @@ impl Macro {
                         }),
                     ]))),
                 })
-                .expand(flags),
+                .expand(context),
             ])),
             Macro::AssignToOpExtIdent { lno, lhs, rhs } => Node::Control(Control::Terms(vec![
                 Macro::AssignToZero {
                     lno: lno.clone(),
                     lhs: lhs.clone(),
                 }
-                .expand(flags),
+                .expand(context),
                 PollutedNode::Control(Control::Loop {
                     lno: lno.clone(),
                     ident: Box::new(PollutedNode::Pure(*rhs.lhs.clone())),
@@ -164,7 +165,7 @@ impl Macro {
                         }),
                     ]))),
                 })
-                .expand(flags),
+                .expand(context),
             ])),
             Macro::AssignToOpExtValue { lno, lhs, rhs } => {
                 let tmp = private_random_identifier();
@@ -175,7 +176,7 @@ impl Macro {
                         lhs: Box::new(Node::Ident(tmp.clone())),
                         rhs: rhs.rhs.clone(),
                     }
-                    .expand(flags),
+                    .expand(context),
                     Macro::AssignToOpExtIdent {
                         lno: lno.clone(),
                         lhs: lhs.clone(),
@@ -185,7 +186,7 @@ impl Macro {
                             rhs: Box::new(Node::Ident(tmp.clone())),
                         },
                     }
-                    .expand(flags),
+                    .expand(context),
                 ]))
             }
             Macro::If { lno, comp, terms } => {
@@ -206,18 +207,18 @@ impl Macro {
                             PollutedNode::Macro(self.expand_assign_to_value(
                                 tmp.clone(),
                                 1,
-                                flags,
+                                context,
                                 lno.clone(),
                             )),
                         ]))),
                     })
-                    .expand(flags),
+                    .expand(context),
                     PollutedNode::Control(Control::Loop {
                         lno: lno.clone(),
                         ident: Box::new(PollutedNode::Pure(Node::Ident(tmp.clone()))),
                         terms: terms.clone(),
                     })
-                    .expand(flags),
+                    .expand(context),
                 ]))
             }
             Macro::IfElse {
@@ -259,14 +260,14 @@ impl Macro {
                             },
                         },
                     }
-                    .expand(flags),
+                    .expand(context),
                     Macro::AssignToZero {
                         lno: lno.clone(),
                         lhs: Box::new(Node::Ident(tmp2.clone())),
                     }
-                    .expand(flags),
-                    self.expand_assign_to_value(tmp3.clone(), 1, flags, lno.clone())
-                        .expand(flags),
+                    .expand(context),
+                    self.expand_assign_to_value(tmp3.clone(), 1, context, lno.clone())
+                        .expand(context),
                     PollutedNode::Control(Control::Loop {
                         lno: lno.clone(),
                         ident: Box::new(PollutedNode::Pure(Node::Ident(tmp1.clone()))),
@@ -274,7 +275,7 @@ impl Macro {
                             PollutedNode::Macro(self.expand_assign_to_value(
                                 tmp2.clone(),
                                 1,
-                                flags,
+                                context,
                                 lno.clone(),
                             )),
                             PollutedNode::Macro(Macro::AssignToZero {
@@ -283,19 +284,19 @@ impl Macro {
                             }),
                         ]))),
                     })
-                    .expand(flags),
+                    .expand(context),
                     PollutedNode::Control(Control::Loop {
                         lno: lno.clone(),
                         ident: Box::new(PollutedNode::Pure(Node::Ident(tmp2.clone()))),
                         terms: if_terms.clone(),
                     })
-                    .expand(flags),
+                    .expand(context),
                     PollutedNode::Control(Control::Loop {
                         lno: lno.clone(),
                         ident: Box::new(PollutedNode::Pure(Node::Ident(tmp3.clone()))),
                         terms: else_terms.clone(),
                     })
-                    .expand(flags),
+                    .expand(context),
                 ]))
             }
         }
