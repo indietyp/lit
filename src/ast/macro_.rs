@@ -2,8 +2,7 @@ use crate::ast::control::Control;
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::OperatorVerb;
-use crate::{Control, Node, PollutedNode};
-use lit::random_identifier;
+use crate::utils::private_random_identifier;
 use num_bigint::BigUint;
 
 // This is a shorthand for the Node::Assign,
@@ -109,7 +108,7 @@ impl Macro {
                     terms: Box::new(Node::Control(Control::Terms(vec![
                         Macro::AssignToOpIdent {
                             lhs: lhs.clone(),
-                            rhs: MacroBinaryAssignOperation {
+                            rhs: MacroAssign {
                                 lhs: lhs.clone(),
                                 verb: OperatorVerb::Plus,
                                 rhs: rhs.rhs.clone(),
@@ -120,7 +119,7 @@ impl Macro {
                 }),
             ])),
             Macro::AssignToOpExtValue { lhs, rhs } => {
-                let mut tmp = random_identifier();
+                let tmp = private_random_identifier();
 
                 Node::Control(Control::Terms(vec![
                     Macro::AssignToValue {
@@ -130,7 +129,7 @@ impl Macro {
                     .purify(),
                     Macro::AssignToOpExtIdent {
                         lhs: lhs.clone(),
-                        rhs: MacroBinaryAssignOperation {
+                        rhs: MacroAssign {
                             lhs: rhs.lhs.clone(),
                             verb: rhs.verb.clone(),
                             rhs: Box::new(Node::Ident(tmp.clone())),
@@ -140,12 +139,16 @@ impl Macro {
                 ]))
             }
             Macro::If { comp, terms } => {
-                let mut tmp = random_identifier();
+                let tmp = private_random_identifier();
 
                 Node::Control(Control::Terms(vec![
                     Node::Control(Control::Loop {
                         ident: match *comp.clone() {
-                            Node::Comparison { lhs, verb, rhs } => lhs.clone(),
+                            Node::Comparison {
+                                lhs,
+                                verb: _,
+                                rhs: _,
+                            } => lhs.clone(),
                             _ => panic!("Unexpected argument for identifier."),
                         },
                         terms: Box::new(Node::Control(Control::Terms(vec![
@@ -167,15 +170,15 @@ impl Macro {
                 if_terms,
                 else_terms,
             } => {
-                let mut tmp1 = random_identifier();
-                let mut tmp2 = random_identifier();
-                let mut tmp3 = random_identifier();
+                let tmp1 = private_random_identifier();
+                let tmp2 = private_random_identifier();
+                let tmp3 = private_random_identifier();
 
                 // TODO: implement other things than > ?
                 Node::Control(Control::Terms(vec![
                     Macro::AssignToOpIdent {
                         lhs: Box::new(Node::Ident(tmp1.clone())),
-                        rhs: MacroBinaryAssignOperation {
+                        rhs: MacroAssign {
                             lhs: match *comp.clone() {
                                 Node::Comparison {
                                     lhs,
@@ -233,7 +236,6 @@ impl Macro {
                     }),
                 ]))
             }
-            _ => panic!("Macro currently not implemented"),
         }
     }
 }

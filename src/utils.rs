@@ -1,4 +1,4 @@
-use rand::{random, Rng};
+use rand::Rng;
 
 pub fn private_random_identifier() -> String {
     let mut rng = rand::thread_rng();

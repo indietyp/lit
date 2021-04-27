@@ -9,6 +9,7 @@ use crate::ast::macro_::{Macro, MacroAssign};
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
+use crate::pest::Parser;
 use crate::LoopParser;
 use crate::Rule;
 use pest::error::Error;
@@ -112,7 +113,7 @@ impl Builder {
 
                 PollutedNode::Macro(Macro::AssignToOpIdent {
                     lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
-                    rhs: Builder::build_macro_assign(pairs),
+                    rhs: Builder::build_macro_assign(&mut pair),
                 })
             }
             Rule::macroAssignToIdentExtOpIdent => {
@@ -120,14 +121,14 @@ impl Builder {
 
                 PollutedNode::Macro(Macro::AssignToOpExtIdent {
                     lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
-                    rhs: Builder::build_macro_assign(pairs),
+                    rhs: Builder::build_macro_assign(&mut pair),
                 })
             }
             Rule::macroAssignToIdentExtOpValue => {
                 let mut pair = pair.into_inner();
 
                 PollutedNode::Macro(Macro::AssignToOpExtValue {
-                    lhs: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
+                    lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
                     rhs: Builder::build_macro_assign(&mut pair),
                 })
             }
@@ -135,17 +136,17 @@ impl Builder {
                 let mut pair = pair.into_inner();
 
                 PollutedNode::Macro(Macro::If {
-                    comp: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-                    terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
+                    comp: Box::new(Builder::build_pure(pair.next().unwrap())),
+                    terms: Box::new(Builder::build(pair.next().unwrap())),
                 })
             }
             Rule::macroIfElse => {
                 let mut pair = pair.into_inner();
 
                 PollutedNode::Macro(Macro::IfElse {
-                    comp: Box::new(build_pure_ast_from_expression(pair.next().unwrap())),
-                    if_terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
-                    else_terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
+                    comp: Box::new(Builder::build_pure(pair.next().unwrap())),
+                    if_terms: Box::new(Builder::build(pair.next().unwrap())),
+                    else_terms: Box::new(Builder::build(pair.next().unwrap())),
                 })
             }
 
@@ -154,16 +155,16 @@ impl Builder {
                 let mut pair = pair.into_inner();
 
                 PollutedNode::Control(Control::Loop {
-                    ident: Box::new(build_ast_from_expression(pair.next().unwrap())),
-                    terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
+                    ident: Box::new(Builder::build(pair.next().unwrap())),
+                    terms: Box::new(Builder::build(pair.next().unwrap())),
                 })
             }
             Rule::while_ => {
                 let mut pair = pair.into_inner();
 
                 PollutedNode::Control(Control::While {
-                    comp: Box::new(build_ast_from_expression(pair.next().unwrap())),
-                    terms: Box::new(build_ast_from_expression(pair.next().unwrap())),
+                    comp: Box::new(Builder::build(pair.next().unwrap())),
+                    terms: Box::new(Builder::build(pair.next().unwrap())),
                 })
             }
             Rule::terms => {
@@ -171,13 +172,13 @@ impl Builder {
                 let mut terms = vec![];
 
                 while let Some(term) = pair.next() {
-                    terms.push(build_ast_from_expression(term))
+                    terms.push(Builder::build(term))
                 }
 
                 PollutedNode::Control(Control::Terms(terms))
             }
             Rule::EOI => PollutedNode::NoOp,
-            _ => PollutedNode::Pure(build_pure_ast_from_expression(pair)),
+            _ => PollutedNode::Pure(Builder::build_pure(pair)),
         }
     }
 
@@ -196,5 +197,9 @@ impl Builder {
         let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
 
         wrapped.purify().flatten()
+    }
+
+    pub fn parse_and_purify(source: &str) -> Node {
+        Builder::purify(&mut Builder::parse(source).unwrap())
     }
 }

@@ -31,7 +31,6 @@ impl PollutedNode {
             PollutedNode::NoOp => Node::Control(Control::Terms(vec![])),
             PollutedNode::Pure(n) => n.clone(),
             PollutedNode::Macro(m) => m.purify(),
-            _ => panic!("Cannot Purify!"),
         }
     }
 }
