@@ -39,13 +39,7 @@ impl Executable for BinaryOpExec {
         }
     }
 
-    fn renew(&self) -> Box<BinaryOpExec> {
-        Box::new(BinaryOpExec {
-            lhs: self.lhs.clone(),
-            verb: self.verb.clone(),
-            rhs: self.rhs.clone(),
-        })
-    }
+    fn reset(&mut self) {}
 }
 
 impl BinaryOpExec {

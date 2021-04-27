@@ -28,7 +28,7 @@ impl Executable for WhileExec {
 
         let value = self.terms.step(locals);
         if value.is_none() {
-            self.terms = self.terms.renew();
+            self.terms.reset();
             self.check = true;
 
             return self.step(locals);
@@ -53,12 +53,11 @@ impl Executable for WhileExec {
         }
     }
 
-    fn renew(&self) -> Box<dyn Executable> {
-        Box::new(WhileExec {
-            comp: self.comp.renew(),
-            terms: self.terms.renew(),
-            check: true,
-            exhausted: false,
-        })
+    fn reset(&mut self) {
+        self.comp.reset();
+        self.terms.reset();
+
+        self.check = true;
+        self.exhausted = false;
     }
 }

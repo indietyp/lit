@@ -43,13 +43,7 @@ impl Executable for ComparisonExec {
         }
     }
 
-    fn renew(&self) -> Box<Self> {
-        Box::new(ComparisonExec {
-            lhs: self.lhs.clone(),
-            verb: self.verb.clone(),
-            rhs: self.rhs.clone(),
-        })
-    }
+    fn reset(&mut self) {}
 }
 
 impl ComparisonExec {

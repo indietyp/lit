@@ -7,7 +7,6 @@ use crate::eval::types::{ChangeSet, Variables};
 use crate::types::LineNo;
 use num_traits::Zero;
 
-
 pub struct LoopExec {
     lno: LineNo,
     ident: String,
@@ -39,7 +38,7 @@ impl Executable for LoopExec {
 
         let result = self.terms.step(locals);
         if result.is_none() {
-            self.terms = self.terms.renew();
+            self.terms.reset();
             self.cur += 1u32;
 
             return self.step(locals);
@@ -65,14 +64,11 @@ impl Executable for LoopExec {
         }
     }
 
-    fn renew(&self) -> Box<dyn Executable> {
-        Box::new(LoopExec {
-            ident: self.ident.clone(),
-            terms: self.terms.renew(),
-            lno: self.lno,
-            init: false,
-            cur: BigUint::zero(),
-            iters: BigUint::zero(),
-        })
+    fn reset(&mut self) {
+        self.terms.reset();
+
+        self.init = false;
+        self.cur = BigUint::zero();
+        self.iters = BigUint::zero();
     }
 }

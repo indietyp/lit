@@ -7,5 +7,5 @@ pub trait Executable {
     where
         Self: Sized;
 
-    fn renew(&self) -> Box<dyn Executable>;
+    fn reset(&mut self);
 }

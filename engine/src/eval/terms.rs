@@ -40,14 +40,10 @@ impl Executable for TermsExec {
         }
     }
 
-    fn renew(&self) -> Box<dyn Executable> {
-        Box::new(TermsExec {
-            terms: self
-                .terms
-                .iter()
-                .map(|term| term.renew())
-                .collect(),
-            ptr: 0,
-        })
+    fn reset(&mut self) {
+        self.ptr = 0;
+        for mut term in self.terms {
+            term.reset();
+        }
     }
 }
