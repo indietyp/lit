@@ -51,7 +51,7 @@ pub enum Macro {
 }
 
 impl Macro {
-    pub fn purify(&self) -> Node {
+    pub fn expand(&self) -> Node {
         match self {
             Macro::AssignToIdent { lhs, rhs } => Node::Assign {
                 lhs: lhs.clone(),
@@ -73,7 +73,7 @@ impl Macro {
                 }]))),
             }),
             Macro::AssignToValue { lhs, rhs } => Node::Control(Control::Terms(vec![
-                Macro::AssignToZero { lhs: lhs.clone() }.purify(),
+                Macro::AssignToZero { lhs: lhs.clone() }.expand(),
                 Node::Assign {
                     lhs: lhs.clone(),
                     rhs: Box::new(Node::BinaryOp {
@@ -88,7 +88,7 @@ impl Macro {
                     lhs: lhs.clone(),
                     rhs: rhs.lhs.clone(),
                 }
-                .purify(),
+                .expand(),
                 Node::Control(Control::Loop {
                     ident: rhs.rhs.clone(),
                     terms: Box::new(Node::Control(Control::Terms(vec![Node::Assign {
@@ -102,7 +102,7 @@ impl Macro {
                 }),
             ])),
             Macro::AssignToOpExtIdent { lhs, rhs } => Node::Control(Control::Terms(vec![
-                Macro::AssignToZero { lhs: lhs.clone() }.purify(),
+                Macro::AssignToZero { lhs: lhs.clone() }.expand(),
                 Node::Control(Control::Loop {
                     ident: rhs.lhs.clone(),
                     terms: Box::new(Node::Control(Control::Terms(vec![
@@ -114,7 +114,7 @@ impl Macro {
                                 rhs: rhs.rhs.clone(),
                             },
                         }
-                        .purify(),
+                        .expand(),
                     ]))),
                 }),
             ])),
@@ -126,7 +126,7 @@ impl Macro {
                         lhs: Box::new(Node::Ident(tmp.clone())),
                         rhs: rhs.rhs.clone(),
                     }
-                    .purify(),
+                    .expand(),
                     Macro::AssignToOpExtIdent {
                         lhs: lhs.clone(),
                         rhs: MacroAssign {
@@ -135,7 +135,7 @@ impl Macro {
                             rhs: Box::new(Node::Ident(tmp.clone())),
                         },
                     }
-                    .purify(),
+                    .expand(),
                 ]))
             }
             Macro::If { comp, terms } => {
@@ -156,12 +156,12 @@ impl Macro {
                                 lhs: Box::new(Node::Ident(tmp.clone())),
                                 rhs: Box::new(Node::NaturalNumber(BigUint::from(1u32))),
                             }
-                            .purify(),
+                            .expand(),
                         ]))),
                     }),
                     Node::Control(Control::Loop {
                         ident: Box::new(Node::Ident(tmp.clone())),
-                        terms: Box::new(terms.clone().purify()),
+                        terms: Box::new(terms.clone().expand()),
                     }),
                 ]))
             }
@@ -202,16 +202,16 @@ impl Macro {
                             },
                         },
                     }
-                    .purify(),
+                    .expand(),
                     Macro::AssignToZero {
                         lhs: Box::new(Node::Ident(tmp2.clone())),
                     }
-                    .purify(),
+                    .expand(),
                     Macro::AssignToValue {
                         lhs: Box::new(Node::Ident(tmp3.clone())),
                         rhs: Box::new(Node::NaturalNumber(BigUint::from(1u32))),
                     }
-                    .purify(),
+                    .expand(),
                     Node::Control(Control::Loop {
                         ident: Box::new(Node::Ident(tmp1.clone())),
                         terms: Box::new(Node::Control(Control::Terms(vec![
@@ -219,20 +219,20 @@ impl Macro {
                                 lhs: Box::new(Node::Ident(tmp2.clone())),
                                 rhs: Box::new(Node::NaturalNumber(BigUint::from(1u32))),
                             }
-                            .purify(),
+                            .expand(),
                             Macro::AssignToZero {
                                 lhs: Box::new(Node::Ident(tmp3.clone())),
                             }
-                            .purify(),
+                            .expand(),
                         ]))),
                     }),
                     Node::Control(Control::Loop {
                         ident: Box::new(Node::Ident(tmp2.clone())),
-                        terms: Box::new(if_terms.purify()),
+                        terms: Box::new(if_terms.expand()),
                     }),
                     Node::Control(Control::Loop {
                         ident: Box::new(Node::Ident(tmp3.clone())),
-                        terms: Box::new(else_terms.purify()),
+                        terms: Box::new(else_terms.expand()),
                     }),
                 ]))
             }

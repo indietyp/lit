@@ -9,6 +9,7 @@ use crate::build::Builder;
 
 mod ast;
 mod build;
+mod flags;
 pub mod utils;
 
 #[derive(Parser)]

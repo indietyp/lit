@@ -193,13 +193,13 @@ impl Builder {
         Ok(ast)
     }
 
-    pub fn purify(ast: &mut Vec<PollutedNode>) -> Node {
+    pub fn compile(ast: &mut Vec<PollutedNode>) -> Node {
         let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
 
-        wrapped.purify().flatten()
+        wrapped.expand().flatten()
     }
 
     pub fn parse_and_purify(source: &str) -> Node {
-        Builder::purify(&mut Builder::parse(source).unwrap())
+        Builder::compile(&mut Builder::parse(source).unwrap())
     }
 }
