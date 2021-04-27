@@ -7,7 +7,7 @@ use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::OperatorVerb;
 use crate::flags::CompilationFlags;
 use crate::types::LineNo;
-use crate::utils::private_random_identifier;
+use crate::utils::{private_identifier, private_random_identifier};
 
 // This is a shorthand for the Node::Assign,
 // I would love to make this one go away, but I have no idea how.
@@ -63,13 +63,7 @@ pub enum Macro {
 }
 
 impl Macro {
-    fn expand_assign_to_value(
-        &self,
-        ident: String,
-        value: u32,
-        flags: CompilationFlags,
-        lno: LineNo,
-    ) -> Macro {
+    fn expand_assign_to_value(&self, ident: String, value: u32, lno: LineNo) -> Macro {
         Macro::AssignToValue {
             lno: lno.clone(),
             lhs: Box::new(Node::Ident(ident.clone())),
@@ -77,7 +71,7 @@ impl Macro {
         }
     }
 
-    pub fn expand(&self, context: CompileContext) -> Node {
+    pub fn expand(&self, context: &mut CompileContext) -> Node {
         match self {
             Macro::AssignToIdent { lno, lhs, rhs } => Node::Assign {
                 lno: lno.clone(),
@@ -168,7 +162,7 @@ impl Macro {
                 .expand(context),
             ])),
             Macro::AssignToOpExtValue { lno, lhs, rhs } => {
-                let tmp = private_random_identifier();
+                let tmp = private_identifier(context);
 
                 Node::Control(Control::Terms(vec![
                     Macro::AssignToValue {
@@ -190,7 +184,7 @@ impl Macro {
                 ]))
             }
             Macro::If { lno, comp, terms } => {
-                let tmp = private_random_identifier();
+                let tmp = private_identifier(context);
 
                 Node::Control(Control::Terms(vec![
                     PollutedNode::Control(Control::Loop {
@@ -207,7 +201,6 @@ impl Macro {
                             PollutedNode::Macro(self.expand_assign_to_value(
                                 tmp.clone(),
                                 1,
-                                context,
                                 lno.clone(),
                             )),
                         ]))),
@@ -227,9 +220,9 @@ impl Macro {
                 if_terms,
                 else_terms,
             } => {
-                let tmp1 = private_random_identifier();
-                let tmp2 = private_random_identifier();
-                let tmp3 = private_random_identifier();
+                let tmp1 = private_identifier(context);
+                let tmp2 = private_identifier(context);
+                let tmp3 = private_identifier(context);
 
                 // TODO: implement other things than > ?
                 Node::Control(Control::Terms(vec![
@@ -266,7 +259,7 @@ impl Macro {
                         lhs: Box::new(Node::Ident(tmp2.clone())),
                     }
                     .expand(context),
-                    self.expand_assign_to_value(tmp3.clone(), 1, context, lno.clone())
+                    self.expand_assign_to_value(tmp3.clone(), 1, lno.clone())
                         .expand(context),
                     PollutedNode::Control(Control::Loop {
                         lno: lno.clone(),
@@ -275,7 +268,6 @@ impl Macro {
                             PollutedNode::Macro(self.expand_assign_to_value(
                                 tmp2.clone(),
                                 1,
-                                context,
                                 lno.clone(),
                             )),
                             PollutedNode::Macro(Macro::AssignToZero {

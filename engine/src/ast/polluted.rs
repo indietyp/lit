@@ -9,7 +9,7 @@ use crate::ast::node::Node;
 use crate::ast::node::Node::Ident;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::flags::CompilationFlags;
-use crate::utils::private_random_identifier;
+use crate::utils::{private_identifier, private_random_identifier};
 
 #[derive(Debug, Clone)]
 pub enum PollutedNode {
@@ -21,7 +21,7 @@ pub enum PollutedNode {
 }
 
 impl PollutedNode {
-    pub fn expand(&self, context: CompileContext) -> Node {
+    pub fn expand(&self, context: &mut CompileContext) -> Node {
         match self {
             // Control Nodes
             PollutedNode::Control(Control::Terms(t)) => Node::Control(Control::Terms(
@@ -36,7 +36,7 @@ impl PollutedNode {
                     })
                 } else if context.flags.contains(CompilationFlags::WHILE) {
                     // rewrite as WHILE
-                    let tmp1 = private_random_identifier();
+                    let tmp1 = private_identifier(context);
 
                     Node::Control(Control::Terms(vec![
                         Macro::AssignToIdent {
@@ -73,7 +73,7 @@ impl PollutedNode {
 
             PollutedNode::Control(Control::While { lno, comp, terms }) => {
                 assert!(
-                    context.contains(CompilationFlags::WHILE),
+                    context.flags.contains(CompilationFlags::WHILE),
                     "Cannot replicate WHILE in LOOP mode!",
                 );
 

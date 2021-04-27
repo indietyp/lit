@@ -216,9 +216,9 @@ impl Builder {
     pub fn compile(ast: &mut Vec<PollutedNode>, flags: Option<CompilationFlags>) -> Node {
         let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
 
-        let context = CompileContext::new(flags.unwrap_or(CompilationFlags::default()));
+        let mut context = CompileContext::new(flags.unwrap_or(CompilationFlags::default()));
         // TODO: if flags are new, display then set the new lno
-        wrapped.expand(context).flatten()
+        wrapped.expand(&mut context).flatten()
     }
 
     pub fn parse_and_purify(source: &str, flags: Option<CompilationFlags>) -> Node {
