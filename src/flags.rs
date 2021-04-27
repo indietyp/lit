@@ -1,5 +1,4 @@
 bitflags! {
-    #[derive(Debug, Clone)]
     pub struct CompilationFlags: u8 {
         // Language Features
         const LOOP       = 0b0000_0001;

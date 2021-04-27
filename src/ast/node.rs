@@ -1,5 +1,6 @@
 use crate::ast::control::Control;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
+use crate::types::LineNo;
 use num_bigint::BigUint;
 
 // Note(bmahmoud): in the future we could also support unary expressions?
@@ -16,11 +17,12 @@ pub enum Node {
         rhs: Box<Node>,
     },
     BinaryOp {
-        verb: OperatorVerb,
         lhs: Box<Node>,
+        verb: OperatorVerb,
         rhs: Box<Node>,
     },
     Assign {
+        lno: LineNo,
         lhs: Box<Node>,
         rhs: Box<Node>,
     },
@@ -45,14 +47,16 @@ impl Node {
                                 }
                             })
                             .collect(),
-                        Node::Control(Control::Loop { ident, terms }) => {
+                        Node::Control(Control::Loop { lno, ident, terms }) => {
                             vec![Node::Control(Control::Loop {
+                                lno: lno.clone(),
                                 ident: ident.clone(),
                                 terms: Box::new(terms.flatten()),
                             })]
                         }
-                        Node::Control(Control::While { comp, terms }) => {
+                        Node::Control(Control::While { lno, comp, terms }) => {
                             vec![Node::Control(Control::While {
+                                lno: lno.clone(),
                                 comp: comp.clone(),
                                 terms: Box::new(terms.flatten()),
                             })]
@@ -61,11 +65,13 @@ impl Node {
                     })
                     .collect(),
             )),
-            Node::Control(Control::Loop { ident, terms }) => Node::Control(Control::Loop {
+            Node::Control(Control::Loop { lno, ident, terms }) => Node::Control(Control::Loop {
+                lno: lno.clone(),
                 ident: ident.clone(),
                 terms: Box::new(terms.flatten()),
             }),
-            Node::Control(Control::While { comp, terms }) => Node::Control(Control::While {
+            Node::Control(Control::While { lno, comp, terms }) => Node::Control(Control::While {
+                lno: lno.clone(),
                 comp: comp.clone(),
                 terms: Box::new(terms.flatten()),
             }),
@@ -93,7 +99,7 @@ impl Node {
                 verb.display(),
                 rhs.display(indent, cur)
             )),
-            Node::Assign { lhs, rhs } => String::from(format!(
+            Node::Assign { lno: _, lhs, rhs } => String::from(format!(
                 "{}{} := {}",
                 prefix,
                 lhs.display(indent, cur),
@@ -104,13 +110,21 @@ impl Node {
                 .map(|term| term.display(indent, cur))
                 .collect::<Vec<String>>()
                 .join("\n"),
-            Node::Control(Control::Loop { ident, terms }) => String::from(format!(
+            Node::Control(Control::Loop {
+                lno: _,
+                ident,
+                terms,
+            }) => String::from(format!(
                 "{prefix}LOOP {} DO\n{}\n{prefix}END",
                 ident.display(indent, cur),
                 terms.display(indent, cur.map(|c| c + 1)),
                 prefix = prefix
             )),
-            Node::Control(Control::While { comp, terms }) => String::from(format!(
+            Node::Control(Control::While {
+                lno: _,
+                comp,
+                terms,
+            }) => String::from(format!(
                 "{prefix}WHILE {} DO\n{}\n{prefix}END",
                 comp.display(indent, cur),
                 terms.display(indent, cur.map(|c| c + 1)),

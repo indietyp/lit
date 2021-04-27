@@ -9,7 +9,9 @@ use crate::ast::macro_::{Macro, MacroAssign};
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
+use crate::flags::CompilationFlags;
 use crate::pest::Parser;
+use crate::types::LineNo;
 use crate::LoopParser;
 use crate::Rule;
 use pest::error::Error;
@@ -18,6 +20,9 @@ pub struct Builder {}
 
 impl Builder {
     fn build_pure(pair: Pair<Rule>) -> Node {
+        let span = pair.as_span();
+        let lno: LineNo = (span.start_pos().line_col().0, span.end_pos().line_col().1);
+
         match pair.as_rule() {
             // Terminal Encoding
             Rule::IDENT => Node::Ident(String::from(pair.as_str())),
@@ -63,6 +68,7 @@ impl Builder {
                 let mut pair = pair.into_inner();
 
                 Node::Assign {
+                    lno,
                     lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
                     rhs: Box::new(Builder::build_pure(pair.next().unwrap())),
                 }
@@ -83,12 +89,16 @@ impl Builder {
     }
 
     fn build(pair: Pair<Rule>) -> PollutedNode {
+        let span = pair.as_span();
+        let lno: LineNo = (span.start_pos().line_col().0, span.end_pos().line_col().1);
+
         match pair.as_rule() {
             // Macros
             Rule::macroAssignToIdent => {
                 let mut pair = pair.into_inner();
 
                 PollutedNode::Macro(Macro::AssignToIdent {
+                    lno,
                     lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
                     rhs: Box::new(Builder::build_pure(pair.next().unwrap())),
                 })
@@ -97,6 +107,7 @@ impl Builder {
                 let mut pair = pair.into_inner();
 
                 PollutedNode::Macro(Macro::AssignToZero {
+                    lno,
                     lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
                 })
             }
@@ -104,6 +115,7 @@ impl Builder {
                 let mut pair = pair.into_inner();
 
                 PollutedNode::Macro(Macro::AssignToValue {
+                    lno,
                     lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
                     rhs: Box::new(Builder::build_pure(pair.next().unwrap())),
                 })
@@ -112,22 +124,25 @@ impl Builder {
                 let mut pair = pair.into_inner();
 
                 PollutedNode::Macro(Macro::AssignToOpIdent {
+                    lno,
                     lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
                     rhs: Builder::build_macro_assign(&mut pair),
                 })
             }
             Rule::macroAssignToIdentExtOpIdent => {
-                let mut pair = pair.into_inner();
+                let mut pairs = pair.into_inner();
 
                 PollutedNode::Macro(Macro::AssignToOpExtIdent {
-                    lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
-                    rhs: Builder::build_macro_assign(&mut pair),
+                    lno,
+                    lhs: Box::new(Builder::build_pure(pairs.next().unwrap())),
+                    rhs: Builder::build_macro_assign(&mut pairs),
                 })
             }
             Rule::macroAssignToIdentExtOpValue => {
                 let mut pair = pair.into_inner();
 
                 PollutedNode::Macro(Macro::AssignToOpExtValue {
+                    lno,
                     lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
                     rhs: Builder::build_macro_assign(&mut pair),
                 })
@@ -136,6 +151,7 @@ impl Builder {
                 let mut pair = pair.into_inner();
 
                 PollutedNode::Macro(Macro::If {
+                    lno,
                     comp: Box::new(Builder::build_pure(pair.next().unwrap())),
                     terms: Box::new(Builder::build(pair.next().unwrap())),
                 })
@@ -144,6 +160,7 @@ impl Builder {
                 let mut pair = pair.into_inner();
 
                 PollutedNode::Macro(Macro::IfElse {
+                    lno,
                     comp: Box::new(Builder::build_pure(pair.next().unwrap())),
                     if_terms: Box::new(Builder::build(pair.next().unwrap())),
                     else_terms: Box::new(Builder::build(pair.next().unwrap())),
@@ -155,6 +172,7 @@ impl Builder {
                 let mut pair = pair.into_inner();
 
                 PollutedNode::Control(Control::Loop {
+                    lno,
                     ident: Box::new(Builder::build(pair.next().unwrap())),
                     terms: Box::new(Builder::build(pair.next().unwrap())),
                 })
@@ -163,6 +181,7 @@ impl Builder {
                 let mut pair = pair.into_inner();
 
                 PollutedNode::Control(Control::While {
+                    lno,
                     comp: Box::new(Builder::build(pair.next().unwrap())),
                     terms: Box::new(Builder::build(pair.next().unwrap())),
                 })
@@ -193,13 +212,16 @@ impl Builder {
         Ok(ast)
     }
 
-    pub fn compile(ast: &mut Vec<PollutedNode>) -> Node {
+    pub fn compile(ast: &mut Vec<PollutedNode>, flags: Option<CompilationFlags>) -> Node {
         let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
 
-        wrapped.expand().flatten()
+        // TODO: if flags are new, display then set the new lno
+        wrapped
+            .expand(flags.unwrap_or(CompilationFlags::default()))
+            .flatten()
     }
 
-    pub fn parse_and_purify(source: &str) -> Node {
-        Builder::compile(&mut Builder::parse(source).unwrap())
+    pub fn parse_and_purify(source: &str, flags: Option<CompilationFlags>) -> Node {
+        Builder::compile(&mut Builder::parse(source).unwrap(), flags)
     }
 }
