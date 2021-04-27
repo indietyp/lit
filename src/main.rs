@@ -3,6 +3,9 @@ extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
+#[macro_use]
+extern crate bitflags;
+
 use std::fs::read_to_string;
 
 use crate::build::Builder;
