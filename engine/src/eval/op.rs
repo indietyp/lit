@@ -7,6 +7,7 @@ use crate::ast::node::Node;
 use crate::ast::verbs::OperatorVerb;
 use crate::eval::traits::Executable;
 use crate::eval::types::{ExecutionResult, Variables};
+use num_traits::Zero;
 
 pub struct BinaryOpExec {
     lhs: String,
@@ -38,12 +39,12 @@ impl Executable for BinaryOpExec {
         }
     }
 
-    fn renew(&self) -> Self {
-        BinaryOpExec {
+    fn renew(&self) -> Box<BinaryOpExec> {
+        Box::new(BinaryOpExec {
             lhs: self.lhs.clone(),
             verb: self.verb.clone(),
             rhs: self.rhs.clone(),
-        }
+        })
     }
 }
 

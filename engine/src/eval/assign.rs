@@ -39,12 +39,12 @@ impl Executable for AssignExec {
         }
     }
 
-    fn renew(&self) -> Self {
-        AssignExec {
+    fn renew(&self) -> Box<Self> {
+        Box::new(AssignExec {
             lhs: self.lhs.clone(),
-            rhs: self.rhs.renew(),
+            rhs: *self.rhs.renew(),
             lno: self.lno,
             exhausted: false,
-        }
+        })
     }
 }

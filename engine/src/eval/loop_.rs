@@ -5,6 +5,8 @@ use crate::ast::node::Node;
 use crate::eval::traits::Executable;
 use crate::eval::types::{ChangeSet, Variables};
 use crate::types::LineNo;
+use num_traits::Zero;
+
 
 pub struct LoopExec {
     lno: LineNo,
@@ -38,7 +40,7 @@ impl Executable for LoopExec {
         let result = self.terms.step(locals);
         if result.is_none() {
             self.terms = self.terms.renew();
-            self.cur += 1;
+            self.cur += 1u32;
 
             return self.step(locals);
         }
@@ -49,7 +51,7 @@ impl Executable for LoopExec {
     fn new(node: Node) -> Self {
         match node {
             Node::Control(Control::Loop { lno, ident, terms }) => LoopExec {
-                ident: match ident {
+                ident: match *ident {
                     Node::Ident(m) => m,
                     _ => unreachable!(),
                 },
@@ -63,14 +65,14 @@ impl Executable for LoopExec {
         }
     }
 
-    fn renew(&self) -> Self {
-        LoopExec {
+    fn renew(&self) -> Box<dyn Executable> {
+        Box::new(LoopExec {
             ident: self.ident.clone(),
             terms: self.terms.renew(),
             lno: self.lno,
             init: false,
             cur: BigUint::zero(),
             iters: BigUint::zero(),
-        }
+        })
     }
 }

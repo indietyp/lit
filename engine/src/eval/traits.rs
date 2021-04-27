@@ -7,7 +7,5 @@ pub trait Executable {
     where
         Self: Sized;
 
-    fn renew(&self) -> Self
-    where
-        Self: Sized;
+    fn renew(&self) -> Box<dyn Executable>;
 }

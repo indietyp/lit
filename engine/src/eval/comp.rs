@@ -5,6 +5,7 @@ use crate::ast::node::Node::Comparison;
 use crate::ast::verbs::ComparisonVerb;
 use crate::eval::traits::Executable;
 use crate::eval::types::{ChangeSet, Variables};
+use num_traits::Zero;
 
 #[derive(Debug, Clone)]
 enum ComparisonSide {
@@ -42,12 +43,12 @@ impl Executable for ComparisonExec {
         }
     }
 
-    fn renew(&self) -> Self {
-        ComparisonExec {
+    fn renew(&self) -> Box<Self> {
+        Box::new(ComparisonExec {
             lhs: self.lhs.clone(),
             verb: self.verb.clone(),
             rhs: self.rhs.clone(),
-        }
+        })
     }
 }
 
