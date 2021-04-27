@@ -4,6 +4,16 @@ use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::OperatorVerb;
 use crate::{Control, Node, PollutedNode};
 use lit::random_identifier;
+use num_bigint::BigUint;
+
+// This is a shorthand for the Node::Assign,
+// I would love to make this one go away, but I have no idea how.
+#[derive(Debug, Clone)]
+pub struct MacroAssign {
+    pub lhs: Box<Node>,
+    pub verb: OperatorVerb,
+    pub rhs: Box<Node>,
+}
 
 #[derive(Debug, Clone)]
 pub enum Macro {
@@ -20,15 +30,15 @@ pub enum Macro {
     },
     AssignToOpIdent {
         lhs: Box<Node>,
-        rhs: Box<Node>, // this needs to be an assign node
+        rhs: MacroAssign,
     },
     AssignToOpExtIdent {
         lhs: Box<Node>,
-        rhs: Box<Node>, // this needs to be an assign node
+        rhs: MacroAssign,
     },
     AssignToOpExtValue {
         lhs: Box<Node>,
-        rhs: Box<Node>, // this needs to be an assign node
+        rhs: MacroAssign,
     },
     If {
         comp: Box<Node>,
