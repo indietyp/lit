@@ -1,79 +1,9 @@
-use std::fmt::Display;
-use std::ops::Deref;
-
-use num_bigint::BigUint;
-
+use crate::ast::control::Control;
+use crate::ast::node::Node;
+use crate::ast::polluted::PollutedNode;
+use crate::ast::verbs::OperatorVerb;
+use crate::{Control, Node, PollutedNode};
 use lit::random_identifier;
-
-use crate::ast::Node::{BinaryOp, Ident, NaturalNumber};
-
-#[derive(Debug, Clone)]
-pub enum ComparisonVerb {
-    Equal,
-    NotEqual,
-    GreaterThan,
-    GreaterThanEqual,
-    LessThan,
-    LessThanEqual,
-}
-
-impl ComparisonVerb {
-    pub fn from(verb: &str) -> Self {
-        match verb {
-            "=" | "==" => ComparisonVerb::Equal,
-            "!=" => ComparisonVerb::NotEqual,
-            ">" => ComparisonVerb::GreaterThan,
-            ">=" => ComparisonVerb::GreaterThanEqual,
-            "<" => ComparisonVerb::LessThan,
-            "<=" => ComparisonVerb::LessThanEqual,
-            _ => panic!("Currently do not support comparison operator {}.", verb),
-        }
-    }
-
-    pub fn display(&self) -> String {
-        String::from(match self {
-            ComparisonVerb::Equal => "==",
-            ComparisonVerb::NotEqual => "!=",
-            ComparisonVerb::GreaterThan => ">",
-            ComparisonVerb::GreaterThanEqual => ">=",
-            ComparisonVerb::LessThan => "<",
-            ComparisonVerb::LessThanEqual => "<=",
-        })
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum OperatorVerb {
-    Plus,
-    Minus,
-    Multiply,
-}
-
-impl OperatorVerb {
-    pub fn from(verb: &str) -> Self {
-        match verb {
-            "+" => OperatorVerb::Plus,
-            "-" => OperatorVerb::Minus,
-            "*" => OperatorVerb::Multiply,
-            _ => panic!("Currently do not support specified operator {}", verb),
-        }
-    }
-
-    pub fn display(&self) -> String {
-        String::from(match self {
-            OperatorVerb::Plus => "+",
-            OperatorVerb::Minus => "-",
-            OperatorVerb::Multiply => "*",
-        })
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct MacroBinaryAssignOperation {
-    pub lhs: Box<Node>,
-    pub verb: OperatorVerb,
-    pub rhs: Box<Node>,
-}
 
 #[derive(Debug, Clone)]
 pub enum Macro {
@@ -90,15 +20,15 @@ pub enum Macro {
     },
     AssignToOpIdent {
         lhs: Box<Node>,
-        rhs: MacroBinaryAssignOperation,
+        rhs: Box<Node>, // this needs to be an assign node
     },
     AssignToOpExtIdent {
         lhs: Box<Node>,
-        rhs: MacroBinaryAssignOperation,
+        rhs: Box<Node>, // this needs to be an assign node
     },
     AssignToOpExtValue {
         lhs: Box<Node>,
-        rhs: MacroBinaryAssignOperation,
+        rhs: Box<Node>, // this needs to be an assign node
     },
     If {
         comp: Box<Node>,
@@ -116,7 +46,7 @@ impl Macro {
         match self {
             Macro::AssignToIdent { lhs, rhs } => Node::Assign {
                 lhs: lhs.clone(),
-                rhs: Box::new(BinaryOp {
+                rhs: Box::new(Node::BinaryOp {
                     verb: OperatorVerb::Plus,
                     lhs: rhs.clone(),
                     rhs: Box::new(Node::NaturalNumber(BigUint::from(0u32))),
@@ -126,7 +56,7 @@ impl Macro {
                 ident: lhs.clone(),
                 terms: Box::new(Node::Control(Control::Terms(vec![Node::Assign {
                     lhs: lhs.clone(),
-                    rhs: Box::new(BinaryOp {
+                    rhs: Box::new(Node::BinaryOp {
                         verb: OperatorVerb::Minus,
                         lhs: lhs.clone(),
                         rhs: Box::new(Node::NaturalNumber(BigUint::from(1u32))),
@@ -137,7 +67,7 @@ impl Macro {
                 Macro::AssignToZero { lhs: lhs.clone() }.purify(),
                 Node::Assign {
                     lhs: lhs.clone(),
-                    rhs: Box::new(BinaryOp {
+                    rhs: Box::new(Node::BinaryOp {
                         lhs: lhs.clone(),
                         rhs: rhs.clone(),
                         verb: OperatorVerb::Plus,
@@ -154,7 +84,7 @@ impl Macro {
                     ident: rhs.rhs.clone(),
                     terms: Box::new(Node::Control(Control::Terms(vec![Node::Assign {
                         lhs: lhs.clone(),
-                        rhs: Box::new(BinaryOp {
+                        rhs: Box::new(Node::BinaryOp {
                             lhs: lhs.clone(),
                             rhs: Box::new(Node::NaturalNumber(BigUint::from(1u32))),
                             verb: rhs.verb.clone(),
@@ -181,6 +111,7 @@ impl Macro {
             ])),
             Macro::AssignToOpExtValue { lhs, rhs } => {
                 let mut tmp = random_identifier();
+
                 Node::Control(Control::Terms(vec![
                     Macro::AssignToValue {
                         lhs: Box::new(Node::Ident(tmp.clone())),
@@ -296,173 +227,3 @@ impl Macro {
         }
     }
 }
-
-// Control Structures have in their body potentially
-// polluted information, these need to changed/unpolluted via
-// macro expansion
-#[derive(Debug, Clone)]
-pub enum Control<TNode> {
-    Terms(Vec<TNode>),
-    Loop {
-        ident: Box<TNode>,
-        terms: Box<TNode>,
-    },
-    While {
-        comp: Box<TNode>,
-        terms: Box<TNode>,
-    },
-}
-
-// TODO: UnaryExpression?
-#[derive(Debug, Clone)]
-pub enum Node {
-    // Smallest Units
-    Ident(String),
-    NaturalNumber(BigUint),
-
-    // Assignment and Expressions
-    Comparison {
-        verb: ComparisonVerb,
-        lhs: Box<Node>,
-        rhs: Box<Node>,
-    },
-    BinaryOp {
-        verb: OperatorVerb,
-        lhs: Box<Node>,
-        rhs: Box<Node>,
-    },
-    Assign {
-        lhs: Box<Node>,
-        rhs: Box<Node>,
-    },
-    Control(Control<Node>),
-}
-
-impl Node {
-    pub fn flatten(&self) -> Node {
-        match self {
-            Node::Control(Control::Terms(terms)) => Node::Control(Control::Terms(
-                terms
-                    .iter()
-                    .flat_map(|node| match node {
-                        Node::Control(Control::Terms(t)) => t
-                            .iter()
-                            .flat_map(|term| {
-                                let flat = term.flatten();
-
-                                match flat {
-                                    Node::Control(Control::Terms(t)) => t,
-                                    _ => vec![flat],
-                                }
-                            })
-                            .collect(),
-                        Node::Control(Control::Loop { ident, terms }) => {
-                            vec![Node::Control(Control::Loop {
-                                ident: ident.clone(),
-                                terms: Box::new(terms.flatten()),
-                            })]
-                        }
-                        Node::Control(Control::While { comp, terms }) => {
-                            vec![Node::Control(Control::While {
-                                comp: comp.clone(),
-                                terms: Box::new(terms.flatten()),
-                            })]
-                        }
-                        _ => vec![node.clone()],
-                    })
-                    .collect(),
-            )),
-            Node::Control(Control::Loop { ident, terms }) => Node::Control(Control::Loop {
-                ident: ident.clone(),
-                terms: Box::new(terms.flatten()),
-            }),
-            Node::Control(Control::While { comp, terms }) => Node::Control(Control::While {
-                comp: comp.clone(),
-                terms: Box::new(terms.flatten()),
-            }),
-            _ => self.clone(),
-        }
-    }
-
-    /* Display human friendly representation */
-    pub fn display(&self, indent: u8, cur: Option<u8>) -> String {
-        let cur = cur.or(Some(0));
-        let prefix = " ".repeat((indent * cur.unwrap()) as usize);
-
-        match self {
-            Node::Ident(s) => s.clone(),
-            Node::NaturalNumber(n) => n.to_string(),
-            Node::Comparison { lhs, verb, rhs } => String::from(format!(
-                "{} {} {}",
-                lhs.display(indent, cur),
-                verb.display(),
-                rhs.display(indent, cur)
-            )),
-            Node::BinaryOp { lhs, verb, rhs } => String::from(format!(
-                "{} {} {}",
-                lhs.display(indent, cur),
-                verb.display(),
-                rhs.display(indent, cur)
-            )),
-            Node::Assign { lhs, rhs } => String::from(format!(
-                "{}{} := {}",
-                prefix,
-                lhs.display(indent, cur),
-                rhs.display(indent, cur)
-            )),
-            Node::Control(Control::Terms(terms)) => terms
-                .iter()
-                .map(|term| term.display(indent, cur))
-                .collect::<Vec<String>>()
-                .join("\n"),
-            Node::Control(Control::Loop { ident, terms }) => String::from(format!(
-                "{prefix}LOOP {} DO\n{}\n{prefix}END",
-                ident.display(indent, cur),
-                terms.display(indent, cur.map(|c| c + 1)),
-                prefix = prefix
-            )),
-            Node::Control(Control::While { comp, terms }) => String::from(format!(
-                "{prefix}WHILE {} DO\n{}\n{prefix}END",
-                comp.display(indent, cur),
-                terms.display(indent, cur.map(|c| c + 1)),
-                prefix = prefix
-            )),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub enum PollutedNode {
-    Pure(Node),
-    Macro(Macro),
-    NoOp,
-
-    Control(Control<PollutedNode>),
-}
-
-impl PollutedNode {
-    pub fn purify(&self) -> Node {
-        match self {
-            // Control Nodes
-            PollutedNode::Control(Control::Terms(t)) => {
-                Node::Control(Control::Terms(t.iter().map(|term| term.purify()).collect()))
-            }
-            PollutedNode::Control(Control::Loop { ident, terms }) => Node::Control(Control::Loop {
-                ident: Box::new(ident.purify()),
-                terms: Box::new(terms.purify()),
-            }),
-            PollutedNode::Control(Control::While { comp, terms }) => {
-                Node::Control(Control::While {
-                    comp: Box::new(comp.purify()),
-                    terms: Box::new(terms.purify()),
-                })
-            }
-            PollutedNode::NoOp => Node::Control(Control::Terms(vec![])),
-            PollutedNode::Pure(n) => n.clone(),
-            PollutedNode::Macro(m) => m.purify(),
-            _ => panic!("Cannot Purify!"),
-        }
-    }
-}
-
-// TODO: flatten method
