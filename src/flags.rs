@@ -5,7 +5,7 @@ bitflags! {
         const WHILE      = 0b0000_0010;
 
         // Runtime Features
-        const RETAIN_LNO = 0b1000_0001;
+        const RETAIN_LNO = 0b0001_0000;
 
         // Compound Enum
         const LOOP_AND_WHILE = Self::LOOP.bits | Self::WHILE.bits;

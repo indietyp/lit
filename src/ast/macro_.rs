@@ -1,3 +1,5 @@
+use num_bigint::BigUint;
+
 use crate::ast::control::Control;
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
@@ -5,7 +7,6 @@ use crate::ast::verbs::OperatorVerb;
 use crate::flags::CompilationFlags;
 use crate::types::LineNo;
 use crate::utils::private_random_identifier;
-use num_bigint::BigUint;
 
 // This is a shorthand for the Node::Assign,
 // I would love to make this one go away, but I have no idea how.
@@ -67,13 +68,12 @@ impl Macro {
         value: u32,
         flags: CompilationFlags,
         lno: LineNo,
-    ) -> Node {
+    ) -> Macro {
         Macro::AssignToValue {
             lno: lno.clone(),
             lhs: Box::new(Node::Ident(ident.clone())),
             rhs: Box::new(Node::NaturalNumber(BigUint::from(value))),
         }
-        .expand(flags)
     }
 
     pub fn expand(&self, flags: CompilationFlags) -> Node {
@@ -87,19 +87,22 @@ impl Macro {
                     rhs: Box::new(Node::NaturalNumber(BigUint::from(0u32))),
                 }),
             },
-            Macro::AssignToZero { lno, lhs } => Node::Control(Control::Loop {
+            Macro::AssignToZero { lno, lhs } => PollutedNode::Control(Control::Loop {
                 lno: lno.clone(),
-                ident: lhs.clone(),
-                terms: Box::new(Node::Control(Control::Terms(vec![Node::Assign {
-                    lno: lno.clone(),
-                    lhs: lhs.clone(),
-                    rhs: Box::new(Node::BinaryOp {
-                        verb: OperatorVerb::Minus,
+                ident: Box::new(PollutedNode::Pure(*lhs.clone())),
+                terms: Box::new(PollutedNode::Control(Control::Terms(vec![
+                    PollutedNode::Pure(Node::Assign {
+                        lno: lno.clone(),
                         lhs: lhs.clone(),
-                        rhs: Box::new(Node::NaturalNumber(BigUint::from(1u32))),
+                        rhs: Box::new(Node::BinaryOp {
+                            verb: OperatorVerb::Minus,
+                            lhs: lhs.clone(),
+                            rhs: Box::new(Node::NaturalNumber(BigUint::from(1u32))),
+                        }),
                     }),
-                }]))),
-            }),
+                ]))),
+            })
+            .expand(flags),
             Macro::AssignToValue { lno, lhs, rhs } => Node::Control(Control::Terms(vec![
                 Macro::AssignToZero {
                     lno: lno.clone(),
@@ -123,19 +126,22 @@ impl Macro {
                     rhs: rhs.lhs.clone(),
                 }
                 .expand(flags),
-                Node::Control(Control::Loop {
+                PollutedNode::Control(Control::Loop {
                     lno: lno.clone(),
-                    ident: rhs.rhs.clone(),
-                    terms: Box::new(Node::Control(Control::Terms(vec![Node::Assign {
-                        lno: lno.clone(),
-                        lhs: lhs.clone(),
-                        rhs: Box::new(Node::BinaryOp {
+                    ident: Box::new(PollutedNode::Pure(*rhs.rhs.clone())),
+                    terms: Box::new(PollutedNode::Control(Control::Terms(vec![
+                        PollutedNode::Pure(Node::Assign {
+                            lno: lno.clone(),
                             lhs: lhs.clone(),
-                            rhs: Box::new(Node::NaturalNumber(BigUint::from(1u32))),
-                            verb: rhs.verb.clone(),
+                            rhs: Box::new(Node::BinaryOp {
+                                lhs: lhs.clone(),
+                                rhs: Box::new(Node::NaturalNumber(BigUint::from(1u32))),
+                                verb: rhs.verb.clone(),
+                            }),
                         }),
-                    }]))),
-                }),
+                    ]))),
+                })
+                .expand(flags),
             ])),
             Macro::AssignToOpExtIdent { lno, lhs, rhs } => Node::Control(Control::Terms(vec![
                 Macro::AssignToZero {
@@ -143,11 +149,11 @@ impl Macro {
                     lhs: lhs.clone(),
                 }
                 .expand(flags),
-                Node::Control(Control::Loop {
+                PollutedNode::Control(Control::Loop {
                     lno: lno.clone(),
-                    ident: rhs.lhs.clone(),
-                    terms: Box::new(Node::Control(Control::Terms(vec![
-                        Macro::AssignToOpIdent {
+                    ident: Box::new(PollutedNode::Pure(*rhs.lhs.clone())),
+                    terms: Box::new(PollutedNode::Control(Control::Terms(vec![
+                        PollutedNode::Macro(Macro::AssignToOpIdent {
                             lno: lno.clone(),
                             lhs: lhs.clone(),
                             rhs: MacroAssign {
@@ -155,10 +161,10 @@ impl Macro {
                                 verb: OperatorVerb::Plus,
                                 rhs: rhs.rhs.clone(),
                             },
-                        }
-                        .expand(flags),
+                        }),
                     ]))),
-                }),
+                })
+                .expand(flags),
             ])),
             Macro::AssignToOpExtValue { lno, lhs, rhs } => {
                 let tmp = private_random_identifier();
@@ -186,25 +192,32 @@ impl Macro {
                 let tmp = private_random_identifier();
 
                 Node::Control(Control::Terms(vec![
-                    Node::Control(Control::Loop {
+                    PollutedNode::Control(Control::Loop {
                         lno: lno.clone(),
                         ident: match *comp.clone() {
                             Node::Comparison {
                                 lhs,
                                 verb: _,
                                 rhs: _,
-                            } => lhs.clone(),
+                            } => Box::new(PollutedNode::Pure(*lhs.clone().clone())),
                             _ => panic!("Unexpected argument for identifier."),
                         },
-                        terms: Box::new(Node::Control(Control::Terms(vec![
-                            self.expand_assign_to_value(tmp.clone(), 1, flags, lno.clone())
+                        terms: Box::new(PollutedNode::Control(Control::Terms(vec![
+                            PollutedNode::Macro(self.expand_assign_to_value(
+                                tmp.clone(),
+                                1,
+                                flags,
+                                lno.clone(),
+                            )),
                         ]))),
-                    }),
-                    Node::Control(Control::Loop {
+                    })
+                    .expand(flags),
+                    PollutedNode::Control(Control::Loop {
                         lno: lno.clone(),
-                        ident: Box::new(Node::Ident(tmp.clone())),
-                        terms: Box::new(terms.clone().expand(flags)),
-                    }),
+                        ident: Box::new(PollutedNode::Pure(Node::Ident(tmp.clone()))),
+                        terms: terms.clone(),
+                    })
+                    .expand(flags),
                 ]))
             }
             Macro::IfElse {
@@ -252,29 +265,37 @@ impl Macro {
                         lhs: Box::new(Node::Ident(tmp2.clone())),
                     }
                     .expand(flags),
-                    self.expand_assign_to_value(tmp3.clone(), 1, flags, lno.clone()),
-                    Node::Control(Control::Loop {
+                    self.expand_assign_to_value(tmp3.clone(), 1, flags, lno.clone())
+                        .expand(flags),
+                    PollutedNode::Control(Control::Loop {
                         lno: lno.clone(),
-                        ident: Box::new(Node::Ident(tmp1.clone())),
-                        terms: Box::new(Node::Control(Control::Terms(vec![
-                            self.expand_assign_to_value(tmp2.clone(), 1, flags, lno.clone()),
-                            Macro::AssignToZero {
+                        ident: Box::new(PollutedNode::Pure(Node::Ident(tmp1.clone()))),
+                        terms: Box::new(PollutedNode::Control(Control::Terms(vec![
+                            PollutedNode::Macro(self.expand_assign_to_value(
+                                tmp2.clone(),
+                                1,
+                                flags,
+                                lno.clone(),
+                            )),
+                            PollutedNode::Macro(Macro::AssignToZero {
                                 lno: lno.clone(),
                                 lhs: Box::new(Node::Ident(tmp3.clone())),
-                            }
-                            .expand(flags),
+                            }),
                         ]))),
-                    }),
-                    Node::Control(Control::Loop {
+                    })
+                    .expand(flags),
+                    PollutedNode::Control(Control::Loop {
                         lno: lno.clone(),
-                        ident: Box::new(Node::Ident(tmp2.clone())),
-                        terms: Box::new(if_terms.expand(flags)),
-                    }),
-                    Node::Control(Control::Loop {
+                        ident: Box::new(PollutedNode::Pure(Node::Ident(tmp2.clone()))),
+                        terms: if_terms.clone(),
+                    })
+                    .expand(flags),
+                    PollutedNode::Control(Control::Loop {
                         lno: lno.clone(),
-                        ident: Box::new(Node::Ident(tmp3.clone())),
-                        terms: Box::new(else_terms.expand(flags)),
-                    }),
+                        ident: Box::new(PollutedNode::Pure(Node::Ident(tmp3.clone()))),
+                        terms: else_terms.clone(),
+                    })
+                    .expand(flags),
                 ]))
             }
         }

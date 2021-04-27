@@ -1,3 +1,7 @@
+use std::io::empty;
+
+use num_bigint::BigUint;
+
 use crate::ast::control::Control;
 use crate::ast::macro_::Macro;
 use crate::ast::node::Node;
@@ -5,8 +9,6 @@ use crate::ast::node::Node::Ident;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::flags::CompilationFlags;
 use crate::utils::private_random_identifier;
-use num_bigint::BigUint;
-use std::io::empty;
 
 #[derive(Debug, Clone)]
 pub enum PollutedNode {
@@ -19,6 +21,8 @@ pub enum PollutedNode {
 
 impl PollutedNode {
     pub fn expand(&self, flags: CompilationFlags) -> Node {
+        let flags = flags.clone();
+
         match self {
             // Control Nodes
             PollutedNode::Control(Control::Terms(t)) => Node::Control(Control::Terms(
@@ -67,6 +71,7 @@ impl PollutedNode {
                     panic!("Cannot use LOOP if LOOP and WHILE are not enabled!")
                 }
             }
+
             PollutedNode::Control(Control::While { lno, comp, terms }) => {
                 assert!(
                     flags.contains(CompilationFlags::WHILE),

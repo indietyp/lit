@@ -5,6 +5,10 @@ x := y * 1
 y := 2
 
 LOOP x DO
+    y := y + 1
+END
+
+LOOP x DO
     WHILE y != 0 DO
         y := y - 1
         y := y - 1

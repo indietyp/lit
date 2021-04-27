@@ -1,7 +1,8 @@
+use num_bigint::BigUint;
+
 use crate::ast::control::Control;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::types::LineNo;
-use num_bigint::BigUint;
 
 // Note(bmahmoud): in the future we could also support unary expressions?
 #[derive(Debug, Clone)]

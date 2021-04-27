@@ -2,6 +2,7 @@ use core::option::Option::Some;
 use std::str::FromStr;
 
 use num_bigint::BigUint;
+use pest::error::Error;
 use pest::iterators::{Pair, Pairs};
 
 use crate::ast::control::Control;
@@ -14,7 +15,6 @@ use crate::pest::Parser;
 use crate::types::LineNo;
 use crate::LoopParser;
 use crate::Rule;
-use pest::error::Error;
 
 pub struct Builder {}
 
