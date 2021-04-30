@@ -7,7 +7,7 @@ use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::OperatorVerb;
 
 use crate::types::LineNo;
-use crate::utils::{private_identifier};
+use crate::utils::private_identifier;
 
 // This is a shorthand for the Node::Assign,
 // I would love to make this one go away, but I have no idea how.
@@ -198,11 +198,7 @@ impl Macro {
                             _ => panic!("Unexpected argument for identifier."),
                         },
                         terms: Box::new(PollutedNode::Control(Control::Terms(vec![
-                            PollutedNode::Macro(self.expand_assign_to_value(
-                                tmp.clone(),
-                                1,
-                                *lno,
-                            )),
+                            PollutedNode::Macro(self.expand_assign_to_value(tmp.clone(), 1, *lno)),
                         ]))),
                     })
                     .expand(context),
@@ -265,11 +261,7 @@ impl Macro {
                         lno: *lno,
                         ident: Box::new(PollutedNode::Pure(Node::Ident(tmp1))),
                         terms: Box::new(PollutedNode::Control(Control::Terms(vec![
-                            PollutedNode::Macro(self.expand_assign_to_value(
-                                tmp2.clone(),
-                                1,
-                                *lno,
-                            )),
+                            PollutedNode::Macro(self.expand_assign_to_value(tmp2.clone(), 1, *lno)),
                             PollutedNode::Macro(Macro::AssignToZero {
                                 lno: *lno,
                                 lhs: Box::new(Node::Ident(tmp3.clone())),

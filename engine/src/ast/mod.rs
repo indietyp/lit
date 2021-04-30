@@ -1,6 +1,9 @@
 pub mod context;
 pub mod control;
-pub mod macro_;
+
+#[macro_use]
+pub mod macros;
+
 pub mod node;
 pub mod polluted;
 pub mod verbs;

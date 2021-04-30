@@ -4,7 +4,7 @@ use num_bigint::BigUint;
 
 use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
-use crate::ast::macro_::Macro;
+use crate::ast::macros::Macro;
 use crate::ast::node::Node;
 
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};

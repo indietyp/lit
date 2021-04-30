@@ -7,7 +7,7 @@ use pest::iterators::{Pair, Pairs};
 
 use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
-use crate::ast::macro_::{Macro, MacroAssign};
+use crate::ast::macros::{Macro, MacroAssign};
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
@@ -224,7 +224,7 @@ impl Builder {
     }
 
     pub fn eval(ast: Node) -> Runtime {
-        Runtime::new(Exec::new(ast))
+        Runtime::new(Exec::new(ast), None)
     }
 
     pub fn parse_and_compile(source: &str, flags: Option<CompilationFlags>) -> Node {

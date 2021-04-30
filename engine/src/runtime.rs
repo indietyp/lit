@@ -4,15 +4,17 @@ use std::collections::HashMap;
 
 pub struct Runtime {
     exec: Exec,
+    initial: Option<Variables>,
     locals: Variables,
     running: bool,
 }
 
 impl Runtime {
-    pub fn new(exec: Exec) -> Self {
+    pub fn new(exec: Exec, locals: Option<Variables>) -> Self {
         Runtime {
             exec,
-            locals: HashMap::new(),
+            initial: locals.clone(),
+            locals: locals.unwrap_or(HashMap::new()),
             running: true,
         }
     }
@@ -28,7 +30,8 @@ impl Runtime {
     }
 
     pub fn reset(&mut self) {
-        self.locals.clear();
+        self.locals = self.initial.clone().unwrap_or(HashMap::new());
+
         self.exec = self.exec.renew();
         self.running = true;
     }
