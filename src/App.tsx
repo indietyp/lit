@@ -1,18 +1,12 @@
 import React from 'react';
 import './App.less';
-import { Layout } from 'antd';
+import { Editor } from './modules/editor/Editor';
 
 function App() {
     return (
         <div className={'app'}>
-            <Layout>
-                <Layout>
-                    <Layout.Sider collapsed={true} collapsedWidth={0}>left sidebar</Layout.Sider>
-                    <Layout.Content>main content</Layout.Content>
-                    <Layout.Sider collapsed={true} collapsedWidth={0}>right sidebar</Layout.Sider>
-                </Layout>
-                <Layout.Footer>footer</Layout.Footer>
-            </Layout>
+            <h2>LOOP (Just) In Time</h2>
+            <Editor/>
         </div>
     );
 }
