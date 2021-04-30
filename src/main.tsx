@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import './index.css';
 
 // Bootstrap
-import 'scss/custom.scss';
+import './scss/custom.scss';
 
 // import 'bootstrap/js/dist/alert';
 import 'bootstrap/js/dist/button';

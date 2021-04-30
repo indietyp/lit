@@ -1,5 +1,5 @@
 import React from 'react';
-import './App.less';
+import './App.scss';
 import { Editor } from './modules/editor/Editor';
 
 function App() {
