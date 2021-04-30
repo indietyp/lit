@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { basicSetup, EditorState, EditorView } from '@codemirror/basic-setup';
-import { javascript } from '@codemirror/lang-javascript';
+import { loop } from './parser/grammar';
 
 type Props = {};
 
@@ -11,7 +11,7 @@ export const Editor: React.FunctionComponent<Props> = function () {
     useEffect(() => {
         if (codeMirrorRootRef.current && !editorView) {
             const view = new EditorView({
-                state: EditorState.create({ extensions: [basicSetup, javascript()] }),
+                state: EditorState.create({ extensions: [basicSetup, loop()] }),
                 parent: codeMirrorRootRef.current,
             });
             setEditorView(view);

@@ -821,6 +821,13 @@ less@^4.1.1:
     needle "^2.5.2"
     source-map "~0.6.0"
 
+lezer-generator@^0.13.4:
+  version "0.13.3"
+  resolved "https://registry.yarnpkg.com/lezer-generator/-/lezer-generator-0.13.3.tgz#d5cdafcb7b27a8403ff696161cf3f6fb0cb5b07c"
+  integrity sha512-dT+7HEAoIgU6cuRoThLVSRwjnMQ/mQSTvUjiG9rajLXI4SaqWQfzheUQZU6543htK7xFjXzOocs9+13W3TvctA==
+  dependencies:
+    lezer "^0.13.2"
+
 lezer-javascript@^0.13.0:
   version "0.13.4"
   resolved "https://registry.yarnpkg.com/lezer-javascript/-/lezer-javascript-0.13.4.tgz#f2b36e83bf02cce6df05601133134357133be76e"
@@ -833,7 +840,7 @@ lezer-tree@^0.13.0, lezer-tree@^0.13.2:
   resolved "https://registry.yarnpkg.com/lezer-tree/-/lezer-tree-0.13.2.tgz#00f4671309b15c27b131f637e430ce2d4d5f7065"
   integrity sha512-15ZxW8TxVNAOkHIo43Iouv4zbSkQQ5chQHBpwXcD2bBFz46RB4jYLEEww5l1V0xyIx9U2clSyyrLes+hAUFrGQ==
 
-lezer@^0.13.0, lezer@^0.13.4:
+lezer@^0.13.0, lezer@^0.13.2, lezer@^0.13.4:
   version "0.13.4"
   resolved "https://registry.yarnpkg.com/lezer/-/lezer-0.13.4.tgz#f0396a3447c7a8f40391623f3f47a4d95559c42f"
   integrity sha512-cLQxUVY28VBBqKBt/R8CYeH57KQnIvscAnoahzvhlZTK8qxMkIyGExR6ecEpYYDX06ZhROZrEm1IiPvjLAsTig==

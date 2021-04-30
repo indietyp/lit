@@ -1,0 +1,122 @@
+@top Program { terms }
+
+@skip { WHITESPACE }
+
+SIMPLE_OPERATOR { OP_PLUS | OP_MINUS }
+EXT_OPERATOR { OP_MULTIPLY }
+OPERATOR { SIMPLE_OPERATOR |  EXT_OPERATOR }
+
+SEP { ";" | ( ";"? NEWLINE+ ) }
+
+compEqual { IDENT EQ VALUE }
+compNotEqual { IDENT NE VALUE }
+compGreaterEqual { IDENT GE VALUE }
+compGreaterThanIdent { IDENT GT IDENT }
+compGreaterThan { IDENT GT VALUE }
+compLessEqual { IDENT LE VALUE }
+compLessThan { IDENT LT  VALUE }
+
+comp { compEqual | compNotEqual }
+
+binaryOp { IDENT SIMPLE_OPERATOR VALUE }
+
+assign { IDENT ":=" binaryOp }
+
+loop_ {
+    "LOOP" IDENT "DO" SEP
+    terms
+    "END"
+}
+
+while_ {
+    "WHILE" compNotEqual "DO" SEP
+    terms
+    "END"
+}
+
+// macros
+macroAssignToIdent {
+    IDENT ":="
+    IDENT
+}
+macroAssignToZero   {
+    IDENT ":="
+    "0"
+}
+macroAssignToValue {
+    IDENT ":="
+    VALUE
+}
+macroAssignToIdentOpIdent {
+    IDENT ":="
+    IDENT OPERATOR IDENT
+}
+macroAssignToIdentExtOpIdent {
+    IDENT ":="
+    IDENT EXT_OPERATOR IDENT
+}
+macroAssignToIdentExtOpValue {
+    IDENT ":="
+    IDENT EXT_OPERATOR VALUE
+}
+
+macroIf {
+    "IF" compNotEqual "THEN" SEP
+    terms
+    "END"
+}
+macroIfElse {
+    "IF" compGreaterThanIdent "THEN" SEP
+    terms
+    "ELSE" SEP
+    terms
+    "END"
+}
+
+macro_ {
+    macroAssignToIdentExtOpValue
+    | macroAssignToIdentOpIdent
+    | macroAssignToIdent
+    | macroAssignToZero
+    | macroAssignToValue
+    | macroIf
+    | macroIfElse
+}
+
+
+expression {
+    loop_
+    | while_
+    | assign
+    | macro_
+}
+
+terms {
+    NEWLINE*
+    expression
+    (SEP expression)*
+    SEP?
+}
+
+@tokens {
+  IDENT { $[a-zA-Z_\-0-9]+ }
+
+  OP_PLUS { '+' }
+  OP_MINUS { '-' }
+  OP_MULTIPLY { '*' }
+
+  VALUE { std.digit+ }
+
+  WHITESPACE { $[ \t\n\r]+ }
+
+  NEWLINE { $[\n] }
+
+  EQ { "=" | "==" }
+  NE { "!=" }
+  GT { ">" }
+  GE { ">=" }
+  LT { "<" }
+  LE { "<=" }
+}
+
+@detectDelim

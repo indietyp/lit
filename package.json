@@ -10,6 +10,7 @@
     "@codemirror/basic-setup": "^0.18.0",
     "@codemirror/lang-javascript": "^0.18.0",
     "bootstrap": "^5.0.0-beta3",
+    "lezer": "^0.13.4",
     "react": "^17.0.0",
     "react-bootstrap": "^2.0.0-alpha.1",
     "react-dom": "^17.0.0"
