@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { basicSetup, EditorState, EditorView } from '@codemirror/basic-setup';
-import { loop } from './parser/grammar';
+import { loop, LoopLanguage } from './parser/grammar';
+import { javascript } from '@codemirror/lang-javascript';
+import { html } from '@codemirror/lang-html';
 
 type Props = {};
 
@@ -19,6 +21,9 @@ export const Editor: React.FunctionComponent<Props> = function () {
     }, [codeMirrorRootRef.current]);
 
     return (
-        <div id={'codemirror-root'} ref={codeMirrorRootRef}/>
+        <div>
+            <div id={'codemirror-root'} ref={codeMirrorRootRef}/>
+            <button>DEBUG</button>
+        </div>
     );
 };

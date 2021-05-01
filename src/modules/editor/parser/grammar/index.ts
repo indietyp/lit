@@ -5,30 +5,38 @@ import {
     indentNodeProp,
     foldNodeProp,
     foldInside,
-    delimitedIndent
+    delimitedIndent,
+    continuedIndent
 } from '@codemirror/language';
+import { completeFromList, ifNotIn } from '@codemirror/autocomplete';
 import { styleTags, tags as t } from '@codemirror/highlight';
+import { bracketMatching } from '@codemirror/matchbrackets';
+import { snippets } from './snippets';
 
 export const LoopLanguage = LezerLanguage.define({
     parser: parser.configure({
         props: [
             indentNodeProp.add({
-                Application: delimitedIndent({ closing: ')', align: false })
+                "LoopStatement IfStatement WhileStatement": continuedIndent({ except: /^\s*({|ELSE\b)/}),
+                // Block: delimitedIndent({closing: "END"})
             }),
             foldNodeProp.add({
-                Application: foldInside
+                Block: foldInside
             }),
             styleTags({
-                IDENT: t.variableName,
-                VALUE: t.number,
-            })
+                variableName: t.variableName,
+                Number: t.number,
+                DO: t.controlKeyword,
+                'LOOP WHILE IF THEN ELSE END': t.controlKeyword,
+            }),
         ]
     }),
     languageData: {
-        // commentTokens: { line: ';' }
     }
 });
 
 export function loop() {
-    return new LanguageSupport(LoopLanguage);
+    return new LanguageSupport(LoopLanguage, LoopLanguage.data.of({
+        autocomplete: ifNotIn(['LineComment'], completeFromList(snippets))
+    }));
 }

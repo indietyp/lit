@@ -3,11 +3,13 @@
   "version": "0.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "npm run generate-parser && tsc && vite build",
+    "generate-parser": "lezer-generator src/modules/editor/parser/grammar/loop.grammar -o src/modules/editor/parser/grammar/parser.js",
     "serve": "vite preview"
   },
   "dependencies": {
     "@codemirror/basic-setup": "^0.18.0",
+    "@codemirror/lang-html": "^0.18.0",
     "@codemirror/lang-javascript": "^0.18.0",
     "bootstrap": "^5.0.0-beta3",
     "lezer": "^0.13.4",
@@ -19,7 +21,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@vitejs/plugin-react-refresh": "^1.3.1",
-    "less": "^4.1.1",
+    "lezer-generator": "^0.13.3",
     "sass": "^1.32.12",
     "typescript": "^4.1.2",
     "vite": "^2.2.3"

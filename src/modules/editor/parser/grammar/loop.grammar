@@ -1,122 +1,69 @@
-@top Program { terms }
+@dialects { loop }
 
-@skip { WHITESPACE }
+@top Program { Block }
 
-SIMPLE_OPERATOR { OP_PLUS | OP_MINUS }
-EXT_OPERATOR { OP_MULTIPLY }
-OPERATOR { SIMPLE_OPERATOR |  EXT_OPERATOR }
-
-SEP { ";" | ( ";"? NEWLINE+ ) }
-
-compEqual { IDENT EQ VALUE }
-compNotEqual { IDENT NE VALUE }
-compGreaterEqual { IDENT GE VALUE }
-compGreaterThanIdent { IDENT GT IDENT }
-compGreaterThan { IDENT GT VALUE }
-compLessEqual { IDENT LE VALUE }
-compLessThan { IDENT LT  VALUE }
-
-comp { compEqual | compNotEqual }
-
-binaryOp { IDENT SIMPLE_OPERATOR VALUE }
-
-assign { IDENT ":=" binaryOp }
-
-loop_ {
-    "LOOP" IDENT "DO" SEP
-    terms
-    "END"
+@precedence {
+  while @left,
+  loop @left,
+  do @left,
+  if @left,
+  then @left,
+  else @left,
+  end @left
 }
 
-while_ {
-    "WHILE" compNotEqual "DO" SEP
-    terms
-    "END"
+@skip { whitespace | LineComment }
+
+VariableName { word }
+
+Expression { VariableName | Number }
+
+BinaryArithExpression {
+  VariableName ArithOp<"+"> Expression
+  VariableName ArithOp<"-"> Expression
+  VariableName ArithOp<"*"> Expression
 }
 
-// macros
-macroAssignToIdent {
-    IDENT ":="
-    IDENT
-}
-macroAssignToZero   {
-    IDENT ":="
-    "0"
-}
-macroAssignToValue {
-    IDENT ":="
-    VALUE
-}
-macroAssignToIdentOpIdent {
-    IDENT ":="
-    IDENT OPERATOR IDENT
-}
-macroAssignToIdentExtOpIdent {
-    IDENT ":="
-    IDENT EXT_OPERATOR IDENT
-}
-macroAssignToIdentExtOpValue {
-    IDENT ":="
-    IDENT EXT_OPERATOR VALUE
+BinaryCompareExpression {
+  VariableName CompareOp<"=" | "=="> Expression
+  VariableName CompareOp<"<="> Expression
+  VariableName CompareOp<">="> Expression
+  VariableName CompareOp<"!="> Expression
+  VariableName CompareOp<"<"> Expression
+  VariableName CompareOp<">"> Expression
 }
 
-macroIf {
-    "IF" compNotEqual "THEN" SEP
-    terms
-    "END"
-}
-macroIfElse {
-    "IF" compGreaterThanIdent "THEN" SEP
-    terms
-    "ELSE" SEP
-    terms
-    "END"
+statement {
+  LoopStatement |
+  IfStatement |
+  WhileStatement |
+  Assign
 }
 
-macro_ {
-    macroAssignToIdentExtOpValue
-    | macroAssignToIdentOpIdent
-    | macroAssignToIdent
-    | macroAssignToZero
-    | macroAssignToValue
-    | macroIf
-    | macroIfElse
-}
+LoopStatement { !loop kw<"LOOP"> VariableName !do kw<"DO"> Block !end kw<"END"> }
+IfStatement { !if kw<"IF"> BinaryCompareExpression !then kw<"THEN"> Block (!else kw<"ELSE"> Block)? !end kw<"END"> }
+WhileStatement { !while kw<"WHILE"> BinaryCompareExpression !do kw<"DO"> Block !end kw<"END"> }
+Assign { VariableName ":=" (BinaryArithExpression | Expression) }
 
+Block { statement* }
 
-expression {
-    loop_
-    | while_
-    | assign
-    | macro_
-}
-
-terms {
-    NEWLINE*
-    expression
-    (SEP expression)*
-    SEP?
-}
+kw<term> { @specialize[@name={term}]<word, term> }
 
 @tokens {
-  IDENT { $[a-zA-Z_\-0-9]+ }
+  whitespace { std.whitespace+ }
 
-  OP_PLUS { '+' }
-  OP_MINUS { '-' }
-  OP_MULTIPLY { '*' }
+  identifierChar { std.asciiLetter }
+  underscore { "_" }
+  word { identifierChar (identifierChar | std.digit | underscore)* }
 
-  VALUE { std.digit+ }
+  @precedence { word, whitespace }
 
-  WHITESPACE { $[ \t\n\r]+ }
+  Number { std.digit }
 
-  NEWLINE { $[\n] }
+  LineComment { "//" ![\n]* }
 
-  EQ { "=" | "==" }
-  NE { "!=" }
-  GT { ">" }
-  GE { ">=" }
-  LT { "<" }
-  LE { "<=" }
+  ArithOp<expr> { expr }
+  CompareOp<expr> { expr }
+
+  @precedence {  }
 }
-
-@detectDelim
