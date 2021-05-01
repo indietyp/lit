@@ -8,17 +8,18 @@ use crate::ast::verbs::OperatorVerb;
 
 use crate::types::LineNo;
 use crate::utils::private_identifier;
+use serde::{Deserialize, Serialize};
 
 // This is a shorthand for the Node::Assign,
 // I would love to make this one go away, but I have no idea how.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MacroAssign {
     pub lhs: Box<Node>,
     pub verb: OperatorVerb,
     pub rhs: Box<Node>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Macro {
     AssignToIdent {
         lno: LineNo,

@@ -2,8 +2,9 @@ use crate::ast::node::Node;
 use crate::eval::op::BinaryOpExec;
 use crate::eval::types::{ChangeSet, Variables};
 use crate::types::LineNo;
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct AssignExec {
     lhs: String, // always an ident
     rhs: BinaryOpExec,

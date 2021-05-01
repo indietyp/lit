@@ -6,8 +6,10 @@ use crate::eval::exec::Exec;
 use crate::eval::types::{ChangeSet, Variables};
 use crate::types::LineNo;
 use num_traits::Zero;
+use serde::{Deserialize, Serialize};
 use std::ops::AddAssign;
 
+#[derive(Serialize, Deserialize)]
 pub struct LoopExec {
     lno: LineNo,
     ident: String,

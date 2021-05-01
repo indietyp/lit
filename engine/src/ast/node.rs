@@ -3,9 +3,10 @@ use num_bigint::BigUint;
 use crate::ast::control::Control;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::types::LineNo;
+use serde::{Deserialize, Serialize};
 
 // Note(bmahmoud): in the future we could also support unary expressions?
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Node {
     // Smallest Units
     Ident(String),

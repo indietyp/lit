@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub};
+use std::ops::Add;
 
 use num_bigint::BigUint;
 
@@ -6,8 +6,9 @@ use crate::ast::node::Node;
 use crate::ast::verbs::OperatorVerb;
 use crate::eval::types::Variables;
 use num_traits::{CheckedSub, Zero};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct BinaryOpExec {
     lhs: String,
     verb: OperatorVerb,

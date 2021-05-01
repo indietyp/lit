@@ -1,5 +1,3 @@
-
-
 use num_bigint::BigUint;
 
 use crate::ast::context::CompileContext;
@@ -9,9 +7,10 @@ use crate::ast::node::Node;
 
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::flags::CompilationFlags;
-use crate::utils::{private_identifier};
+use crate::utils::private_identifier;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum PollutedNode {
     Pure(Node),
     Macro(Macro),

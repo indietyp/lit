@@ -4,16 +4,17 @@ use crate::ast::node::Node;
 
 use crate::ast::verbs::ComparisonVerb;
 
-use crate::eval::types::{ChangeSet, Variables};
+use crate::eval::types::Variables;
 use num_traits::Zero;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 enum ComparisonSide {
     Ident(String),
     NaturalNumber(BigUint),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ComparisonExec {
     lhs: ComparisonSide,
     verb: ComparisonVerb,

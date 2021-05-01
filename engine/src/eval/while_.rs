@@ -3,7 +3,9 @@ use crate::ast::node::Node;
 use crate::eval::comp::ComparisonExec;
 use crate::eval::exec::Exec;
 use crate::eval::types::{ChangeSet, Variables};
+use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize)]
 pub struct WhileExec {
     comp: ComparisonExec,
     terms: Box<Exec>,

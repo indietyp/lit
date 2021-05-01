@@ -1,5 +1,5 @@
-use core::option::Option::Some;
 use std::str::FromStr;
+use wasm_bindgen::prelude::*;
 
 use num_bigint::BigUint;
 use pest::error::Error;
@@ -14,11 +14,15 @@ use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::eval::exec::Exec;
 use crate::flags::CompilationFlags;
 use crate::pest::Parser;
-use crate::runtime::Runtime;
+use crate::runtime::{JavaScriptRuntime, Runtime};
 use crate::types::LineNo;
 use crate::LoopParser;
 use crate::Rule;
+use js_sys::Map;
+use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 
+#[derive(Serialize, Deserialize)]
 pub struct Builder {}
 
 impl Builder {
@@ -233,5 +237,34 @@ impl Builder {
 
     pub fn all(source: &str, flags: Option<CompilationFlags>) -> Runtime {
         Builder::eval(Builder::parse_and_compile(source, flags))
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct JavaScriptBuilder {
+    builder: Builder,
+}
+
+#[wasm_bindgen]
+impl JavaScriptBuilder {
+    pub fn parse(source: &str) -> Result<JsValue, JsValue> {
+        let result = Builder::parse(source);
+
+        return if result.is_ok() {
+            Ok(JsValue::from_serde(&result.ok().unwrap()).unwrap())
+        } else {
+            Err(JsValue::from_str(&format!("{}", result.err().unwrap())))
+        };
+    }
+
+    pub fn compile(ast: &JsValue, flags: Option<CompilationFlags>) -> Result<JsValue, JsValue> {
+        let mut ast: Vec<PollutedNode> = ast.into_serde().unwrap();
+        let result = Builder::compile(&mut ast, flags);
+
+        Ok(JsValue::from_serde(&result).unwrap())
+    }
+
+    pub fn eval(ast: &JsValue, locals: Map) -> Result<JavaScriptRuntime, JsValue> {
+        JavaScriptRuntime::new(ast, locals)
     }
 }

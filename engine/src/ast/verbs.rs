@@ -1,4 +1,6 @@
-#[derive(Debug, Clone)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ComparisonVerb {
     Equal,
     NotEqual,
@@ -33,7 +35,7 @@ impl ComparisonVerb {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum OperatorVerb {
     Plus,
     Minus,

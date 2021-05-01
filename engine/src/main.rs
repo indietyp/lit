@@ -15,7 +15,7 @@ mod eval;
 mod flags;
 mod runtime;
 mod types;
-pub mod utils;
+mod utils;
 
 #[derive(Parser)]
 #[grammar = "grammar.pest"]

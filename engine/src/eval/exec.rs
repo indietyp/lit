@@ -9,7 +9,9 @@ use crate::eval::loop_::LoopExec;
 use crate::eval::terms::TermsExec;
 use crate::eval::types::{ExecutionResult, Variables};
 use crate::eval::while_::WhileExec;
+use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize)]
 pub enum Exec {
     Assign(AssignExec),
     Terms(TermsExec),

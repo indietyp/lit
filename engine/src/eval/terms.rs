@@ -2,7 +2,9 @@ use crate::ast::control::Control;
 use crate::ast::node::Node;
 use crate::eval::exec::Exec;
 use crate::eval::types::{ChangeSet, Variables};
+use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize)]
 pub struct TermsExec {
     terms: Vec<Exec>,
 

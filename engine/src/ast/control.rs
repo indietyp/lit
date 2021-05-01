@@ -1,9 +1,10 @@
 use crate::types::LineNo;
+use serde::{Deserialize, Serialize};
 
 // Control Structures have in their body potentially
 // polluted information, these need to changed/unpolluted via
 // macro expansion
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Control<TNode> {
     Terms(Vec<TNode>),
     Loop {
