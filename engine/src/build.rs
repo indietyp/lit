@@ -240,12 +240,13 @@ impl Builder {
     }
 }
 
+#[wasm_bindgen(js_name = Builder)]
 #[derive(Serialize, Deserialize)]
 pub struct JavaScriptBuilder {
     builder: Builder,
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(js_class = Builder)]
 impl JavaScriptBuilder {
     pub fn parse(source: &str) -> Result<JsValue, JsValue> {
         let result = Builder::parse(source);

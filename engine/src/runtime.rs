@@ -51,13 +51,13 @@ impl Runtime {
     }
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(js_name = Runtime)]
 #[derive(Serialize, Deserialize)]
 pub struct JavaScriptRuntime {
     runtime: Runtime,
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(js_class = Runtime)]
 impl JavaScriptRuntime {
     #[wasm_bindgen(constructor)]
     pub fn new(exec: &JsValue, locals: Map) -> Result<JavaScriptRuntime, JsValue> {

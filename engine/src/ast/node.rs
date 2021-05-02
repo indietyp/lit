@@ -1,4 +1,6 @@
 use num_bigint::BigUint;
+use wasm_bindgen::prelude::*;
+use wasm_typescript_definition::TypescriptDefinition;
 
 use crate::ast::control::Control;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
@@ -6,7 +8,7 @@ use crate::types::LineNo;
 use serde::{Deserialize, Serialize};
 
 // Note(bmahmoud): in the future we could also support unary expressions?
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypescriptDefinition)]
 pub enum Node {
     // Smallest Units
     Ident(String),

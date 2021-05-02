@@ -1,5 +1,7 @@
 use crate::flags::CompilationFlags;
+use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen]
 #[derive(Debug, Copy, Clone)]
 pub struct CompileContext {
     counter: usize,
