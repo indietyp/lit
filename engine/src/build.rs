@@ -225,27 +225,36 @@ impl Builder {
     }
 
     pub fn compile(ast: &mut Vec<PollutedNode>, flags: Option<CompilationFlags>) -> Node {
-        let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
-
-        let mut context = CompileContext::new(flags.unwrap_or_default());
-        // TODO: if flags are new, display then set the new lno
-        wrapped.expand(&mut context).flatten()
+        Builder::compile2(ast, CompileContext::new(flags.unwrap_or_default()))
     }
 
     pub fn eval(ast: Node) -> Runtime {
         Runtime::new(Exec::new(ast), None)
     }
 
-    pub fn parse_and_compile(
+    pub fn parse_and_compile(source: &str, flags: Option<CompilationFlags>) -> Node {
+        Builder::compile(&mut Builder::parse(source, None).unwrap(), flags)
+    }
+
+    pub(crate) fn compile2(ast: &mut Vec<PollutedNode>, context: CompileContext) -> Node {
+        let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
+        let mut context = context.clone();
+
+        // TODO: if flags are new, display then set the new lno
+        wrapped.expand(&mut context).flatten()
+    }
+
+    // parse_and_compile2 is an internal compile that also uses CompileContext
+    pub(crate) fn parse_and_compile2(
         source: &str,
-        flags: Option<CompilationFlags>,
-        lno_overwrite: Option<LineNo>,
+        context: CompileContext,
+        lno: Option<LineNo>,
     ) -> Node {
-        Builder::compile(&mut Builder::parse(source, lno_overwrite).unwrap(), flags)
+        Builder::compile2(&mut Builder::parse(source, lno).unwrap(), context)
     }
 
     pub fn all(source: &str, flags: Option<CompilationFlags>, offset: Option<usize>) -> Runtime {
-        Builder::eval(Builder::parse_and_compile(source, flags, offset))
+        Builder::eval(Builder::parse_and_compile(source, flags))
     }
 }
 
