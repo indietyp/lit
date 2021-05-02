@@ -37,6 +37,7 @@ fn main() {
     let mut runtime = Builder::all(
         &source,
         Some(CompilationFlags::WHILE | CompilationFlags::RETAIN_LNO),
+        None,
     );
 
     // let running = true;

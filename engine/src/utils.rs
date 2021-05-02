@@ -3,7 +3,6 @@ use rand::Rng;
 use crate::ast::context::CompileContext;
 
 pub fn private_identifier(context: &mut CompileContext) -> String {
-    let mut rng = rand::thread_rng();
     let mut id = String::new();
     id.push('_');
     id.push_str(context.incr().to_string().as_str());

@@ -42,7 +42,7 @@ pub enum Macro {
         lhs: Box<Node>,
         rhs: Box<Node>,
     },
-    AssignToOpExtIdent {
+    AssignToOpIdent {
         lno: LineNo,
         lhs: Box<Node>,
         rhs: MacroAssign,
@@ -75,7 +75,7 @@ impl Macro {
             Macro::AssignToValue { lno, lhs, rhs } => {
                 expand_assign_to_value(lno.clone(), context, lhs, rhs)
             }
-            Macro::AssignToOpExtIdent { lno, lhs, rhs } => {
+            Macro::AssignToOpIdent { lno, lhs, rhs } => {
                 expand_assign_to_ident_binop_ident(lno.clone(), context, lhs, rhs)
             }
             Macro::AssignToOpExtValue { lno, lhs, rhs } => {

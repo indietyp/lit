@@ -10,7 +10,7 @@ WHITESPACE = _{ " " | "\t" }
 grammar = _{ SOI ~ terms ~ EOI }
 
 // Terminals:
-IDENT = @{ ASCII_ALPHA+ }
+IDENT = @{ (ASCII_ALPHA | "_") ~ ASCII_ALPHANUMERIC* }
 
 OP_PLUS = { "+" }
 OP_MINUS = { "-" }
@@ -22,7 +22,7 @@ OPERATOR = _{ SIMPLE_OPERATOR |  EXT_OPERATOR }
 
 VALUE = @{ ASCII_DIGIT+ }
 ZERO = @{ "0" }
-SEP = _{ (";" | ";"? ~ NEWLINE+) }
+SEP = _{ (";" | (";"? ~ NEWLINE+)) }
 
 // Comparison Operators (needed for capture)
 EQ = { "=" | "==" }

@@ -32,8 +32,8 @@ pub(crate) fn expand_assign_to_ident(
     };
 
     let instruction = format! { indoc! {"
-        {} := {} + 0;
-    "}, lhs, rhs};
+        {} := {} + 0
+        "}, lhs, rhs};
 
     // we loose line numbers here
     // this will reset the context counter
@@ -324,7 +324,7 @@ fn expand_if_else_gt(
         "},
         _1 = tmp1,
         _2 = tmp2,
-        _3 = tmp3
+        _3 = tmp3,
         x = x,
         y = y
     );
