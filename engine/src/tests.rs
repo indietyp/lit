@@ -4,8 +4,9 @@ use crate::flags::CompilationFlags;
 
 use indoc::indoc;
 use num_bigint::BigUint;
-use num_traits::Zero;
+use num_traits::{One, Zero};
 use std::collections::HashMap;
+use std::time::{Duration, SystemTime};
 
 #[derive(Debug, Clone)]
 enum ErrorCode {
@@ -332,4 +333,26 @@ fn test_macro_ident_mul_val() {
     let x = locals.get("x");
 
     assert_is_int(x, 6);
+}
+
+#[test]
+fn test_speed() {
+    let snip = indoc! {"
+    WHILE x != 0 DO
+        y := y + 1
+    END
+    "};
+    let mut locals = HashMap::new();
+    locals.insert("x".to_string(), BigUint::one());
+
+    let mut exec = Builder::all2(snip, None, Some(locals));
+    let limit = SystemTime::now() + Duration::new(1, 0);
+
+    let mut steps: usize = 0;
+    while SystemTime::now() < limit {
+        exec.step();
+        steps += 1;
+    }
+
+    println!("ints/s: {}", steps)
 }

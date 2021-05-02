@@ -3,10 +3,12 @@ use crate::ast::node::Node;
 use crate::eval::comp::ComparisonExec;
 use crate::eval::exec::Exec;
 use crate::eval::types::{ChangeSet, Variables};
+use crate::types::LineNo;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub struct WhileExec {
+    lno: LineNo,
     comp: ComparisonExec,
     terms: Box<Exec>,
 
@@ -23,6 +25,8 @@ impl WhileExec {
         if self.check {
             self.exhausted = !self.comp.exec(locals);
             self.check = false;
+
+            return Some((self.lno.0, vec![String::from("<Internal Variable>")]));
         }
 
         if self.exhausted {
@@ -45,8 +49,9 @@ impl WhileExec {
             Node::Control(Control::While {
                 comp,
                 terms,
-                lno: _,
+                lno: lno,
             }) => WhileExec {
+                lno,
                 comp: ComparisonExec::new(*comp),
                 terms: Box::new(Exec::new(*terms)),
                 check: true,
@@ -58,6 +63,7 @@ impl WhileExec {
 
     pub fn renew(&self) -> Self {
         WhileExec {
+            lno: self.lno,
             comp: self.comp.renew(),
             terms: Box::new(self.terms.renew()),
 

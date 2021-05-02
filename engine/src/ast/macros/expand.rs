@@ -11,7 +11,7 @@ use indoc::indoc;
 use num_bigint::BigUint;
 use num_traits::Zero;
 
-fn box_ident_pol(ident: String) -> Box<PollutedNode> {
+fn box_ident(ident: String) -> Box<PollutedNode> {
     Box::new(PollutedNode::Pure(Node::Ident(ident)))
 }
 
@@ -249,7 +249,7 @@ fn expand_if_not_zero(
     // We need to build the body manually
     let body = PollutedNode::Control(Control::Loop {
         lno,
-        ident: box_ident_pol(tmp),
+        ident: box_ident(tmp),
         terms: Box::new(terms.clone()),
     })
     .expand(context);
@@ -332,14 +332,14 @@ fn expand_if_else_gt(
 
     let if_body = PollutedNode::Control(Control::Loop {
         lno,
-        ident: box_ident_pol(tmp2),
+        ident: box_ident(tmp2),
         terms: Box::new(if_terms.clone()),
     })
     .expand(context);
 
     let else_body = PollutedNode::Control(Control::Loop {
         lno,
-        ident: box_ident_pol(tmp3),
+        ident: box_ident(tmp3),
         terms: Box::new(else_terms.clone()),
     })
     .expand(context);
