@@ -26,9 +26,10 @@ use std::fmt::{Display, Formatter};
 pub struct Builder {}
 
 impl Builder {
-    fn build_pure(pair: Pair<Rule>) -> Node {
+    fn build_pure(pair: Pair<Rule>, lno_overwrite: Option<LineNo>) -> Node {
         let span = pair.as_span();
-        let lno: LineNo = (span.start_pos().line_col().0, span.end_pos().line_col().1);
+        let lno: LineNo =
+            lno_overwrite.unwrap_or((span.start_pos().line_col().0, span.end_pos().line_col().1));
 
         match pair.as_rule() {
             // Terminal Encoding
@@ -45,9 +46,9 @@ impl Builder {
             | Rule::compLessEqual => {
                 let mut pair = pair.into_inner();
 
-                let lhs = Box::new(Builder::build_pure(pair.next().unwrap()));
+                let lhs = Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite));
                 let verb = pair.next().unwrap().as_str();
-                let rhs = Box::new(Builder::build_pure(pair.next().unwrap()));
+                let rhs = Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite));
 
                 Node::Comparison {
                     lhs,
@@ -59,9 +60,9 @@ impl Builder {
             // Binary Operator
             Rule::binaryOp => {
                 let mut pair = pair.into_inner();
-                let lhs = Box::new(Builder::build_pure(pair.next().unwrap()));
+                let lhs = Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite));
                 let verb = pair.next().unwrap().as_str();
-                let rhs = Box::new(Builder::build_pure(pair.next().unwrap()));
+                let rhs = Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite));
 
                 Node::BinaryOp {
                     lhs,
@@ -76,8 +77,8 @@ impl Builder {
 
                 Node::Assign {
                     lno,
-                    lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
-                    rhs: Box::new(Builder::build_pure(pair.next().unwrap())),
+                    lhs: Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite)),
+                    rhs: Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite)),
                 }
             }
             _ => panic!(
@@ -87,17 +88,18 @@ impl Builder {
         }
     }
 
-    fn build_macro_assign(pairs: &mut Pairs<Rule>) -> MacroAssign {
+    fn build_macro_assign(lno_overwrite: Option<LineNo>, pairs: &mut Pairs<Rule>) -> MacroAssign {
         MacroAssign {
-            lhs: Box::new(Builder::build_pure(pairs.next().unwrap())),
+            lhs: Box::new(Builder::build_pure(pairs.next().unwrap(), lno_overwrite)),
             verb: OperatorVerb::from(pairs.next().unwrap().as_str()),
-            rhs: Box::new(Builder::build_pure(pairs.next().unwrap())),
+            rhs: Box::new(Builder::build_pure(pairs.next().unwrap(), lno_overwrite)),
         }
     }
 
-    fn build(pair: Pair<Rule>) -> PollutedNode {
+    fn build(pair: Pair<Rule>, lno_overwrite: Option<LineNo>) -> PollutedNode {
         let span = pair.as_span();
-        let lno: LineNo = (span.start_pos().line_col().0, span.end_pos().line_col().1);
+        let lno: LineNo =
+            lno_overwrite.unwrap_or((span.start_pos().line_col().0, span.end_pos().line_col().1));
 
         match pair.as_rule() {
             // Macros
@@ -106,8 +108,8 @@ impl Builder {
 
                 PollutedNode::Macro(Macro::AssignToIdent {
                     lno,
-                    lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
-                    rhs: Box::new(Builder::build_pure(pair.next().unwrap())),
+                    lhs: Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite)),
+                    rhs: Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite)),
                 })
             }
             Rule::macroAssignToZero => {
@@ -115,7 +117,7 @@ impl Builder {
 
                 PollutedNode::Macro(Macro::AssignToZero {
                     lno,
-                    lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
+                    lhs: Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite)),
                 })
             }
             Rule::macroAssignToValue => {
@@ -123,8 +125,8 @@ impl Builder {
 
                 PollutedNode::Macro(Macro::AssignToValue {
                     lno,
-                    lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
-                    rhs: Box::new(Builder::build_pure(pair.next().unwrap())),
+                    lhs: Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite)),
+                    rhs: Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite)),
                 })
             }
             Rule::macroAssignToIdentOpIdent => {
@@ -132,8 +134,8 @@ impl Builder {
 
                 PollutedNode::Macro(Macro::AssignToOpIdent {
                     lno,
-                    lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
-                    rhs: Builder::build_macro_assign(&mut pair),
+                    lhs: Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite)),
+                    rhs: Builder::build_macro_assign(lno_overwrite, &mut pair),
                 })
             }
             Rule::macroAssignToIdentExtOpIdent => {
@@ -141,8 +143,8 @@ impl Builder {
 
                 PollutedNode::Macro(Macro::AssignToOpExtIdent {
                     lno,
-                    lhs: Box::new(Builder::build_pure(pairs.next().unwrap())),
-                    rhs: Builder::build_macro_assign(&mut pairs),
+                    lhs: Box::new(Builder::build_pure(pairs.next().unwrap(), lno_overwrite)),
+                    rhs: Builder::build_macro_assign(lno_overwrite, &mut pairs),
                 })
             }
             Rule::macroAssignToIdentExtOpValue => {
@@ -150,8 +152,8 @@ impl Builder {
 
                 PollutedNode::Macro(Macro::AssignToOpExtValue {
                     lno,
-                    lhs: Box::new(Builder::build_pure(pair.next().unwrap())),
-                    rhs: Builder::build_macro_assign(&mut pair),
+                    lhs: Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite)),
+                    rhs: Builder::build_macro_assign(lno_overwrite, &mut pair),
                 })
             }
             Rule::macroIf => {
@@ -159,8 +161,8 @@ impl Builder {
 
                 PollutedNode::Macro(Macro::If {
                     lno,
-                    comp: Box::new(Builder::build_pure(pair.next().unwrap())),
-                    terms: Box::new(Builder::build(pair.next().unwrap())),
+                    comp: Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite)),
+                    terms: Box::new(Builder::build(pair.next().unwrap(), lno_overwrite)),
                 })
             }
             Rule::macroIfElse => {
@@ -168,9 +170,9 @@ impl Builder {
 
                 PollutedNode::Macro(Macro::IfElse {
                     lno,
-                    comp: Box::new(Builder::build_pure(pair.next().unwrap())),
-                    if_terms: Box::new(Builder::build(pair.next().unwrap())),
-                    else_terms: Box::new(Builder::build(pair.next().unwrap())),
+                    comp: Box::new(Builder::build_pure(pair.next().unwrap(), lno_overwrite)),
+                    if_terms: Box::new(Builder::build(pair.next().unwrap(), lno_overwrite)),
+                    else_terms: Box::new(Builder::build(pair.next().unwrap(), lno_overwrite)),
                 })
             }
 
@@ -180,8 +182,8 @@ impl Builder {
 
                 PollutedNode::Control(Control::Loop {
                     lno,
-                    ident: Box::new(Builder::build(pair.next().unwrap())),
-                    terms: Box::new(Builder::build(pair.next().unwrap())),
+                    ident: Box::new(Builder::build(pair.next().unwrap(), lno_overwrite)),
+                    terms: Box::new(Builder::build(pair.next().unwrap(), lno_overwrite)),
                 })
             }
             Rule::while_ => {
@@ -189,8 +191,8 @@ impl Builder {
 
                 PollutedNode::Control(Control::While {
                     lno,
-                    comp: Box::new(Builder::build(pair.next().unwrap())),
-                    terms: Box::new(Builder::build(pair.next().unwrap())),
+                    comp: Box::new(Builder::build(pair.next().unwrap(), lno_overwrite)),
+                    terms: Box::new(Builder::build(pair.next().unwrap(), lno_overwrite)),
                 })
             }
             Rule::terms => {
@@ -198,22 +200,25 @@ impl Builder {
                 let mut terms = vec![];
 
                 for term in pair {
-                    terms.push(Builder::build(term))
+                    terms.push(Builder::build(term, lno_overwrite))
                 }
 
                 PollutedNode::Control(Control::Terms(terms))
             }
             Rule::EOI => PollutedNode::NoOp,
-            _ => PollutedNode::Pure(Builder::build_pure(pair)),
+            _ => PollutedNode::Pure(Builder::build_pure(pair, lno_overwrite)),
         }
     }
 
-    pub fn parse(source: &str) -> Result<Vec<PollutedNode>, Error<Rule>> {
+    pub fn parse(
+        source: &str,
+        lno_overwrite: Option<LineNo>,
+    ) -> Result<Vec<PollutedNode>, Error<Rule>> {
         let mut ast = vec![];
 
         let pairs = LoopParser::parse(Rule::grammar, source)?;
         for pair in pairs {
-            ast.push(Builder::build(pair));
+            ast.push(Builder::build(pair, lno_overwrite));
         }
 
         Ok(ast)
@@ -231,12 +236,16 @@ impl Builder {
         Runtime::new(Exec::new(ast), None)
     }
 
-    pub fn parse_and_compile(source: &str, flags: Option<CompilationFlags>) -> Node {
-        Builder::compile(&mut Builder::parse(source).unwrap(), flags)
+    pub fn parse_and_compile(
+        source: &str,
+        flags: Option<CompilationFlags>,
+        lno_overwrite: Option<LineNo>,
+    ) -> Node {
+        Builder::compile(&mut Builder::parse(source, lno_overwrite).unwrap(), flags)
     }
 
-    pub fn all(source: &str, flags: Option<CompilationFlags>) -> Runtime {
-        Builder::eval(Builder::parse_and_compile(source, flags))
+    pub fn all(source: &str, flags: Option<CompilationFlags>, offset: Option<usize>) -> Runtime {
+        Builder::eval(Builder::parse_and_compile(source, flags, offset))
     }
 }
 
@@ -249,7 +258,7 @@ pub struct JavaScriptBuilder {
 #[wasm_bindgen(js_class = Builder)]
 impl JavaScriptBuilder {
     pub fn parse(source: &str) -> Result<JsValue, JsValue> {
-        let result = Builder::parse(source);
+        let result = Builder::parse(source, None);
 
         return if result.is_ok() {
             Ok(JsValue::from_serde(&result.ok().unwrap()).unwrap())

@@ -1,3 +1,5 @@
+mod expand;
+
 use num_bigint::BigUint;
 
 use crate::ast::context::CompileContext;
