@@ -21,6 +21,7 @@ EXT_OPERATOR = _{ OP_MULTIPLY }
 OPERATOR = _{ SIMPLE_OPERATOR |  EXT_OPERATOR }
 
 VALUE = @{ ASCII_DIGIT+ }
+ZERO = @{ "0" }
 SEP = _{ (";" | ";"? ~ NEWLINE+) }
 
 // Comparison Operators (needed for capture)
@@ -84,17 +85,15 @@ macroAssignToIdentOpIdent = {
     IDENT ~ ":=" ~
     IDENT ~ OPERATOR ~ IDENT
 }
-macroAssignToIdentExtOpIdent = {
-    IDENT ~ ":=" ~
-    IDENT ~ EXT_OPERATOR ~ IDENT
-}
 macroAssignToIdentExtOpValue = {
     IDENT ~ ":=" ~
     IDENT ~ EXT_OPERATOR ~ VALUE
 }
 
+compNotEqual0 = { IDENT ~ NE ~ ZERO }
+
 macroIf = {
-    "IF" ~ compNotEqual ~ "THEN" ~ SEP
+    "IF" ~ compNotEqual0 ~ "THEN" ~ SEP
     ~ terms ~
     "END"
 }

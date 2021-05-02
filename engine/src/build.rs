@@ -138,15 +138,6 @@ impl Builder {
                     rhs: Builder::build_macro_assign(lno_overwrite, &mut pair),
                 })
             }
-            Rule::macroAssignToIdentExtOpIdent => {
-                let mut pairs = pair.into_inner();
-
-                PollutedNode::Macro(Macro::AssignToOpExtIdent {
-                    lno,
-                    lhs: Box::new(Builder::build_pure(pairs.next().unwrap(), lno_overwrite)),
-                    rhs: Builder::build_macro_assign(lno_overwrite, &mut pairs),
-                })
-            }
             Rule::macroAssignToIdentExtOpValue => {
                 let mut pair = pair.into_inner();
 
