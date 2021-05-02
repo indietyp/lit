@@ -17,6 +17,7 @@ mod eval;
 mod flags;
 mod js;
 mod runtime;
+mod tests;
 mod types;
 mod utils;
 
@@ -38,7 +39,6 @@ fn main() {
     let mut runtime = Builder::all(
         &source,
         Some(CompilationFlags::WHILE | CompilationFlags::RETAIN_LNO),
-        None,
     );
 
     // let running = true;

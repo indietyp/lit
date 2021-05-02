@@ -35,6 +35,8 @@ LE = { "<=" }
 // Comparison Collection
 compEqual = { IDENT ~ EQ ~ VALUE }
 compNotEqual = { IDENT ~ NE ~ VALUE }
+// currently != 0 has a special meaning
+compNotEqual0 = { IDENT ~ NE ~ ZERO }
 compGreaterEqual = { IDENT ~ GE ~ VALUE }
 compGreaterThanIdent = { IDENT ~ GT  ~ IDENT }
 compGreaterThan = { IDENT ~ GT  ~ VALUE }
@@ -63,7 +65,7 @@ loop_ = {
 }
 
 while_ = {
-    "WHILE" ~ compNotEqual ~ "DO" ~ SEP
+    "WHILE" ~ compNotEqual0 ~ "DO" ~ SEP
     ~ terms ~
     "END"
 }
@@ -89,8 +91,6 @@ macroAssignToIdentExtOpValue = {
     IDENT ~ ":=" ~
     IDENT ~ EXT_OPERATOR ~ VALUE
 }
-
-compNotEqual0 = { IDENT ~ NE ~ ZERO }
 
 macroIf = {
     "IF" ~ compNotEqual0 ~ "THEN" ~ SEP

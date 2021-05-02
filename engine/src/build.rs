@@ -14,11 +14,13 @@ use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::eval::exec::Exec;
 use crate::flags::CompilationFlags;
 
+use crate::eval::types::Variables;
 use crate::pest::Parser;
 use crate::runtime::Runtime;
 use crate::types::LineNo;
 use crate::LoopParser;
 use crate::Rule;
+use num_traits::Zero;
 
 #[derive(Serialize, Deserialize)]
 pub struct Builder {}
@@ -33,10 +35,12 @@ impl Builder {
             // Terminal Encoding
             Rule::IDENT => Node::Ident(String::from(pair.as_str())),
             Rule::VALUE => Node::NaturalNumber(BigUint::from_str(pair.as_str()).unwrap()),
+            Rule::ZERO => Node::NaturalNumber(BigUint::zero()),
 
             // Comparison
             Rule::compEqual
             | Rule::compNotEqual
+            | Rule::compNotEqual0
             | Rule::compGreaterThan
             | Rule::compGreaterThanIdent
             | Rule::compGreaterEqual
@@ -185,10 +189,10 @@ impl Builder {
                 })
             }
             Rule::terms => {
-                let mut pair = pair.into_inner();
+                let pairs = pair.into_inner();
                 let mut terms = vec![];
 
-                for term in pair {
+                for term in pairs {
                     terms.push(Builder::build(term, lno_overwrite))
                 }
 
@@ -217,20 +221,24 @@ impl Builder {
         Builder::compile2(ast, CompileContext::new(flags.unwrap_or_default()))
     }
 
-    pub fn eval(ast: Node) -> Runtime {
-        Runtime::new(Exec::new(ast), None)
-    }
-
-    pub fn parse_and_compile(source: &str, flags: Option<CompilationFlags>) -> Node {
-        Builder::compile(&mut Builder::parse(source, None).unwrap(), flags)
-    }
-
     pub(crate) fn compile2(ast: &mut Vec<PollutedNode>, context: CompileContext) -> Node {
         let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
         let mut context = context.clone();
 
         // TODO: if flags are new, display then set the new lno
         wrapped.expand(&mut context).flatten()
+    }
+
+    pub fn eval(ast: Node) -> Runtime {
+        Builder::eval2(ast, None)
+    }
+
+    fn eval2(ast: Node, locals: Option<Variables>) -> Runtime {
+        Runtime::new(Exec::new(ast), locals)
+    }
+
+    pub fn parse_and_compile(source: &str, flags: Option<CompilationFlags>) -> Node {
+        Builder::compile(&mut Builder::parse(source, None).unwrap(), flags)
     }
 
     // parse_and_compile2 is an internal compile that also uses CompileContext
@@ -242,7 +250,16 @@ impl Builder {
         Builder::compile2(&mut Builder::parse(source, lno).unwrap(), context)
     }
 
-    pub fn all(source: &str, flags: Option<CompilationFlags>, offset: Option<usize>) -> Runtime {
+    pub fn all(source: &str, flags: Option<CompilationFlags>) -> Runtime {
         Builder::eval(Builder::parse_and_compile(source, flags))
+    }
+
+    // all2 has more options than all (used mostly for tests)
+    pub(crate) fn all2(
+        source: &str,
+        flags: Option<CompilationFlags>,
+        locals: Option<Variables>,
+    ) -> Runtime {
+        Builder::eval2(Builder::parse_and_compile(source, flags), locals)
     }
 }

@@ -1,10 +1,4 @@
-use std::collections::HashMap;
-
-use bitflags::_core::str::FromStr;
-use js_sys::Map;
-use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
-use wasm_bindgen::prelude::*;
 
 use crate::eval::exec::Exec;
 use crate::eval::types::{ExecutionResult, Variables};
@@ -38,7 +32,7 @@ impl Runtime {
     }
 
     pub fn reset(&mut self) {
-        self.locals = self.initial.clone().unwrap_or(HashMap::new());
+        self.locals = self.initial.clone().unwrap_or_default();
 
         self.exec = self.exec.renew();
         self.running = true;

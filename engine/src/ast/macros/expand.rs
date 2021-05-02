@@ -183,7 +183,7 @@ fn expand_assign_to_ident_mul_value(
     let instruction = format!(
         indoc! {"
         {tmp} := {n}
-        {x} := {y} + {tmp}
+        {x} := {y} * {tmp}
         "},
         x = x,
         y = y,
@@ -248,7 +248,7 @@ fn expand_if_not_zero(
 
     // We need to build the body manually
     let body = PollutedNode::Control(Control::Loop {
-        lno: lno.clone(),
+        lno,
         ident: box_ident_pol(tmp),
         terms: Box::new(terms.clone()),
     })
@@ -304,7 +304,6 @@ fn expand_if_else_gt(
     else_terms: &PollutedNode,
 ) -> Node {
     let x = comp.lhs;
-    let verb = comp.verb;
     let y = comp.rhs;
 
     let tmp1 = private_identifier(context);
@@ -332,16 +331,16 @@ fn expand_if_else_gt(
     let is_greater_than = Builder::parse_and_compile2(instruction.as_str(), *context, Some(lno));
 
     let if_body = PollutedNode::Control(Control::Loop {
-        lno: lno.clone(),
+        lno,
         ident: box_ident_pol(tmp2),
         terms: Box::new(if_terms.clone()),
     })
     .expand(context);
 
     let else_body = PollutedNode::Control(Control::Loop {
-        lno: lno.clone(),
+        lno,
         ident: box_ident_pol(tmp3),
-        terms: Box::new(if_terms.clone()),
+        terms: Box::new(else_terms.clone()),
     })
     .expand(context);
 

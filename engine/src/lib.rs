@@ -20,6 +20,7 @@ mod js;
 mod runtime;
 mod types;
 mod utils;
+mod tests;
 
 #[derive(Parser)]
 #[grammar = "grammar.pest"]
