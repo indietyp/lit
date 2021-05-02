@@ -1,11 +1,13 @@
-use crate::eval::exec::Exec;
-use crate::eval::types::{ExecutionResult, Variables};
+use std::collections::HashMap;
+
 use bitflags::_core::str::FromStr;
 use js_sys::Map;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
+
+use crate::eval::exec::Exec;
+use crate::eval::types::{ExecutionResult, Variables};
 
 #[derive(Serialize, Deserialize)]
 pub struct Runtime {
@@ -20,7 +22,7 @@ impl Runtime {
         Runtime {
             exec,
             initial: locals.clone(),
-            locals: locals.unwrap_or(HashMap::new()),
+            locals: locals.unwrap_or_default(),
             running: true,
         }
     }
@@ -48,65 +50,5 @@ impl Runtime {
 
     pub fn context(&self) -> Variables {
         self.locals.clone()
-    }
-}
-
-#[wasm_bindgen(js_name = Runtime)]
-#[derive(Serialize, Deserialize)]
-pub struct JavaScriptRuntime {
-    runtime: Runtime,
-}
-
-#[wasm_bindgen(js_class = Runtime)]
-impl JavaScriptRuntime {
-    #[wasm_bindgen(constructor)]
-    pub fn new(exec: &JsValue, locals: Map) -> Result<JavaScriptRuntime, JsValue> {
-        let exec: Exec = exec.into_serde().unwrap_throw();
-        let mut locs: HashMap<String, BigUint> = HashMap::new();
-
-        let mut errors = vec![];
-        locals.for_each(&mut |value, key| {
-            if key.as_string().is_some() {
-                if value.as_string().is_none() {
-                    errors
-                        .push("Value is not a string! (This is currently a limitation with WASM)");
-                } else {
-                    locs.insert(
-                        key.as_string().unwrap(),
-                        BigUint::from_str(&value.as_string().unwrap()).unwrap(),
-                    );
-                }
-            } else {
-                errors.push("Key is not a valid type detected");
-            }
-        });
-
-        if !errors.is_empty() {
-            return Result::Err(JsValue::from_serde(&errors).unwrap());
-        }
-
-        Result::Ok(JavaScriptRuntime {
-            runtime: Runtime::new(exec, if locs.is_empty() { None } else { Some(locs) }),
-        })
-    }
-
-    pub fn step(&mut self) -> JsValue {
-        let value = self.runtime.step();
-
-        value
-            .map(|v| JsValue::from_serde(&v).unwrap())
-            .unwrap_or(JsValue::UNDEFINED)
-    }
-
-    pub fn reset(&mut self) {
-        self.runtime.reset()
-    }
-
-    pub fn is_running(&self) -> bool {
-        self.runtime.running
-    }
-
-    pub fn context(&self) -> JsValue {
-        JsValue::from_serde(&self.runtime.context()).unwrap()
     }
 }

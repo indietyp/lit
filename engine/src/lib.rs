@@ -16,6 +16,7 @@ mod ast;
 mod build;
 mod eval;
 mod flags;
+mod js;
 mod runtime;
 mod types;
 mod utils;

@@ -53,7 +53,7 @@ pub enum Macro {
         rhs: MacroAssign,
     },
     If {
-        lno: LineNo, // this is tuple/range - if has a body
+        lno: LineNo,
         comp: Box<Node>,
         terms: Box<PollutedNode>,
     },
