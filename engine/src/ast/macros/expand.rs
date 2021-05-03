@@ -7,6 +7,7 @@ use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::build::Builder;
 use crate::types::LineNo;
 use crate::utils::private_identifier;
+use either::Either;
 use indoc::indoc;
 use num_bigint::BigUint;
 use num_traits::Zero;
@@ -289,28 +290,60 @@ pub(crate) fn expand_if(
 }
 
 #[derive(new)]
-struct IfElseComparison {
-    lhs: String,
+struct Comparison {
+    lhs: Either<BigUint, String>,
     verb: ComparisonVerb,
-    rhs: String,
+    rhs: Either<BigUint, String>,
 }
 
 // Macro Expansion for IF x > y THEN ... ELSE ... END
 fn expand_if_else_gt(
     lno: LineNo,
     context: &mut CompileContext,
-    comp: IfElseComparison,
+    comp: Comparison,
     if_terms: &PollutedNode,
-    else_terms: &PollutedNode,
+    else_terms: Option<&PollutedNode>,
 ) -> Node {
-    let x = comp.lhs;
-    let y = comp.rhs;
+    let either_x = comp.lhs;
+    let either_y = comp.rhs;
+
+    let mut instructions: Vec<String> = vec![];
+
+    // if the value of y is a number, implicity convert it to a variable when expanding
+    let x = {
+        if either_x.is_left() {
+            let tmp = private_identifier(context);
+            instructions.push(format!(
+                "{_4} := {value}",
+                _4 = tmp,
+                value = either_x.left().unwrap()
+            ));
+            tmp
+        } else {
+            either_x.right().unwrap()
+        }
+    };
+
+    // if the value of y is a number implicitly convert it to a variable when expanding
+    let y = {
+        if either_y.is_left() {
+            let tmp = private_identifier(context);
+            instructions.push(format!(
+                "{_5} := {value}",
+                _5 = tmp,
+                value = either_y.left().unwrap()
+            ));
+            tmp
+        } else {
+            either_y.right().unwrap()
+        }
+    };
 
     let tmp1 = private_identifier(context);
     let tmp2 = private_identifier(context);
     let tmp3 = private_identifier(context);
 
-    let instruction = format!(
+    let mut body = format!(
         indoc! {"
         {_1} := {x} - {y}
         {_2} := 0
@@ -328,7 +361,10 @@ fn expand_if_else_gt(
         y = y
     );
 
-    let is_greater_than = Builder::parse_and_compile2(instruction.as_str(), *context, Some(lno));
+    instructions.push(body);
+
+    let is_greater_than =
+        Builder::parse_and_compile2(instructions.join("\n").as_str(), *context, Some(lno));
 
     let if_body = PollutedNode::Control(Control::Loop {
         lno,
@@ -374,7 +410,7 @@ pub(crate) fn expand_if_else(
         ComparisonVerb::GreaterThan => expand_if_else_gt(
             lno,
             context,
-            IfElseComparison::new(comp_lhs, comp_verb.clone(), comp_rhs),
+            Comparison::new(comp_lhs, comp_verb.clone(), comp_rhs),
             if_terms,
             else_terms,
         ),
