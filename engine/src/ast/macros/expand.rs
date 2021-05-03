@@ -297,7 +297,7 @@ struct Comparison {
 }
 
 // Macro Expansion for IF x > y THEN ... ELSE ... END
-fn expand_if_else_gt(
+fn expand_comp_gt(
     lno: LineNo,
     context: &mut CompileContext,
     comp: Comparison,
@@ -363,8 +363,12 @@ fn expand_if_else_gt(
 
     instructions.push(body);
 
+    // assemble the different terms
+    let mut terms = vec![];
+
     let is_greater_than =
         Builder::parse_and_compile2(instructions.join("\n").as_str(), *context, Some(lno));
+    terms.push(is_greater_than);
 
     let if_body = PollutedNode::Control(Control::Loop {
         lno,
@@ -372,34 +376,40 @@ fn expand_if_else_gt(
         terms: Box::new(if_terms.clone()),
     })
     .expand(context);
+    terms.push(if_body);
 
-    let else_body = PollutedNode::Control(Control::Loop {
-        lno,
-        ident: box_ident(tmp3),
-        terms: Box::new(else_terms.clone()),
-    })
-    .expand(context);
+    if else_terms.is_some() {
+        let else_body = PollutedNode::Control(Control::Loop {
+            lno,
+            ident: box_ident(tmp3),
+            terms: Box::new(else_terms.unwrap().clone()),
+        })
+        .expand(context);
+        terms.push(else_body);
+    }
 
-    Node::Control(Control::Terms(vec![is_greater_than, if_body, else_body]))
+    Node::Control(Control::Terms(terms))
 }
 
 // Macro Expansion IF x (>) y THEN ... ELSE ... END
-pub(crate) fn expand_if_else(
+pub(crate) fn expand_comp(
     lno: LineNo,
     context: &mut CompileContext,
     comp: &Node,
     if_terms: &PollutedNode,
-    else_terms: &PollutedNode,
+    else_terms: Option<&PollutedNode>,
 ) -> Node {
     let (comp_lhs, comp_verb, comp_rhs) = match comp {
         Node::Comparison { lhs, verb, rhs } => (
             match *lhs.clone() {
-                Node::Ident(m) => m,
+                Node::Ident(m) => Either::Right(m),
+                Node::NaturalNumber(m) => Either::Left(m),
                 _ => unreachable!(),
             },
             verb,
             match *rhs.clone() {
-                Node::Ident(m) => m,
+                Node::Ident(m) => Either::Right(m),
+                Node::NaturalNumber(m) => Either::Left(m),
                 _ => unreachable!(),
             },
         ),
@@ -407,7 +417,7 @@ pub(crate) fn expand_if_else(
     };
 
     match comp_verb {
-        ComparisonVerb::GreaterThan => expand_if_else_gt(
+        ComparisonVerb::GreaterThan => expand_comp_gt(
             lno,
             context,
             Comparison::new(comp_lhs, comp_verb.clone(), comp_rhs),

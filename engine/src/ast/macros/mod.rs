@@ -11,7 +11,7 @@ use crate::ast::verbs::OperatorVerb;
 use crate::ast::macros::expand::{
     expand_assign_to_ident, expand_assign_to_ident_binop_ident,
     expand_assign_to_ident_extbinop_value, expand_assign_to_value, expand_assign_to_zero,
-    expand_if, expand_if_else,
+    expand_comp, expand_if,
 };
 use crate::types::LineNo;
 use crate::utils::private_identifier;
@@ -87,7 +87,7 @@ impl Macro {
                 comp,
                 if_terms,
                 else_terms,
-            } => expand_if_else(lno.clone(), context, comp, if_terms, else_terms),
+            } => expand_comp(lno.clone(), context, comp, if_terms, else_terms),
         }
     }
 }
