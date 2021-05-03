@@ -11,6 +11,11 @@ grammar = _{ SOI ~ terms ~ EOI }
 
 // Terminals:
 IDENT = @{ (ASCII_ALPHA | "_") ~ ASCII_ALPHANUMERIC* }
+VALUE = @{ ASCII_DIGIT+ }
+ZERO = @{ "0" }
+SEP = _{ (";" | (";"? ~ NEWLINE+)) }
+// Value Or Ident
+VI = _{ VALUE | IDENT }
 
 OP_PLUS = { "+" }
 OP_MINUS = { "-" }
@@ -19,10 +24,6 @@ OP_MULTIPLY = { "*" }
 SIMPLE_OPERATOR = _{ OP_PLUS | OP_MINUS }
 EXT_OPERATOR = _{ OP_MULTIPLY }
 OPERATOR = _{ SIMPLE_OPERATOR |  EXT_OPERATOR }
-
-VALUE = @{ ASCII_DIGIT+ }
-ZERO = @{ "0" }
-SEP = _{ (";" | (";"? ~ NEWLINE+)) }
 
 // Comparison Operators (needed for capture)
 EQ = { "=" | "==" }
@@ -33,20 +34,16 @@ LT = { "<" }
 LE = { "<=" }
 
 // Comparison Collection
-compEqual = { IDENT ~ EQ ~ VALUE }
-compNotEqual = { IDENT ~ NE ~ VALUE }
+compEqual = { VI ~ EQ ~ VI }
+compNotEqual = { VI ~ NE ~ VI }
+compGreaterEqual = { VI ~ GE ~ VI }
+compGreaterThan = { VI ~ GT  ~ VI }
+compLessEqual = { VI ~ LE ~ VI }
+compLessThan = { VI ~ LT  ~ VI }
+
 // currently != 0 has a special meaning
 compNotEqual0 = { IDENT ~ NE ~ ZERO }
-compGreaterEqual = { IDENT ~ GE ~ VALUE }
 compGreaterThanIdent = { IDENT ~ GT  ~ IDENT }
-compGreaterThan = { IDENT ~ GT  ~ VALUE }
-compLessEqual = { IDENT ~ LE ~ VALUE }
-compLessThan = { IDENT ~ LT  ~ VALUE }
-
-comp = _{
-    compEqual
-    | compNotEqual
-}
 
 // Core Language:
 binaryOp = {
@@ -92,17 +89,25 @@ macroAssignToIdentExtOpValue = {
     IDENT ~ EXT_OPERATOR ~ VALUE
 }
 
-macroIf = {
-    "IF" ~ compNotEqual0 ~ "THEN" ~ SEP
-    ~ terms ~
-    "END"
+macroIfComps = _{
+    compNotEqual0
+    | compGreaterThan
+    | compGreaterEqual
+    | compLessThan
+    | compLessEqual
 }
-macroIfElse = {
-    "IF" ~ compGreaterThanIdent ~ "THEN" ~ SEP
-    ~ terms ~
+
+// combine those two
+macroElseStmt = {
     "ELSE" ~ SEP
     ~ terms ~
     "END"
+}
+
+macroConditional = {
+    "IF" ~ compGreaterThanIdent ~ "THEN" ~ SEP
+    ~ terms ~
+    (macroElseStmt | "END")
 }
 
 macro_ = _{
@@ -111,8 +116,7 @@ macro_ = _{
     | macroAssignToIdent
     | macroAssignToZero
     | macroAssignToValue
-    | macroIf
-    | macroIfElse
+    | macroConditional
 }
 
 // Expression Collection:
