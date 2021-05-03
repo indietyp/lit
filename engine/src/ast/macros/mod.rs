@@ -1,3 +1,4 @@
+mod comp;
 mod expand;
 
 use num_bigint::BigUint;

@@ -1,3 +1,8 @@
+use either::Either;
+use indoc::indoc;
+use num_bigint::BigUint;
+use num_traits::Zero;
+
 use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::macros::MacroAssign;
@@ -7,12 +12,8 @@ use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::build::Builder;
 use crate::types::LineNo;
 use crate::utils::private_identifier;
-use either::Either;
-use indoc::indoc;
-use num_bigint::BigUint;
-use num_traits::Zero;
 
-fn box_ident(ident: String) -> Box<PollutedNode> {
+pub(crate) fn box_ident(ident: String) -> Box<PollutedNode> {
     Box::new(PollutedNode::Pure(Node::Ident(ident)))
 }
 
@@ -223,207 +224,6 @@ pub(crate) fn expand_assign_to_ident_extbinop_value(
         OperatorVerb::Multiply => {
             expand_assign_to_ident_mul_value(lno, context, lhs, binop_lhs, binop_rhs)
         }
-        _ => unreachable!(),
-    }
-}
-
-fn expand_if_not_zero(
-    lno: LineNo,
-    context: &mut CompileContext,
-    ident: String,
-    terms: &PollutedNode,
-) -> Node {
-    let tmp = private_identifier(context);
-
-    let instruction = format!(
-        indoc! {"
-        LOOP {ident} DO
-            {tmp} := 1
-        END
-        "},
-        ident = ident,
-        tmp = tmp
-    );
-
-    let is_not_zero = Builder::parse_and_compile2(instruction.as_str(), *context, Some(lno));
-
-    // We need to build the body manually
-    let body = PollutedNode::Control(Control::Loop {
-        lno,
-        ident: box_ident(tmp),
-        terms: Box::new(terms.clone()),
-    })
-    .expand(context);
-
-    Node::Control(Control::Terms(vec![is_not_zero, body]))
-}
-
-// Macro Expansion for IF ... THEN ... END
-// currently we only support IF x != 0 THEN ... END
-pub(crate) fn expand_if(
-    lno: LineNo,
-    context: &mut CompileContext,
-    comp: &Node,
-    terms: &PollutedNode,
-) -> Node {
-    let (comp_lhs, comp_verb, comp_rhs) = match comp {
-        Node::Comparison { lhs, verb, rhs } => (
-            match *lhs.clone() {
-                Node::Ident(m) => m,
-                _ => unreachable!(),
-            },
-            verb,
-            match *rhs.clone() {
-                Node::NaturalNumber(n) => n,
-                _ => unreachable!(),
-            },
-        ),
-        _ => unreachable!(),
-    };
-
-    match (comp_verb, comp_rhs) {
-        (ComparisonVerb::NotEqual, rhs) if BigUint::zero().eq(&rhs) => {
-            expand_if_not_zero(lno, context, comp_lhs, terms)
-        }
-        _ => unreachable!(),
-    }
-}
-
-#[derive(new)]
-struct Comparison {
-    lhs: Either<BigUint, String>,
-    verb: ComparisonVerb,
-    rhs: Either<BigUint, String>,
-}
-
-// Macro Expansion for IF x > y THEN ... ELSE ... END
-fn expand_comp_gt(
-    lno: LineNo,
-    context: &mut CompileContext,
-    comp: Comparison,
-    if_terms: &PollutedNode,
-    else_terms: Option<&PollutedNode>,
-) -> Node {
-    let either_x = comp.lhs;
-    let either_y = comp.rhs;
-
-    let mut instructions: Vec<String> = vec![];
-
-    // if the value of y is a number, implicity convert it to a variable when expanding
-    let x = {
-        if either_x.is_left() {
-            let tmp = private_identifier(context);
-            instructions.push(format!(
-                "{_4} := {value}",
-                _4 = tmp,
-                value = either_x.left().unwrap()
-            ));
-            tmp
-        } else {
-            either_x.right().unwrap()
-        }
-    };
-
-    // if the value of y is a number implicitly convert it to a variable when expanding
-    let y = {
-        if either_y.is_left() {
-            let tmp = private_identifier(context);
-            instructions.push(format!(
-                "{_5} := {value}",
-                _5 = tmp,
-                value = either_y.left().unwrap()
-            ));
-            tmp
-        } else {
-            either_y.right().unwrap()
-        }
-    };
-
-    let tmp1 = private_identifier(context);
-    let tmp2 = private_identifier(context);
-    let tmp3 = private_identifier(context);
-
-    let mut body = format!(
-        indoc! {"
-        {_1} := {x} - {y}
-        {_2} := 0
-        {_3} := 1
-
-        LOOP {_1} DO
-            {_2} := 1
-            {_3} := 0
-        END
-        "},
-        _1 = tmp1,
-        _2 = tmp2,
-        _3 = tmp3,
-        x = x,
-        y = y
-    );
-
-    instructions.push(body);
-
-    // assemble the different terms
-    let mut terms = vec![];
-
-    let is_greater_than =
-        Builder::parse_and_compile2(instructions.join("\n").as_str(), *context, Some(lno));
-    terms.push(is_greater_than);
-
-    let if_body = PollutedNode::Control(Control::Loop {
-        lno,
-        ident: box_ident(tmp2),
-        terms: Box::new(if_terms.clone()),
-    })
-    .expand(context);
-    terms.push(if_body);
-
-    if else_terms.is_some() {
-        let else_body = PollutedNode::Control(Control::Loop {
-            lno,
-            ident: box_ident(tmp3),
-            terms: Box::new(else_terms.unwrap().clone()),
-        })
-        .expand(context);
-        terms.push(else_body);
-    }
-
-    Node::Control(Control::Terms(terms))
-}
-
-// Macro Expansion IF x (>) y THEN ... ELSE ... END
-pub(crate) fn expand_comp(
-    lno: LineNo,
-    context: &mut CompileContext,
-    comp: &Node,
-    if_terms: &PollutedNode,
-    else_terms: Option<&PollutedNode>,
-) -> Node {
-    let (comp_lhs, comp_verb, comp_rhs) = match comp {
-        Node::Comparison { lhs, verb, rhs } => (
-            match *lhs.clone() {
-                Node::Ident(m) => Either::Right(m),
-                Node::NaturalNumber(m) => Either::Left(m),
-                _ => unreachable!(),
-            },
-            verb,
-            match *rhs.clone() {
-                Node::Ident(m) => Either::Right(m),
-                Node::NaturalNumber(m) => Either::Left(m),
-                _ => unreachable!(),
-            },
-        ),
-        _ => unreachable!(),
-    };
-
-    match comp_verb {
-        ComparisonVerb::GreaterThan => expand_comp_gt(
-            lno,
-            context,
-            Comparison::new(comp_lhs, comp_verb.clone(), comp_rhs),
-            if_terms,
-            else_terms,
-        ),
         _ => unreachable!(),
     }
 }
