@@ -234,16 +234,63 @@ fn test_cond_not_zero() {
 }
 
 #[test]
-fn test_cond_zero_else() {
+fn test_cond_not_zero_else() {
     let snip = indoc! {"
     IF x != 0 THEN
         ...
+    ELSE
+        y := y + 1
     END
     "};
+
+    let result = run(snip, Some(50), None, None);
+    assert_result_ok(&result);
+
+    let locals = result.ok().unwrap();
+    let y = locals.get("y");
+
+    assert_is_int(y, 1)
 }
 
 #[test]
-fn test_conf_zero_val() {}
+fn test_cond_not_zero_val() {
+    let snip = indoc! {"
+    IF 1 != 0 THEN
+        y := y + 1
+    END
+    "};
+
+    let result = run(snip, Some(50), None, None);
+    assert_result_ok(&result);
+
+    let locals = result.ok().unwrap();
+    let y = locals.get("y");
+
+    assert_is_int(y, 1)
+}
+
+#[test]
+fn test_cond_gt_if() {
+    let snip = indoc! {"
+    IF x > y THEN
+        z := 1
+    ELSE
+        z := 2
+    END
+    "};
+
+    let mut locals = HashMap::new();
+    locals.insert("x".to_string(), BigUint::from(32u8));
+    locals.insert("y".to_string(), BigUint::from(16u8));
+
+    let result = run(snip, Some(150), Some(locals), None);
+    assert_result_ok(&result);
+
+    let locals = result.ok().unwrap();
+    let z = locals.get("z");
+
+    assert_is_int(z, 1)
+}
 
 #[test]
 fn test_cond_gt_else() {
@@ -269,27 +316,220 @@ fn test_cond_gt_else() {
     assert_is_int(z, 2)
 }
 
-#[test]
-fn test_cond_gt_if() {
+fn test_cond_gte_val() {
+    let zero = BigUint::zero();
     let snip = indoc! {"
-    IF x > y THEN
-        z := 1
-    ELSE
-        z := 2
+    IF x > 2 THEN
+        a := 1
+    END
+
+    IF 3 > 2 THEN
+        b := 1
+    END
+
+    IF 1 > 2 THEN
+        c := 1
+    END
+
+    IF 4 > x THEN
+        d := 1
     END
     "};
 
     let mut locals = HashMap::new();
-    locals.insert("x".to_string(), BigUint::from(32u8));
-    locals.insert("y".to_string(), BigUint::from(16u8));
+    locals.insert("x".to_string(), BigUint::from(3u8));
 
     let result = run(snip, Some(150), Some(locals), None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
-    let z = locals.get("z");
 
-    assert_is_int(z, 1)
+    let a = locals.get("a");
+    assert_is_int(a, 1);
+
+    let b = locals.get("b");
+    assert_is_int(b, 1);
+
+    let c = locals.get("c").or(Some(&zero));
+    assert_is_int(c, 0);
+
+    let d = locals.get("d").or(Some(&zero));
+    assert_is_int(d, 0);
+}
+
+#[test]
+fn test_cond_gte_if() {
+    let snip = indoc! {"
+    IF x >= y THEN
+        a := 1
+    END
+
+    IF x >= z THEN
+        b := 1
+    END
+    "};
+
+    let mut locals = HashMap::new();
+    locals.insert("x".to_string(), BigUint::from(2u8));
+    locals.insert("y".to_string(), BigUint::from(2u8));
+    locals.insert("z".to_string(), BigUint::from(1u8));
+
+    let result = run(snip, Some(150), Some(locals), None);
+    assert_result_ok(&result);
+
+    let locals = result.ok().unwrap();
+    let a = locals.get("a");
+    let b = locals.get("b");
+
+    assert_is_int(a, 1);
+    assert_is_int(b, 1);
+}
+
+#[test]
+fn test_conf_lt_if() {
+    let zero = BigUint::zero();
+    let snip = indoc! {"
+    IF x < y THEN
+        a := 1
+    ELSE
+        b := 1
+    END
+    "};
+
+    let mut locals = HashMap::new();
+    locals.insert("x".to_string(), BigUint::from(1u8));
+    locals.insert("y".to_string(), BigUint::from(2u8));
+
+    let result = run(snip, Some(150), Some(locals), None);
+    assert_result_ok(&result);
+
+    let locals = result.ok().unwrap();
+    let a = locals.get("a");
+    let b = locals.get("b").or(Some(&zero));
+
+    assert_is_int(a, 1);
+    assert_is_int(b, 0);
+}
+
+#[test]
+fn test_conf_lte_if() {
+    let snip = indoc! {"
+    IF x <= y THEN
+        a := 1
+    END
+
+    IF x <= z THEN
+        b := 1
+    END
+    "};
+
+    let mut locals = HashMap::new();
+    locals.insert("x".to_string(), BigUint::from(1u8));
+    locals.insert("y".to_string(), BigUint::from(2u8));
+    locals.insert("z".to_string(), BigUint::from(1u8));
+
+    let result = run(snip, Some(150), Some(locals), None);
+    assert_result_ok(&result);
+
+    let locals = result.ok().unwrap();
+    let a = locals.get("a");
+    let b = locals.get("b");
+
+    assert_is_int(a, 1);
+    assert_is_int(b, 1);
+}
+
+#[test]
+fn test_cond_simulated_eq() {
+    let snip = indoc! {"
+    IF x <= y THEN
+        IF x >= y THEN
+           a := 1
+        END
+    END
+    "};
+
+    let mut locals = HashMap::new();
+    locals.insert("x".to_string(), BigUint::from(1u8));
+    locals.insert("y".to_string(), BigUint::from(1u8));
+
+    let result = run(snip, Some(150), Some(locals), None);
+    assert_result_ok(&result);
+
+    let locals = result.ok().unwrap();
+    let a = locals.get("a");
+
+    assert_is_int(a, 1);
+}
+
+#[test]
+fn test_cond_eq() {
+    let snip = indoc! {"
+    IF x == y THEN
+        a := 1
+    ELSE
+        a := 2
+    END
+    "};
+
+    let mut locals = HashMap::new();
+    locals.insert("x".to_string(), BigUint::from(1u8));
+    locals.insert("y".to_string(), BigUint::from(1u8));
+
+    let result = run(snip, Some(150), Some(locals), None);
+    assert_result_ok(&result);
+
+    let locals = result.ok().unwrap();
+    let a = locals.get("a");
+
+    assert_is_int(a, 1);
+
+    let mut locals = HashMap::new();
+    locals.insert("x".to_string(), BigUint::from(2u8));
+    locals.insert("y".to_string(), BigUint::from(1u8));
+
+    let result = run(snip, Some(150), Some(locals), None);
+    assert_result_ok(&result);
+
+    let locals = result.ok().unwrap();
+    let a = locals.get("a");
+
+    assert_is_int(a, 2);
+}
+
+#[test]
+fn test_cond_neq() {
+    let snip = indoc! {"
+    IF x != y THEN
+        a := 1
+    ELSE
+        a := 2
+    END
+    "};
+
+    let mut locals = HashMap::new();
+    locals.insert("x".to_string(), BigUint::from(1u8));
+    locals.insert("y".to_string(), BigUint::from(1u8));
+
+    let result = run(snip, Some(150), Some(locals), None);
+    assert_result_ok(&result);
+
+    let locals = result.ok().unwrap();
+    let a = locals.get("a");
+
+    assert_is_int(a, 2);
+
+    let mut locals = HashMap::new();
+    locals.insert("x".to_string(), BigUint::from(2u8));
+    locals.insert("y".to_string(), BigUint::from(1u8));
+
+    let result = run(snip, Some(150), Some(locals), None);
+    assert_result_ok(&result);
+
+    let locals = result.ok().unwrap();
+    let a = locals.get("a");
+
+    assert_is_int(a, 1);
 }
 
 #[test]

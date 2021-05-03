@@ -1,6 +1,7 @@
 use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::macros::expand::box_ident;
+use crate::ast::macros::Macro;
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::ComparisonVerb;
@@ -192,8 +193,8 @@ fn expand_comp_gte(
     if_terms: &PollutedNode,
     else_terms: &Option<PollutedNode>,
 ) -> Node {
-    let mut instructions = initial.clone().unwrap_or_default();
-    let mut comp = comp.clone();
+    let mut instructions = initial.unwrap_or_default();
+    let mut comp = comp;
 
     // if this is the case mutate x >= y into
     // x + 1 > y
@@ -209,17 +210,10 @@ fn expand_comp_gte(
             _1 = tmp,
             x = comp.lhs.clone().right().unwrap()
         ));
-        comp.rhs = Either::Right(tmp);
+        comp.lhs = Either::Right(tmp);
     }
 
-    return expand_comp_gt(
-        lno,
-        context,
-        Some(instructions),
-        comp.clone(),
-        if_terms,
-        else_terms,
-    );
+    expand_comp_gt(lno, context, Some(instructions), comp, if_terms, else_terms)
 }
 
 // Macro Expansion for IF x < y THEN ... ELSE ... END
@@ -231,7 +225,7 @@ fn expand_comp_lt(
     if_terms: &PollutedNode,
     else_terms: &Option<PollutedNode>,
 ) -> Node {
-    return expand_comp_gt(
+    expand_comp_gt(
         lno,
         context,
         initial,
@@ -239,9 +233,10 @@ fn expand_comp_lt(
         Comparison::new(comp.rhs, ComparisonVerb::GreaterThan, comp.lhs),
         if_terms,
         else_terms,
-    );
+    )
 }
 
+// Macro Expansion for IF x <= y THEN ... ELSE ... END
 fn expand_comp_lte(
     lno: LineNo,
     context: &mut CompileContext,
@@ -250,17 +245,76 @@ fn expand_comp_lte(
     if_terms: &PollutedNode,
     else_terms: &Option<PollutedNode>,
 ) -> Node {
-    return expand_comp_gte(
+    expand_comp_gte(
         lno,
         context,
         initial,
         Comparison::new(comp.rhs, ComparisonVerb::GreaterThanEqual, comp.lhs),
         if_terms,
         else_terms,
-    );
+    )
 }
 
-// Macro Expansion IF x (> | < | >= | <=) y THEN ... ELSE ... END
+fn expand_comp_eq(
+    lno: LineNo,
+    context: &mut CompileContext,
+    initial: Option<Vec<String>>,
+    comp: Comparison,
+    if_terms: &PollutedNode,
+    else_terms: &Option<PollutedNode>,
+) -> Node {
+    // This one is a bit more complicated. Constructs equal through:
+    // IF x >= y THEN
+    //     IF x <= y THEN
+    //         if_terms
+    //     ELSE
+    //         else_terms
+    //     END
+    // ELSE
+    //     else_terms
+    // END
+
+    PollutedNode::Macro(Macro::Conditional {
+        lno,
+        comp: Box::new(Node::Comparison {
+            lhs: Box::new(comp.lhs.clone().either(Node::NaturalNumber, Node::Ident)),
+            verb: ComparisonVerb::GreaterThanEqual,
+            rhs: Box::new(comp.rhs.clone().either(Node::NaturalNumber, Node::Ident)),
+        }),
+        if_terms: Box::new(PollutedNode::Macro(Macro::Conditional {
+            lno,
+            comp: Box::new(Node::Comparison {
+                lhs: Box::new(comp.lhs.either(Node::NaturalNumber, Node::Ident)),
+                verb: ComparisonVerb::LessThanEqual,
+                rhs: Box::new(comp.rhs.either(Node::NaturalNumber, Node::Ident)),
+            }),
+            if_terms: Box::new(if_terms.clone()),
+            else_terms: Box::new(else_terms.clone()),
+        })),
+        else_terms: Box::new(else_terms.clone()),
+    })
+    .expand(context)
+}
+
+// IF x != y is eq, but if_terms and else_terms are switched around,
+// will set a default for ELSE if not given, as it is the body (empty instructions)
+fn expand_comp_neq(
+    lno: LineNo,
+    context: &mut CompileContext,
+    initial: Option<Vec<String>>,
+    comp: Comparison,
+    if_terms: &PollutedNode,
+    else_terms: &Option<PollutedNode>,
+) -> Node {
+    let if_terms = Some(if_terms.clone());
+    let else_terms = else_terms
+        .clone()
+        .unwrap_or_else(|| PollutedNode::Control(Control::Terms(vec![])));
+
+    expand_comp_eq(lno, context, initial, comp, &else_terms, &if_terms)
+}
+
+// Macro Expansion IF x (> | < | >= | <= | == | !=) y THEN ... ELSE ... END
 //                 IF x != 0 THEN ... ELSE ... END
 pub(crate) fn expand_cond(
     lno: LineNo,
@@ -302,6 +356,8 @@ pub(crate) fn expand_cond(
         ComparisonVerb::NotEqual if comp_rhs.left().eq(&Some(zero)) => {
             expand_comp_not_zero(lno, context, None, comp, if_terms, else_terms)
         }
+        ComparisonVerb::Equal => expand_comp_eq(lno, context, None, comp, if_terms, else_terms),
+        ComparisonVerb::NotEqual => expand_comp_neq(lno, context, None, comp, if_terms, else_terms),
         _ => unreachable!(),
     }
 }

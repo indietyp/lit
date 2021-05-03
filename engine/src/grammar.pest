@@ -15,9 +15,7 @@ VALUE = @{ ASCII_DIGIT+ }
 ZERO = @{ "0" }
 SEP = _{ (";" | (";"? ~ NEWLINE+)) }
 ELLIPSIS = @{ "..." }
-
-// Value Or Ident
-VI = _{ VALUE | IDENT }
+IDENT_OR_VALUE = _{ IDENT | VALUE }
 
 OP_PLUS = { "+" }
 OP_MINUS = { "-" }
@@ -28,7 +26,7 @@ EXT_OPERATOR = _{ OP_MULTIPLY }
 OPERATOR = _{ SIMPLE_OPERATOR |  EXT_OPERATOR }
 
 // Comparison Operators (needed for capture)
-EQ = { "=" | "==" }
+EQ = { "==" | "=" }
 NE = { "!=" }
 GT = { ">" }
 GE = { ">=" }
@@ -36,15 +34,16 @@ LT = { "<" }
 LE = { "<=" }
 
 // Comparison Collection
-compEqual = { VI ~ EQ ~ VI }
-compNotEqual = { VI ~ NE ~ VI }
-compGreaterEqual = { VI ~ GE ~ VI }
-compGreaterThan = { VI ~ GT  ~ VI }
-compLessEqual = { VI ~ LE ~ VI }
-compLessThan = { VI ~ LT  ~ VI }
+compEqual = { IDENT_OR_VALUE ~ EQ ~ IDENT_OR_VALUE }
+compNotEqual = { IDENT_OR_VALUE ~ NE ~ IDENT_OR_VALUE }
+compGreaterEqual = { IDENT_OR_VALUE ~ GE ~ IDENT_OR_VALUE }
+compGreaterThan = { IDENT_OR_VALUE ~ GT  ~ IDENT_OR_VALUE }
+compLessEqual = { IDENT_OR_VALUE ~ LE ~ IDENT_OR_VALUE }
+compLessThan = { IDENT_OR_VALUE ~ LT  ~ IDENT_OR_VALUE }
 
-// currently != 0 has a special meaning
-compNotEqual0 = { IDENT ~ NE ~ ZERO }
+// currently != 0 has a special meaning for conditionals and WHILE
+compNotEqual0 = { IDENT_OR_VALUE ~ NE ~ ZERO }
+compIdentNotEqual0 = { IDENT ~ NE ~ ZERO }
 compGreaterThanIdent = { IDENT ~ GT  ~ IDENT }
 
 // Core Language:
@@ -64,7 +63,7 @@ loop_ = {
 }
 
 while_ = {
-    "WHILE" ~ compNotEqual0 ~ "DO" ~ SEP
+    "WHILE" ~ compIdentNotEqual0 ~ "DO" ~ SEP
     ~ terms ~
     "END"
 }
@@ -99,6 +98,8 @@ macroCondComps = _{
     | compGreaterEqual
     | compLessThan
     | compLessEqual
+    | compEqual
+    | compNotEqual
 }
 
 macroElseStmt = {

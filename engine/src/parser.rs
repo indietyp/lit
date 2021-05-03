@@ -58,6 +58,7 @@ impl LoopParser {
         Ok(Either::Left(PollutedNode::NoOp))
     }
 
+    #[alias(expr)]
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
     fn ELLIPSIS(input_: ParseNode) -> ParseResult<EitherNode> {
         Ok(Either::Left(PollutedNode::NoOp))
@@ -102,6 +103,12 @@ impl LoopParser {
     #[alias(comp)]
     #[allow(non_snake_case)]
     fn compNotEqual0(input: ParseNode) -> ParseResult<EitherNode> {
+        LoopParserHelpers::parse_comp(input)
+    }
+
+    #[alias(comp)]
+    #[allow(non_snake_case)]
+    fn compIdentNotEqual0(input: ParseNode) -> ParseResult<EitherNode> {
         LoopParserHelpers::parse_comp(input)
     }
 
