@@ -120,12 +120,6 @@ impl LoopParser {
 
     #[alias(comp)]
     #[allow(non_snake_case)]
-    fn compGreaterThanIdent(input: ParseNode) -> ParseResult<EitherNode> {
-        LoopParserHelpers::parse_comp(input)
-    }
-
-    #[alias(comp)]
-    #[allow(non_snake_case)]
     fn compGreaterEqual(input: ParseNode) -> ParseResult<EitherNode> {
         LoopParserHelpers::parse_comp(input)
     }

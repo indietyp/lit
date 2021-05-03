@@ -44,7 +44,6 @@ compLessThan = { IDENT_OR_VALUE ~ LT  ~ IDENT_OR_VALUE }
 // currently != 0 has a special meaning for conditionals and WHILE
 compNotEqual0 = { IDENT_OR_VALUE ~ NE ~ ZERO }
 compIdentNotEqual0 = { IDENT ~ NE ~ ZERO }
-compGreaterThanIdent = { IDENT ~ GT  ~ IDENT }
 
 // Core Language:
 binaryOp = {
@@ -57,15 +56,15 @@ assign = {
 }
 
 loop_ = {
-    "LOOP" ~ IDENT ~ "DO" ~ SEP
+    ^"LOOP" ~ IDENT ~ ^"DO" ~ SEP
     ~ terms ~
     "END"
 }
 
 while_ = {
-    "WHILE" ~ compIdentNotEqual0 ~ "DO" ~ SEP
+    ^"WHILE" ~ compIdentNotEqual0 ~ ^"DO" ~ SEP
     ~ terms ~
-    "END"
+    ^"END"
 }
 
 // macros
@@ -103,15 +102,31 @@ macroCondComps = _{
 }
 
 macroElseStmt = {
-    "ELSE" ~ SEP
+    ^"ELSE" ~ SEP
     ~ terms ~
-    "END"
+    ^"END"
 }
 
 macroConditional = {
-    "IF" ~ macroCondComps ~ "THEN" ~ SEP
+    ^"IF" ~ macroCondComps ~ ^"THEN" ~ SEP
     ~ terms ~
     (macroElseStmt | "END")
+}
+
+// Extended While
+macroWhileComps = _{
+    compGreaterThan
+    | compGreaterEqual
+    | compLessThan
+    | compLessEqual
+    | compEqual
+    | compNotEqual
+}
+
+macroWhile = {
+    ^"WHILE" ~ macroWhileComps ~ ^"DO" ~ SEP
+    ~ terms ~
+    ^"END"
 }
 
 macro_ = _{
@@ -126,9 +141,9 @@ macro_ = _{
 // Expression Collection:
 expr = _{
     ELLIPSIS
+    | assign
     | loop_
     | while_
-    | assign
     | macro_
 }
 
