@@ -9,9 +9,6 @@ extern crate pest;
 #[macro_use]
 extern crate derive_new;
 
-#[macro_use]
-extern crate pest_consume;
-
 use cfg_if::cfg_if;
 
 mod ast;

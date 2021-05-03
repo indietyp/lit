@@ -46,11 +46,7 @@ impl WhileExec {
 
     pub fn new(node: Node) -> Self {
         match node {
-            Node::Control(Control::While {
-                comp,
-                terms,
-                lno: lno,
-            }) => WhileExec {
+            Node::Control(Control::While { comp, terms, lno }) => WhileExec {
                 lno,
                 comp: ComparisonExec::new(*comp),
                 terms: Box::new(Exec::new(*terms)),

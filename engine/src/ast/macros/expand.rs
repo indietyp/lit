@@ -1,14 +1,12 @@
-use either::Either;
 use indoc::indoc;
 use num_bigint::BigUint;
-use num_traits::Zero;
 
 use crate::ast::context::CompileContext;
-use crate::ast::control::Control;
+
 use crate::ast::macros::MacroAssign;
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
-use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
+use crate::ast::verbs::OperatorVerb;
 use crate::build::Builder;
 use crate::types::LineNo;
 use crate::utils::private_identifier;

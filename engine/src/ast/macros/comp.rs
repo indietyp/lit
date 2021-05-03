@@ -37,7 +37,7 @@ fn if_else_body(
         let else_body = PollutedNode::Control(Control::Loop {
             lno,
             ident: box_ident(else_ident),
-            terms: Box::new(else_terms.unwrap().clone()),
+            terms: Box::new(else_terms.clone().unwrap().clone()),
         })
         .expand(context);
 
@@ -74,7 +74,7 @@ fn expand_comp_not_zero(
             ));
             tmp
         } else {
-            comp.rhs.right().unwrap()
+            comp.lhs.right().unwrap()
         }
     };
 
@@ -151,7 +151,7 @@ fn expand_comp_gt(
     let tmp2 = private_identifier(context);
     let tmp3 = private_identifier(context);
 
-    let mut stmt = format!(
+    let stmt = format!(
         indoc! {"
         {_1} := {x} - {y}
         {_2} := 0
@@ -207,12 +207,19 @@ fn expand_comp_gte(
         instructions.push(format!(
             "{_1} := {x} + 1",
             _1 = tmp,
-            x = comp.lhs.right().unwrap()
+            x = comp.lhs.clone().right().unwrap()
         ));
         comp.rhs = Either::Right(tmp);
     }
 
-    return expand_comp_gt(lno, context, Some(instructions), comp, if_terms, else_terms);
+    return expand_comp_gt(
+        lno,
+        context,
+        Some(instructions),
+        comp.clone(),
+        if_terms,
+        else_terms,
+    );
 }
 
 // Macro Expansion for IF x < y THEN ... ELSE ... END
@@ -280,7 +287,7 @@ pub(crate) fn expand_cond(
         _ => unreachable!(),
     };
 
-    let comp = Comparison::new(comp_lhs, comp_verb.clone(), comp_rhs);
+    let comp = Comparison::new(comp_lhs, comp_verb.clone(), comp_rhs.clone());
     match comp_verb {
         ComparisonVerb::GreaterThan => {
             expand_comp_gt(lno, context, None, comp, if_terms, else_terms)

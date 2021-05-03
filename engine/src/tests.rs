@@ -196,7 +196,7 @@ fn test_decompile() {
 }
 
 #[test]
-fn test_if_not_zero_body_skip() {
+fn test_cond_not_zero_skip() {
     let zero = BigUint::zero();
     let snip = indoc! {"
     IF x != 0 THEN
@@ -214,7 +214,7 @@ fn test_if_not_zero_body_skip() {
 }
 
 #[test]
-fn test_if_not_zero_exec() {
+fn test_cond_not_zero() {
     let snip = indoc! {"
     IF x != 0 THEN
         y := y + 1
@@ -234,7 +234,20 @@ fn test_if_not_zero_exec() {
 }
 
 #[test]
-fn test_if_else_else_body() {
+fn test_cond_zero_else() {
+    let snip = indoc! {"
+    IF x != 0 THEN
+        ...
+    END
+    "};
+}
+
+#[test]
+fn test_conf_zero_val() {}
+
+#[test]
+fn test_cond_gt_else() {
+    // we only need to check this once, they all call the same method gt, so this works
     let snip = indoc! {"
     IF x > y THEN
         z := 1
@@ -257,7 +270,7 @@ fn test_if_else_else_body() {
 }
 
 #[test]
-fn test_if_else_if_body() {
+fn test_cond_gt_if() {
     let snip = indoc! {"
     IF x > y THEN
         z := 1

@@ -7,16 +7,16 @@ use crate::ast::control::Control;
 
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
-use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
+
 use crate::eval::exec::Exec;
 use crate::flags::CompilationFlags;
 
 use crate::eval::types::Variables;
 use crate::parser::Rule;
 use crate::parser::{LoopParser, ParseSettings};
-use crate::pest_consume::Parser;
 use crate::runtime::Runtime;
 use crate::types::LineNo;
+use pest_consume::Parser;
 
 #[derive(Serialize, Deserialize)]
 pub struct Builder {}

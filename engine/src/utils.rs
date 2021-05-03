@@ -1,5 +1,3 @@
-use rand::Rng;
-
 use crate::ast::context::CompileContext;
 
 pub fn private_identifier(context: &mut CompileContext) -> String {

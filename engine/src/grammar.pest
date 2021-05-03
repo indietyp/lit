@@ -14,6 +14,8 @@ IDENT = @{ (ASCII_ALPHA | "_") ~ ASCII_ALPHANUMERIC* }
 VALUE = @{ ASCII_DIGIT+ }
 ZERO = @{ "0" }
 SEP = _{ (";" | (";"? ~ NEWLINE+)) }
+ELLIPSIS = @{ "..." }
+
 // Value Or Ident
 VI = _{ VALUE | IDENT }
 
@@ -89,7 +91,9 @@ macroAssignToIdentExtOpValue = {
     IDENT ~ EXT_OPERATOR ~ VALUE
 }
 
-macroIfComps = _{
+// Conditional
+
+macroCondComps = _{
     compNotEqual0
     | compGreaterThan
     | compGreaterEqual
@@ -97,7 +101,6 @@ macroIfComps = _{
     | compLessEqual
 }
 
-// combine those two
 macroElseStmt = {
     "ELSE" ~ SEP
     ~ terms ~
@@ -105,7 +108,7 @@ macroElseStmt = {
 }
 
 macroConditional = {
-    "IF" ~ macroIfComps ~ "THEN" ~ SEP
+    "IF" ~ macroCondComps ~ "THEN" ~ SEP
     ~ terms ~
     (macroElseStmt | "END")
 }
@@ -121,7 +124,8 @@ macro_ = _{
 
 // Expression Collection:
 expr = _{
-    loop_
+    ELLIPSIS
+    | loop_
     | while_
     | assign
     | macro_
