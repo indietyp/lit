@@ -6,6 +6,7 @@
 
 // Defaults
 WHITESPACE = _{ " " | "\t" }
+COMMENT = _{ ("###" ~ (!"###" ~ ANY)* ~ "###") | ("#" ~ (!NEWLINE ~ ANY)*) }
 
 grammar = { SOI ~ terms ~ EOI }
 
@@ -89,8 +90,8 @@ macroAssignToIdentExtOpValue = {
     IDENT ~ EXT_OPERATOR ~ VALUE
 }
 
-// Conditional
-
+// Conditionals
+// If/Else
 macroCondComps = _{
     compNotEqual0
     | compGreaterThan
@@ -113,7 +114,7 @@ macroConditional = {
     (macroElseStmt | "END")
 }
 
-// Extended While
+// Conditional While
 macroWhileComps = _{
     compGreaterThan
     | compGreaterEqual
