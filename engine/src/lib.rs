@@ -3,6 +3,7 @@ extern crate wasm_bindgen;
 
 #[macro_use]
 extern crate bitflags;
+
 extern crate pest;
 
 #[macro_use]

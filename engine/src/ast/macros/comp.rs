@@ -22,7 +22,7 @@ fn if_else_body(
     if_ident: String,
     if_terms: &PollutedNode,
     else_ident: String,
-    else_terms: Option<&PollutedNode>,
+    else_terms: &Option<PollutedNode>,
 ) {
     // We need to build the body manually
     let if_body = PollutedNode::Control(Control::Loop {
@@ -45,7 +45,7 @@ fn if_else_body(
     }
 }
 
-#[derive(new, Copy, Clone)]
+#[derive(new, Clone)]
 struct Comparison {
     lhs: Either<BigUint, String>,
     verb: ComparisonVerb,
@@ -59,7 +59,7 @@ fn expand_comp_not_zero(
     initial: Option<Vec<String>>,
     comp: Comparison,
     if_terms: &PollutedNode,
-    else_terms: Option<&PollutedNode>,
+    else_terms: &Option<PollutedNode>,
 ) -> Node {
     let mut instructions = initial.unwrap_or_default();
 
@@ -113,7 +113,7 @@ fn expand_comp_gt(
     initial: Option<Vec<String>>,
     comp: Comparison,
     if_terms: &PollutedNode,
-    else_terms: Option<&PollutedNode>,
+    else_terms: &Option<PollutedNode>,
 ) -> Node {
     let mut instructions: Vec<String> = initial.unwrap_or_default();
 
@@ -190,7 +190,7 @@ fn expand_comp_gte(
     initial: Option<Vec<String>>,
     comp: Comparison,
     if_terms: &PollutedNode,
-    else_terms: Option<&PollutedNode>,
+    else_terms: &Option<PollutedNode>,
 ) -> Node {
     let mut instructions = initial.clone().unwrap_or_default();
     let mut comp = comp.clone();
@@ -222,7 +222,7 @@ fn expand_comp_lt(
     initial: Option<Vec<String>>,
     comp: Comparison,
     if_terms: &PollutedNode,
-    else_terms: Option<&PollutedNode>,
+    else_terms: &Option<PollutedNode>,
 ) -> Node {
     return expand_comp_gt(
         lno,
@@ -241,7 +241,7 @@ fn expand_comp_lte(
     initial: Option<Vec<String>>,
     comp: Comparison,
     if_terms: &PollutedNode,
-    else_terms: Option<&PollutedNode>,
+    else_terms: &Option<PollutedNode>,
 ) -> Node {
     return expand_comp_gte(
         lno,
@@ -255,12 +255,12 @@ fn expand_comp_lte(
 
 // Macro Expansion IF x (> | < | >= | <=) y THEN ... ELSE ... END
 //                 IF x != 0 THEN ... ELSE ... END
-pub(crate) fn expand_comp(
+pub(crate) fn expand_cond(
     lno: LineNo,
     context: &mut CompileContext,
     comp: &Node,
     if_terms: &PollutedNode,
-    else_terms: Option<&PollutedNode>,
+    else_terms: &Option<PollutedNode>,
 ) -> Node {
     let zero = BigUint::zero();
     let (comp_lhs, comp_verb, comp_rhs) = match comp {

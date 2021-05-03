@@ -1,21 +1,18 @@
 mod comp;
 mod expand;
 
-use num_bigint::BigUint;
-
 use crate::ast::context::CompileContext;
-use crate::ast::control::Control;
+
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::OperatorVerb;
 
+use crate::ast::macros::comp::expand_cond;
 use crate::ast::macros::expand::{
     expand_assign_to_ident, expand_assign_to_ident_binop_ident,
     expand_assign_to_ident_extbinop_value, expand_assign_to_value, expand_assign_to_zero,
-    expand_comp, expand_if,
 };
 use crate::types::LineNo;
-use crate::utils::private_identifier;
 use serde::{Deserialize, Serialize};
 
 // This is a shorthand for the Node::Assign,
@@ -43,26 +40,21 @@ pub enum Macro {
         lhs: Box<Node>,
         rhs: Box<Node>,
     },
-    AssignToOpIdent {
+    AssignToIdentBinOpIdent {
         lno: LineNo,
         lhs: Box<Node>,
         rhs: MacroAssign,
     },
-    AssignToOpExtValue {
+    AssignToIdentExtBinOpValue {
         lno: LineNo,
         lhs: Box<Node>,
         rhs: MacroAssign,
     },
-    If {
-        lno: LineNo,
-        comp: Box<Node>,
-        terms: Box<PollutedNode>,
-    },
-    IfElse {
+    Conditional {
         lno: LineNo,
         comp: Box<Node>,
         if_terms: Box<PollutedNode>,
-        else_terms: Box<PollutedNode>,
+        else_terms: Box<Option<PollutedNode>>,
     },
 }
 
@@ -76,19 +68,18 @@ impl Macro {
             Macro::AssignToValue { lno, lhs, rhs } => {
                 expand_assign_to_value(lno.clone(), context, lhs, rhs)
             }
-            Macro::AssignToOpIdent { lno, lhs, rhs } => {
+            Macro::AssignToIdentBinOpIdent { lno, lhs, rhs } => {
                 expand_assign_to_ident_binop_ident(lno.clone(), context, lhs, rhs)
             }
-            Macro::AssignToOpExtValue { lno, lhs, rhs } => {
+            Macro::AssignToIdentExtBinOpValue { lno, lhs, rhs } => {
                 expand_assign_to_ident_extbinop_value(lno.clone(), context, lhs, rhs)
             }
-            Macro::If { lno, comp, terms } => expand_if(lno.clone(), context, comp, terms),
-            Macro::IfElse {
+            Macro::Conditional {
                 lno,
                 comp,
                 if_terms,
                 else_terms,
-            } => expand_comp(lno.clone(), context, comp, if_terms, else_terms),
+            } => expand_cond(lno.clone(), context, comp, if_terms, else_terms),
         }
     }
 }

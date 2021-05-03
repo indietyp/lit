@@ -7,7 +7,7 @@
 // Defaults
 WHITESPACE = _{ " " | "\t" }
 
-grammar = _{ SOI ~ terms ~ EOI }
+grammar = { SOI ~ terms ~ EOI }
 
 // Terminals:
 IDENT = @{ (ASCII_ALPHA | "_") ~ ASCII_ALPHANUMERIC* }
