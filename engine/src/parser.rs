@@ -58,6 +58,11 @@ impl LoopParser {
         Ok(Either::Left(PollutedNode::NoOp))
     }
 
+    #[allow(non_snake_case, clippy::upper_case_acronyms)]
+    fn ELLIPSIS(input_: ParseNode) -> ParseResult<EitherNode> {
+        Ok(Either::Left(PollutedNode::NoOp))
+    }
+
     // Atoms (smallest unit)
     #[alias(atom)]
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
