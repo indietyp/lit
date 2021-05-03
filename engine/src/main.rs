@@ -16,15 +16,13 @@ mod build;
 mod eval;
 mod flags;
 mod js;
+mod parser;
 mod runtime;
 mod tests;
 mod types;
 mod utils;
 
-#[derive(Parser)]
-#[grammar = "grammar.pest"]
-pub(crate) struct LoopParser;
-
+// Main Command Line Interface
 fn main() {
     let source = read_to_string("example2.loop").expect("Cannot read example file");
     println!(

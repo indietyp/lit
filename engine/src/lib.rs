@@ -4,11 +4,12 @@ extern crate wasm_bindgen;
 #[macro_use]
 extern crate bitflags;
 extern crate pest;
-#[macro_use]
-extern crate pest_derive;
 
 #[macro_use]
 extern crate derive_new;
+
+#[macro_use]
+extern crate pest_consume;
 
 use cfg_if::cfg_if;
 
@@ -17,14 +18,11 @@ mod build;
 mod eval;
 mod flags;
 mod js;
+mod parser;
 mod runtime;
+mod tests;
 mod types;
 mod utils;
-mod tests;
-
-#[derive(Parser)]
-#[grammar = "grammar.pest"]
-pub(crate) struct LoopParser;
 
 cfg_if! {
     // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
