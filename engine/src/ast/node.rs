@@ -5,7 +5,9 @@ use wasm_typescript_definition::TypescriptDefinition;
 use crate::ast::control::Control;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::types::LineNo;
+use core::fmt;
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 
 // Note(bmahmoud): in the future we could also support unary expressions?
 #[derive(Debug, Clone, Serialize, Deserialize, TypescriptDefinition)]
@@ -86,7 +88,7 @@ impl Node {
     /* Display human friendly representation */
     pub fn display(&self, indent: u8, cur: Option<u8>) -> String {
         let cur = cur.or(Some(0));
-        let prefix = " ".repeat((indent * cur.unwrap()) as usize);
+        let spacing = " ".repeat((indent * cur.unwrap()) as usize);
 
         match self {
             Node::Ident(s) => s.clone(),
@@ -94,20 +96,20 @@ impl Node {
             Node::Comparison { lhs, verb, rhs } => format!(
                 "{} {} {}",
                 lhs.display(indent, cur),
-                verb.display(),
+                verb,
                 rhs.display(indent, cur)
             ),
             Node::BinaryOp { lhs, verb, rhs } => format!(
                 "{} {} {}",
                 lhs.display(indent, cur),
-                verb.display(),
+                verb,
                 rhs.display(indent, cur)
             ),
             Node::Assign { lno: _, lhs, rhs } => format!(
-                "{}{} := {}",
-                prefix,
-                lhs.display(indent, cur),
-                rhs.display(indent, cur)
+                "{s}{lhs} := {rhs}",
+                lhs = lhs.display(indent, cur),
+                rhs = rhs.display(indent, cur),
+                s = spacing,
             ),
             Node::Control(Control::Terms(terms)) => terms
                 .iter()
@@ -119,21 +121,35 @@ impl Node {
                 ident,
                 terms,
             }) => format!(
-                "{prefix}LOOP {} DO\n{}\n{prefix}END",
-                ident.display(indent, cur),
-                terms.display(indent, cur.map(|c| c + 1)),
-                prefix = prefix
+                "
+                 {s}LOOP {ident} DO
+                 {terms}
+                 {s}END
+                 ",
+                ident = ident.display(indent, cur),
+                terms = terms.display(indent, cur.map(|c| c + 1)),
+                s = spacing
             ),
             Node::Control(Control::While {
                 lno: _,
                 comp,
                 terms,
             }) => format!(
-                "{prefix}WHILE {} DO\n{}\n{prefix}END",
-                comp.display(indent, cur),
-                terms.display(indent, cur.map(|c| c + 1)),
-                prefix = prefix
+                "
+                 {s}WHILE {comp} DO
+                 {terms}
+                 {s}END
+                 ",
+                comp = comp.display(indent, cur),
+                terms = terms.display(indent, cur.map(|c| c + 1)),
+                s = spacing
             ),
         }
+    }
+}
+
+impl Display for Node {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.display(4, None))
     }
 }

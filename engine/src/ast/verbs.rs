@@ -1,4 +1,6 @@
+use core::fmt;
 use serde::{Deserialize, Serialize};
+use std::fmt::Formatter;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -37,6 +39,12 @@ impl ComparisonVerb {
     }
 }
 
+impl fmt::Display for ComparisonVerb {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.display())
+    }
+}
+
 #[wasm_bindgen]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum OperatorVerb {
@@ -61,5 +69,11 @@ impl OperatorVerb {
             OperatorVerb::Minus => "-",
             OperatorVerb::Multiply => "*",
         })
+    }
+}
+
+impl fmt::Display for OperatorVerb {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.display())
     }
 }
