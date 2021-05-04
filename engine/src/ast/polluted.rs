@@ -21,6 +21,14 @@ pub enum PollutedNode {
 }
 
 impl PollutedNode {
+    fn expand_merge_errors(maybe: &Vec<Result<Node, Vec<Error>>>) -> Vec<Error> {
+        maybe
+            .iter()
+            .filter(|f| f.is_err())
+            .flat_map(|f| f.clone().unwrap_err())
+            .collect()
+    }
+
     pub fn expand(&self, context: &mut CompileContext) -> Result<Node, Vec<Error>> {
         let result = match self {
             // Control Nodes
@@ -28,29 +36,32 @@ impl PollutedNode {
                 let terms: Vec<Result<Node, Vec<Error>>> =
                     t.iter().map(|term| term.expand(context)).collect();
 
-                let errors: Vec<Error> = terms
-                    .clone()
-                    .iter()
-                    .filter(|f| f.is_err())
-                    .flat_map(|f| f.clone().unwrap_err())
-                    .collect();
-                if errors.len() > 0 {
+                let errors = PollutedNode::expand_merge_errors(&terms);
+                if !errors.is_empty() {
                     return Err(errors);
                 }
 
-                let res: Vec<Node> = terms
-                    .clone()
-                    .iter()
-                    .map(|t| t.clone().ok().unwrap())
-                    .collect();
+                let res: Vec<Node> = terms.iter().map(|t| t.clone().ok().unwrap()).collect();
                 Ok::<Vec<Node>, Vec<Error>>(res)
             }?)),
             PollutedNode::Control(Control::Loop { lno, ident, terms }) => {
+                // instead of instantly returning we collect the errors of both and then return if there
+                // are any, this way the end user knows a lot more.
+                let maybe_ident = ident.expand(context);
+                let maybe_terms = terms.expand(context);
+
+                let maybe = vec![maybe_ident.clone(), maybe_terms.clone()];
+                let errors = PollutedNode::expand_merge_errors(&maybe);
+
+                if !errors.is_empty() {
+                    return Err(errors);
+                }
+
                 if context.flags.contains(CompilationFlags::LOOP) {
                     Node::Control(Control::Loop {
                         lno: *lno,
-                        ident: Box::new(ident.expand(context)?),
-                        terms: Box::new(terms.expand(context)?),
+                        ident: Box::new(maybe_ident.unwrap()),
+                        terms: Box::new(maybe_terms.unwrap()),
                     })
                 } else if context.flags.contains(CompilationFlags::WHILE) {
                     // rewrite as WHILE
@@ -60,7 +71,7 @@ impl PollutedNode {
                         Macro::AssignToIdent {
                             lno: *lno,
                             lhs: Box::new(Node::Ident(tmp1.clone())),
-                            rhs: Box::new(ident.clone().expand(context)?),
+                            rhs: Box::new(maybe_ident.unwrap()),
                         }
                         .expand(context)?,
                         Node::Control(Control::While {
@@ -71,7 +82,7 @@ impl PollutedNode {
                                 rhs: Box::new(Node::NaturalNumber(BigUint::from(0u8))),
                             }),
                             terms: Box::new(Node::Control(Control::Terms(vec![
-                                terms.expand(context)?,
+                                maybe_terms.unwrap(),
                                 Node::Assign {
                                     lno: *lno,
                                     lhs: Box::new(Node::Ident(tmp1.clone())),
@@ -86,7 +97,7 @@ impl PollutedNode {
                     ]))
                 } else {
                     return Err(vec![Error::new(
-                        lno.clone(),
+                        *lno,
                         ErrorVariant::Message(String::from(
                             "Cannot use LOOP if LOOP and WHILE are not enabled!",
                         )),
@@ -95,17 +106,26 @@ impl PollutedNode {
             }
 
             PollutedNode::Control(Control::While { lno, comp, terms }) => {
+                let maybe_comp = comp.expand(context);
+                let maybe_terms = terms.expand(context);
+
+                let maybe = vec![maybe_comp.clone(), maybe_terms.clone()];
+                let mut errors = PollutedNode::expand_merge_errors(&maybe);
                 if !context.flags.contains(CompilationFlags::WHILE) {
-                    return Err(vec![Error::new(
-                        lno.clone(),
+                    errors.push(Error::new(
+                        *lno,
                         ErrorVariant::Message(String::from("Cannot replicate WHILE in LOOP mode!")),
-                    )]);
+                    ));
+                }
+
+                if !errors.is_empty() {
+                    return Err(errors);
                 }
 
                 Node::Control(Control::While {
                     lno: *lno,
-                    comp: Box::new(comp.expand(context)?),
-                    terms: Box::new(terms.expand(context)?),
+                    comp: Box::new(maybe_comp.unwrap()),
+                    terms: Box::new(maybe_terms.unwrap()),
                 })
             }
             PollutedNode::NoOp => Node::Control(Control::Terms(vec![])),
