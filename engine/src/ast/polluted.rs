@@ -25,17 +25,25 @@ impl PollutedNode {
         let result = match self {
             // Control Nodes
             PollutedNode::Control(Control::Terms(t)) => Node::Control(Control::Terms({
-                let mut terms = t.iter().map(|term| term.expand(context));
+                let terms: Vec<Result<Node, Vec<Error>>> =
+                    t.iter().map(|term| term.expand(context)).collect();
 
                 let errors: Vec<Error> = terms
+                    .clone()
+                    .iter()
                     .filter(|f| f.is_err())
-                    .flat_map(|f| f.unwrap_err())
+                    .flat_map(|f| f.clone().unwrap_err())
                     .collect();
                 if errors.len() > 0 {
                     return Err(errors);
                 }
 
-                Ok(terms.map(|t| t.ok().unwrap()).collect())
+                let res: Vec<Node> = terms
+                    .clone()
+                    .iter()
+                    .map(|t| t.clone().ok().unwrap())
+                    .collect();
+                Ok::<Vec<Node>, Vec<Error>>(res)
             }?)),
             PollutedNode::Control(Control::Loop { lno, ident, terms }) => {
                 if context.flags.contains(CompilationFlags::LOOP) {
@@ -54,7 +62,7 @@ impl PollutedNode {
                             lhs: Box::new(Node::Ident(tmp1.clone())),
                             rhs: Box::new(ident.clone().expand(context)?),
                         }
-                        .expand(context),
+                        .expand(context)?,
                         Node::Control(Control::While {
                             lno: *lno,
                             comp: Box::new(Node::Comparison {

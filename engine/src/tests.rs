@@ -19,7 +19,13 @@ fn run(
     locals: Option<Variables>,
     flags: Option<CompilationFlags>,
 ) -> Result<Variables, ErrorCode> {
-    let mut exec = Builder::all2(snip, flags, locals);
+    let mut maybe_exec = Builder::ext_all(snip, flags, locals);
+    assert!(
+        maybe_exec.is_ok(),
+        "While creating the parser errors occured: {:?}",
+        maybe_exec.err().unwrap()
+    );
+    let mut exec = maybe_exec.ok().unwrap();
 
     let mut steps: usize = 0;
     while exec.is_running() && (limit.map(|l| steps < l).unwrap_or(true)) {
@@ -181,13 +187,15 @@ fn test_decompile() {
 
     let ast = Builder::parse_and_compile(
         snip,
-        Some(CompilationFlags::WHILE | CompilationFlags::RETAIN_LNO),
-    );
+        Some(CompilationFlags::WHILE | CompilationFlags::CNF_RETAIN_LNO),
+    )
+    .unwrap();
 
     assert_eq!(
         ast.display(4, None),
-        indoc! {"\
+        indoc! {"
         _0 := x + 0
+        
         WHILE _0 != 0 DO
             x := x + 1
             _0 := _0 - 1
@@ -598,7 +606,7 @@ fn test_speed() {
     let mut locals = HashMap::new();
     locals.insert("x".to_string(), BigUint::one());
 
-    let mut exec = Builder::all2(snip, None, Some(locals));
+    let mut exec = Builder::ext_all(snip, None, Some(locals)).unwrap();
     let limit = SystemTime::now() + Duration::new(1, 0);
 
     let mut steps: usize = 0;

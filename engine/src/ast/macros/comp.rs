@@ -6,6 +6,7 @@ use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::ComparisonVerb;
 use crate::build::Builder;
+use crate::errors::Error;
 use crate::types::LineNo;
 use crate::utils::private_identifier;
 use core::option::Option;
@@ -16,10 +17,25 @@ use num_bigint::BigUint;
 use num_traits::Zero;
 use std::ops::Add;
 
+fn terms_are_ok(terms: Vec<Result<Node, Vec<Error>>>) -> Result<Vec<Node>, Vec<Error>> {
+    let iter = terms.iter().clone();
+
+    let erroneous = iter.clone().filter(|res| res.is_err());
+
+    return if erroneous.clone().count() > 0 {
+        Err(erroneous
+            .clone()
+            .flat_map(|e| e.clone().err().unwrap())
+            .collect())
+    } else {
+        Ok(iter.clone().map(|res| res.clone().ok().unwrap()).collect())
+    };
+}
+
 fn if_else_body(
     lno: LineNo,
     context: &mut CompileContext,
-    terms: &mut Vec<Node>,
+    terms: &mut Vec<Result<Node, Vec<Error>>>,
     if_ident: String,
     if_terms: &PollutedNode,
     else_ident: String,
@@ -61,7 +77,7 @@ fn expand_comp_not_zero(
     comp: Comparison,
     if_terms: &PollutedNode,
     else_terms: &Option<PollutedNode>,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     let mut instructions = initial.unwrap_or_default();
 
     let ident = {
@@ -99,12 +115,13 @@ fn expand_comp_not_zero(
 
     let mut terms = vec![];
     let is_not_zero =
-        Builder::parse_and_compile2(instructions.join("\n").as_str(), *context, Some(lno));
+        Builder::ext_parse_and_compile(instructions.join("\n").as_str(), *context, Some(lno));
     terms.push(is_not_zero);
 
     if_else_body(lno, context, &mut terms, tmp1, if_terms, tmp2, else_terms);
 
-    Node::Control(Control::Terms(terms))
+    let res = Node::Control(Control::Terms(terms_are_ok(terms)?));
+    Ok(res)
 }
 
 // Macro Expansion for IF x > y THEN ... ELSE ... END
@@ -115,7 +132,7 @@ fn expand_comp_gt(
     comp: Comparison,
     if_terms: &PollutedNode,
     else_terms: &Option<PollutedNode>,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     let mut instructions: Vec<String> = initial.unwrap_or_default();
 
     // if the value of y is a number, implicity convert it to a variable when expanding
@@ -175,12 +192,13 @@ fn expand_comp_gt(
     let mut terms = vec![];
 
     let is_greater_than =
-        Builder::parse_and_compile2(instructions.join("\n").as_str(), *context, Some(lno));
+        Builder::ext_parse_and_compile(instructions.join("\n").as_str(), *context, Some(lno));
     terms.push(is_greater_than);
 
     if_else_body(lno, context, &mut terms, tmp2, if_terms, tmp3, else_terms);
 
-    Node::Control(Control::Terms(terms))
+    let res = Node::Control(Control::Terms(terms_are_ok(terms)?));
+    Ok(res)
 }
 
 // Macro Expansion for IF x >= y THEN ... ELSE ... END
@@ -192,7 +210,7 @@ fn expand_comp_gte(
     comp: Comparison,
     if_terms: &PollutedNode,
     else_terms: &Option<PollutedNode>,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     let mut instructions = initial.unwrap_or_default();
     let mut comp = comp;
 
@@ -224,7 +242,7 @@ fn expand_comp_lt(
     comp: Comparison,
     if_terms: &PollutedNode,
     else_terms: &Option<PollutedNode>,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     expand_comp_gt(
         lno,
         context,
@@ -244,7 +262,7 @@ fn expand_comp_lte(
     comp: Comparison,
     if_terms: &PollutedNode,
     else_terms: &Option<PollutedNode>,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     expand_comp_gte(
         lno,
         context,
@@ -255,14 +273,14 @@ fn expand_comp_lte(
     )
 }
 
+// Macro Expansion for IF x == y THEN ... ELSE ... END
 fn expand_comp_eq(
     lno: LineNo,
     context: &mut CompileContext,
-    initial: Option<Vec<String>>,
     comp: Comparison,
     if_terms: &PollutedNode,
     else_terms: &Option<PollutedNode>,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     // This one is a bit more complicated. Constructs equal through:
     // IF x >= y THEN
     //     IF x <= y THEN
@@ -301,17 +319,16 @@ fn expand_comp_eq(
 fn expand_comp_neq(
     lno: LineNo,
     context: &mut CompileContext,
-    initial: Option<Vec<String>>,
     comp: Comparison,
     if_terms: &PollutedNode,
     else_terms: &Option<PollutedNode>,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     let if_terms = Some(if_terms.clone());
     let else_terms = else_terms
         .clone()
         .unwrap_or_else(|| PollutedNode::Control(Control::Terms(vec![])));
 
-    expand_comp_eq(lno, context, initial, comp, &else_terms, &if_terms)
+    expand_comp_eq(lno, context, comp, &else_terms, &if_terms)
 }
 
 // Macro Expansion IF x (> | < | >= | <= | == | !=) y THEN ... ELSE ... END
@@ -322,7 +339,7 @@ pub(crate) fn expand_cond(
     comp: &Node,
     if_terms: &PollutedNode,
     else_terms: &Option<PollutedNode>,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     let zero = BigUint::zero();
     let (comp_lhs, comp_verb, comp_rhs) = match comp {
         Node::Comparison { lhs, verb, rhs } => (
@@ -356,7 +373,7 @@ pub(crate) fn expand_cond(
         ComparisonVerb::NotEqual if comp_rhs.left().eq(&Some(zero)) => {
             expand_comp_not_zero(lno, context, None, comp, if_terms, else_terms)
         }
-        ComparisonVerb::Equal => expand_comp_eq(lno, context, None, comp, if_terms, else_terms),
-        ComparisonVerb::NotEqual => expand_comp_neq(lno, context, None, comp, if_terms, else_terms),
+        ComparisonVerb::Equal => expand_comp_eq(lno, context, comp, if_terms, else_terms),
+        ComparisonVerb::NotEqual => expand_comp_neq(lno, context, comp, if_terms, else_terms),
     }
 }

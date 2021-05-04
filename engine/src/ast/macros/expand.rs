@@ -8,6 +8,7 @@ use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::OperatorVerb;
 use crate::build::Builder;
+use crate::errors::Error;
 use crate::types::LineNo;
 use crate::utils::private_identifier;
 
@@ -21,7 +22,7 @@ pub(crate) fn expand_assign_to_ident(
     context: &CompileContext,
     lhs: &Node,
     rhs: &Node,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     let lhs = match lhs.clone() {
         Node::Ident(m) => m,
         _ => unreachable!(),
@@ -37,11 +38,15 @@ pub(crate) fn expand_assign_to_ident(
 
     // we loose line numbers here
     // this will reset the context counter
-    Builder::parse_and_compile2(instruction.as_str(), *context, Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
 }
 
 // Macro expansion for x := 0
-pub(crate) fn expand_assign_to_zero(lno: LineNo, context: &CompileContext, lhs: &Node) -> Node {
+pub(crate) fn expand_assign_to_zero(
+    lno: LineNo,
+    context: &CompileContext,
+    lhs: &Node,
+) -> Result<Node, Vec<Error>> {
     let lhs = match lhs.clone() {
         Node::Ident(m) => m,
         _ => unreachable!(),
@@ -56,7 +61,7 @@ pub(crate) fn expand_assign_to_zero(lno: LineNo, context: &CompileContext, lhs: 
         lhs = lhs
     );
 
-    Builder::parse_and_compile2(instruction.as_str(), *context, Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
 }
 
 // Macro expansion for x := n
@@ -65,7 +70,7 @@ pub(crate) fn expand_assign_to_value(
     context: &CompileContext,
     lhs: &Node,
     rhs: &Node,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     let lhs = match lhs.clone() {
         Node::Ident(m) => m,
         _ => unreachable!(),
@@ -85,7 +90,7 @@ pub(crate) fn expand_assign_to_value(
         rhs = rhs.to_string()
     );
 
-    Builder::parse_and_compile2(instruction.as_str(), *context, Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
 }
 
 // Macro expansion for x := y +/- z
@@ -96,7 +101,7 @@ fn expand_assign_to_ident_simple_ident(
     y: String,
     op: OperatorVerb,
     z: String,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     let instruction = format!(
         indoc! {"
         {x} := {y}
@@ -110,7 +115,7 @@ fn expand_assign_to_ident_simple_ident(
         b = z
     );
 
-    Builder::parse_and_compile2(instruction.as_str(), *context, Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
 }
 
 // Macro expansion for x := y * z
@@ -120,7 +125,7 @@ fn expand_assign_to_ident_mul_ident(
     x: String,
     y: String,
     z: String,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     let instruction = format!(
         indoc! {"
         {x} := 0
@@ -133,7 +138,7 @@ fn expand_assign_to_ident_mul_ident(
         z = z
     );
 
-    Builder::parse_and_compile2(instruction.as_str(), *context, Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
 }
 
 // Macro expansion for x := y (+|-|*) z
@@ -142,7 +147,7 @@ pub(crate) fn expand_assign_to_ident_binop_ident(
     context: &CompileContext,
     lhs: &Node,
     rhs: &MacroAssign,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     let lhs = match lhs.clone() {
         Node::Ident(m) => m,
         _ => unreachable!(),
@@ -177,7 +182,7 @@ fn expand_assign_to_ident_mul_value(
     x: String,
     y: String,
     n: BigUint,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     let tmp = private_identifier(context);
 
     let instruction = format!(
@@ -191,7 +196,7 @@ fn expand_assign_to_ident_mul_value(
         tmp = tmp
     );
 
-    Builder::parse_and_compile2(instruction.as_str(), *context, Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
 }
 
 // Macro expansion for x := y (*|...) n
@@ -200,7 +205,7 @@ pub(crate) fn expand_assign_to_ident_extbinop_value(
     context: &mut CompileContext,
     lhs: &Node,
     rhs: &MacroAssign,
-) -> Node {
+) -> Result<Node, Vec<Error>> {
     let lhs = match lhs.clone() {
         Node::Ident(m) => m,
         _ => unreachable!(),

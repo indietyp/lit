@@ -6,6 +6,7 @@ use crate::ast::control::Control;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::types::LineNo;
 use core::fmt;
+use indoc::indoc;
 use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 
@@ -121,11 +122,12 @@ impl Node {
                 ident,
                 terms,
             }) => format!(
-                "
-                 {s}LOOP {ident} DO
-                 {terms}
-                 {s}END
-                 ",
+                indoc!(
+                    "\n\
+                     {s}LOOP {ident} DO
+                     {terms}
+                     {s}END"
+                ),
                 ident = ident.display(indent, cur),
                 terms = terms.display(indent, cur.map(|c| c + 1)),
                 s = spacing
@@ -135,11 +137,12 @@ impl Node {
                 comp,
                 terms,
             }) => format!(
-                "
-                 {s}WHILE {comp} DO
-                 {terms}
-                 {s}END
-                 ",
+                indoc!(
+                    "\n\
+                     {s}WHILE {comp} DO
+                     {terms}
+                     {s}END"
+                ),
                 comp = comp.display(indent, cur),
                 terms = terms.display(indent, cur.map(|c| c + 1)),
                 s = spacing

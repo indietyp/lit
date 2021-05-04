@@ -11,6 +11,7 @@ use crate::flags::CompilationFlags;
 
 mod ast;
 mod build;
+mod errors;
 mod eval;
 mod flags;
 mod js;
@@ -27,15 +28,17 @@ fn main() {
         "{}",
         Builder::parse_and_compile(
             &source,
-            Some(CompilationFlags::WHILE | CompilationFlags::RETAIN_LNO)
+            Some(CompilationFlags::WHILE | CompilationFlags::CNF_RETAIN_LNO)
         )
+        .unwrap()
         .display(4, None)
     );
 
     let mut runtime = Builder::all(
         &source,
-        Some(CompilationFlags::WHILE | CompilationFlags::RETAIN_LNO),
-    );
+        Some(CompilationFlags::WHILE | CompilationFlags::CNF_RETAIN_LNO),
+    )
+    .unwrap();
 
     // let running = true;
     while runtime.is_running() {

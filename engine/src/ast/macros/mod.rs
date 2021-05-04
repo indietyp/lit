@@ -12,6 +12,7 @@ use crate::ast::macros::expand::{
     expand_assign_to_ident, expand_assign_to_ident_binop_ident,
     expand_assign_to_ident_extbinop_value, expand_assign_to_value, expand_assign_to_zero,
 };
+use crate::errors::Error;
 use crate::types::LineNo;
 use serde::{Deserialize, Serialize};
 
@@ -59,7 +60,7 @@ pub enum Macro {
 }
 
 impl Macro {
-    pub fn expand(&self, context: &mut CompileContext) -> Node {
+    pub fn expand(&self, context: &mut CompileContext) -> Result<Node, Vec<Error>> {
         match self {
             Macro::AssignToIdent { lno, lhs, rhs } => {
                 expand_assign_to_ident(lno.clone(), context, lhs, rhs)

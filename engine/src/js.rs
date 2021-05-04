@@ -5,6 +5,7 @@ use num_bigint::BigUint;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsValue, UnwrapThrowExt};
 
+use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::build::Builder;
 use crate::eval::exec::Exec;
@@ -82,23 +83,38 @@ pub struct JavaScriptBuilder {
 #[wasm_bindgen(js_class = Builder)]
 impl JavaScriptBuilder {
     pub fn parse(source: &str) -> Result<JsValue, JsValue> {
-        let result = Builder::parse(source, None);
-
-        return if result.is_ok() {
-            Ok(JsValue::from_serde(&result.ok().unwrap()).unwrap())
-        } else {
-            Err(JsValue::from_str(&format!("{}", result.err().unwrap())))
-        };
+        Builder::parse(source, None)
+            .map(|val| JsValue::from_serde(&val).unwrap())
+            .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))
     }
 
     pub fn compile(ast: &JsValue, flags: Option<CompilationFlags>) -> Result<JsValue, JsValue> {
         let mut ast: Vec<PollutedNode> = ast.into_serde().unwrap();
-        let result = Builder::compile(&mut ast, flags);
+        let result =
+            Builder::compile(&mut ast, flags).map_err(|err| JsValue::from_serde(&err).unwrap())?;
 
         Ok(JsValue::from_serde(&result).unwrap())
     }
 
-    pub fn eval(ast: &JsValue, locals: Map) -> Result<JavaScriptRuntime, JsValue> {
-        JavaScriptRuntime::new(ast, locals)
+    pub fn exec(exec: &JsValue, locals: Map) -> Result<JavaScriptRuntime, JsValue> {
+        JavaScriptRuntime::new(exec, locals)
+    }
+
+    pub fn eval(ast: &JsValue, locals: Map) -> Result<JsValue, JsValue> {
+        let ast: Node = ast
+            .into_serde()
+            .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))?;
+
+        let exec = Exec::new(ast);
+
+        Ok(JsValue::from_serde(&exec).unwrap())
+    }
+
+    pub fn display(ast: &JsValue, indent: u8) -> Result<String, JsValue> {
+        let ast: Node = ast
+            .into_serde()
+            .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))?;
+
+        Ok(ast.display(indent, None))
     }
 }
