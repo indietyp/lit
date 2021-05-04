@@ -13,6 +13,7 @@ use cfg_if::cfg_if;
 
 mod ast;
 mod build;
+mod errors;
 mod eval;
 mod flags;
 mod js;

@@ -6,6 +6,7 @@ use crate::ast::macros::Macro;
 use crate::ast::node::Node;
 
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
+use crate::errors::{Error, ErrorVariant};
 use crate::flags::CompilationFlags;
 use crate::utils::private_identifier;
 use serde::{Deserialize, Serialize};
@@ -20,18 +21,28 @@ pub enum PollutedNode {
 }
 
 impl PollutedNode {
-    pub fn expand(&self, context: &mut CompileContext) -> Node {
-        match self {
+    pub fn expand(&self, context: &mut CompileContext) -> Result<Node, Vec<Error>> {
+        let result = match self {
             // Control Nodes
-            PollutedNode::Control(Control::Terms(t)) => Node::Control(Control::Terms(
-                t.iter().map(|term| term.expand(context)).collect(),
-            )),
+            PollutedNode::Control(Control::Terms(t)) => Node::Control(Control::Terms({
+                let mut terms = t.iter().map(|term| term.expand(context));
+
+                let errors: Vec<Error> = terms
+                    .filter(|f| f.is_err())
+                    .flat_map(|f| f.unwrap_err())
+                    .collect();
+                if errors.len() > 0 {
+                    return Err(errors);
+                }
+
+                Ok(terms.map(|t| t.ok().unwrap()).collect())
+            }?)),
             PollutedNode::Control(Control::Loop { lno, ident, terms }) => {
                 if context.flags.contains(CompilationFlags::LOOP) {
                     Node::Control(Control::Loop {
                         lno: *lno,
-                        ident: Box::new(ident.expand(context)),
-                        terms: Box::new(terms.expand(context)),
+                        ident: Box::new(ident.expand(context)?),
+                        terms: Box::new(terms.expand(context)?),
                     })
                 } else if context.flags.contains(CompilationFlags::WHILE) {
                     // rewrite as WHILE
@@ -41,7 +52,7 @@ impl PollutedNode {
                         Macro::AssignToIdent {
                             lno: *lno,
                             lhs: Box::new(Node::Ident(tmp1.clone())),
-                            rhs: Box::new(ident.clone().expand(context)),
+                            rhs: Box::new(ident.clone().expand(context)?),
                         }
                         .expand(context),
                         Node::Control(Control::While {
@@ -52,7 +63,7 @@ impl PollutedNode {
                                 rhs: Box::new(Node::NaturalNumber(BigUint::from(0u8))),
                             }),
                             terms: Box::new(Node::Control(Control::Terms(vec![
-                                terms.expand(context),
+                                terms.expand(context)?,
                                 Node::Assign {
                                     lno: *lno,
                                     lhs: Box::new(Node::Ident(tmp1.clone())),
@@ -66,25 +77,34 @@ impl PollutedNode {
                         }),
                     ]))
                 } else {
-                    panic!("Cannot use LOOP if LOOP and WHILE are not enabled!")
+                    return Err(vec![Error::new(
+                        lno.clone(),
+                        ErrorVariant::Message(String::from(
+                            "Cannot use LOOP if LOOP and WHILE are not enabled!",
+                        )),
+                    )]);
                 }
             }
 
             PollutedNode::Control(Control::While { lno, comp, terms }) => {
-                assert!(
-                    context.flags.contains(CompilationFlags::WHILE),
-                    "Cannot replicate WHILE in LOOP mode!",
-                );
+                if !context.flags.contains(CompilationFlags::WHILE) {
+                    return Err(vec![Error::new(
+                        lno.clone(),
+                        ErrorVariant::Message(String::from("Cannot replicate WHILE in LOOP mode!")),
+                    )]);
+                }
 
                 Node::Control(Control::While {
                     lno: *lno,
-                    comp: Box::new(comp.expand(context)),
-                    terms: Box::new(terms.expand(context)),
+                    comp: Box::new(comp.expand(context)?),
+                    terms: Box::new(terms.expand(context)?),
                 })
             }
             PollutedNode::NoOp => Node::Control(Control::Terms(vec![])),
             PollutedNode::Pure(n) => n.clone(),
-            PollutedNode::Macro(m) => m.expand(context),
-        }
+            PollutedNode::Macro(m) => m.expand(context)?,
+        };
+
+        Ok(result)
     }
 }
