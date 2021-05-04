@@ -2,18 +2,20 @@ use wasm_bindgen::prelude::*;
 
 bitflags! {
     #[wasm_bindgen]
-    pub struct CompilationFlags: u8 {
-        // Language Features
+    pub struct CompilationFlags: u16 {
+        //-- Language Features --//
         const LOOP       = 0b0000_0001;
         const WHILE      = 0b0000_0010;
 
-        // Compilation Features
-        const DEDICATED_ZERO = 0b0000_0100;
+        //-- Optimization Features --//
+        // enable dedicated zero variable
+        const OPT_ZERO = 0b0001_0000_0000;
 
-        // Runtime Features
-        const RETAIN_LNO = 0b0001_0000;
+        //-- Configuration --//
+        // instead of rewriting the LNO on compilation, let them stay pre expansion
+        const CNF_RETAIN_LNO = 0b0001_0000;
 
-        // Compound Enum
+        //-- Compound Enum --//
         const LOOP_AND_WHILE = Self::LOOP.bits | Self::WHILE.bits;
     }
 }
