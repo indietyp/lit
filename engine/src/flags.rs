@@ -7,6 +7,9 @@ bitflags! {
         const LOOP       = 0b0000_0001;
         const WHILE      = 0b0000_0010;
 
+        // Compilation Features
+        const DEDICATED_ZERO = 0b0000_0100;
+
         // Runtime Features
         const RETAIN_LNO = 0b0001_0000;
 

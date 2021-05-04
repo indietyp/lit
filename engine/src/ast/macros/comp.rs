@@ -358,6 +358,5 @@ pub(crate) fn expand_cond(
         }
         ComparisonVerb::Equal => expand_comp_eq(lno, context, None, comp, if_terms, else_terms),
         ComparisonVerb::NotEqual => expand_comp_neq(lno, context, None, comp, if_terms, else_terms),
-        _ => unreachable!(),
     }
 }
