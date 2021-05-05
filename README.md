@@ -9,7 +9,7 @@ this means the engine is fast, very fast.
 
 Here are some statistics:
     - Parsing and Expansion is done in less than 1ms
-    - Throughput: 140k LOOP instructions per seconds (run on a MacBook Pro 2019 13")
+    - Throughput: 140k-210k LOOP instructions per seconds (run on a MacBook Pro 2019 13")
 
 This compiler is written for educational purposes first, which means we're losing some speed, but the engine is able to step through the program using a `.step()` method.
 You can also just straight up evaluate the whole program using a simple `while`:
