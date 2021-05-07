@@ -13,10 +13,16 @@ export const Editor: React.FunctionComponent<Props> = function () {
     useEffect(() => {
         if (codeMirrorRootRef.current && !editorView) {
             const view = new EditorView({
-                state: EditorState.create({ extensions: [basicSetup, loop()] }),
+                state: EditorState.create({ extensions: [basicSetup, html()] }),
                 parent: codeMirrorRootRef.current,
             });
             setEditorView(view);
+            view.dispatch({
+                changes: [{
+                    from: 0,
+                    insert: '<html>\n  <a>\n\n  </a>\n</html>',
+                }],
+            });
         }
     }, [codeMirrorRootRef.current]);
 
