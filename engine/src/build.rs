@@ -94,7 +94,7 @@ impl Builder {
     }
 
     // all2 has more options than all (used mostly for tests)
-    pub(crate) fn ext_all(
+    pub fn ext_all(
         source: &str,
         flags: Option<CompilationFlags>,
         locals: Option<Variables>,

@@ -8,6 +8,7 @@ use std::fs::read_to_string;
 
 use crate::build::Builder;
 use crate::flags::CompilationFlags;
+use std::collections::HashMap;
 
 mod ast;
 mod build;
@@ -34,20 +35,21 @@ fn main() {
         .display(4, None)
     );
 
-    let mut runtime = Builder::all(
-        &source,
-        Some(CompilationFlags::WHILE | CompilationFlags::CNF_RETAIN_LNO),
-    )
-    .unwrap();
-
-    // let running = true;
-    while runtime.is_running() {
-        let result = runtime.step();
-        if let Some((lno, _)) = result {
-            let lines = source.lines().collect::<Vec<&str>>();
-            println!("{}: {}", lno, lines.get(lno - 1).unwrap_or(&"<Not Found>"));
-        }
-    }
-
-    println!("{:?}", runtime.context())
+    // let mut runtime = Builder::ext_all(
+    //     &source,
+    //     Some(CompilationFlags::WHILE | CompilationFlags::CNF_RETAIN_LNO),
+    //     None,
+    // )
+    // .unwrap();
+    //
+    // // let running = true;
+    // while runtime.is_running() {
+    //     let result = runtime.step();
+    //     if let Some((lno, _)) = result {
+    //         let lines = source.lines().collect::<Vec<&str>>();
+    //         println!("{}: {}", lno, lines.get(lno - 1).unwrap_or(&"<Not Found>"));
+    //     }
+    // }
+    //
+    // println!("{:?}", runtime.context())
 }

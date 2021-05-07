@@ -1,5 +1,8 @@
-x := 5
+h1 := 1
 
-LOOP x DO
-    y := y + 1
+WHILE h1 != 0 DO
+    ...
+    IF x < y THEN
+        h1 := 0
+    END
 END

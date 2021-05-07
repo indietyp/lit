@@ -21,6 +21,7 @@ IDENT_OR_VALUE = _{ IDENT | VALUE }
 OP_PLUS = { "+" }
 OP_MINUS = { "-" }
 OP_MULTIPLY = { "*" }
+OP_DIV = { "/" }
 
 SIMPLE_OPERATOR = _{ OP_PLUS | OP_MINUS }
 EXT_OPERATOR = _{ OP_MULTIPLY }
@@ -90,6 +91,30 @@ macroAssignToIdentExtOpValue = {
     IDENT ~ EXT_OPERATOR ~ VALUE
 }
 
+// Function Definitions
+
+// This is all a bit more complicated, identifiers in macroFnDef
+// need to be prefixed and then inlined correctly, this is a BIG task
+// x  => __max1__x
+// _1 => __max1___1
+// When calling the function the annotated
+macroFnDef = {
+    ^"FN" ~ IDENT
+    ~ "(" ~ IDENT ~ ("," ~ IDENT) ~ ")"
+    ~ "->" ~ IDENT ~ ^"DECL" ~
+    terms
+    ~ "END"
+}
+
+// We need to check at compile time if the number of arguments is correct.
+macroFnCall = {
+   IDENT ~ "(" ~ IDENT_OR_VALUE ~ ("," ~ IDENT_OR_VALUE)* ~ ")"
+}
+
+macroFnImport = {
+    ^"IMPORT" ~ IDENT
+}
+
 // Conditionals
 // If/Else
 macroCondComps = _{
@@ -113,7 +138,6 @@ macroConditional = {
     ~ terms ~
     (macroElseStmt | "END")
 }
-
 // Conditional While
 macroWhileComps = _{
     compGreaterThan
