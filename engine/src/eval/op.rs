@@ -1,12 +1,13 @@
 use std::ops::Add;
 
 use num_bigint::BigUint;
-
-use crate::ast::node::Node;
-use crate::ast::verbs::OperatorVerb;
-use crate::eval::types::Variables;
 use num_traits::{CheckedSub, Zero};
 use serde::{Deserialize, Serialize};
+
+use crate::ast::node::Node;
+use crate::ast::variant::UInt;
+use crate::ast::verbs::OperatorVerb;
+use crate::eval::types::Variables;
 
 #[derive(Clone, Deserialize, Serialize)]
 pub struct BinaryOpExec {
@@ -26,7 +27,7 @@ impl BinaryOpExec {
                 },
                 verb,
                 rhs: match *rhs {
-                    Node::NaturalNumber(m) => m,
+                    Node::NaturalNumber(UInt(m)) => m,
                     _ => unreachable!(),
                 },
             },

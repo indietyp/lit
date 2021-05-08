@@ -1,12 +1,11 @@
 use num_bigint::BigUint;
-
-use crate::ast::node::Node;
-
-use crate::ast::verbs::ComparisonVerb;
-
-use crate::eval::types::Variables;
 use num_traits::Zero;
 use serde::{Deserialize, Serialize};
+
+use crate::ast::node::Node;
+use crate::ast::variant::UInt;
+use crate::ast::verbs::ComparisonVerb;
+use crate::eval::types::Variables;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 enum ComparisonSide {
@@ -27,13 +26,13 @@ impl ComparisonExec {
             Node::Comparison { lhs, verb, rhs } => ComparisonExec {
                 lhs: match *lhs {
                     Node::Ident(m) => ComparisonSide::Ident(m),
-                    Node::NaturalNumber(m) => ComparisonSide::NaturalNumber(m),
+                    Node::NaturalNumber(UInt(m)) => ComparisonSide::NaturalNumber(m),
                     _ => unreachable!(),
                 },
                 verb,
                 rhs: match *rhs {
                     Node::Ident(m) => ComparisonSide::Ident(m),
-                    Node::NaturalNumber(m) => ComparisonSide::NaturalNumber(m),
+                    Node::NaturalNumber(UInt(m)) => ComparisonSide::NaturalNumber(m),
                     _ => unreachable!(),
                 },
             },

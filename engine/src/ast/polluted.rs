@@ -1,18 +1,17 @@
 use num_bigint::BigUint;
+#[cfg(feature = "cli")]
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::macros::Macro;
 use crate::ast::node::Node;
-
+use crate::ast::variant::UInt;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::errors::{Error, ErrorVariant};
 use crate::flags::CompilationFlags;
 use crate::utils::private_identifier;
-use serde::{Deserialize, Serialize};
-
-#[cfg(feature = "cli")]
-use schemars::JsonSchema;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
@@ -84,7 +83,9 @@ impl PollutedNode {
                             comp: Box::new(Node::Comparison {
                                 lhs: Box::new(Node::Ident(tmp1.clone())),
                                 verb: ComparisonVerb::NotEqual,
-                                rhs: Box::new(Node::NaturalNumber(BigUint::from(0u8))),
+                                rhs: Box::new(Node::NaturalNumber(UInt(BigUint::from(
+                                    0u8,
+                                )))),
                             }),
                             terms: Box::new(Node::Control(Control::Terms(vec![
                                 maybe_terms.unwrap(),
@@ -94,7 +95,9 @@ impl PollutedNode {
                                     rhs: Box::new(Node::BinaryOp {
                                         lhs: Box::new(Node::Ident(tmp1)),
                                         verb: OperatorVerb::Minus,
-                                        rhs: Box::new(Node::NaturalNumber(BigUint::from(1u8))),
+                                        rhs: Box::new(Node::NaturalNumber(UInt(
+                                            BigUint::from(1u8),
+                                        ))),
                                     }),
                                 },
                             ]))),

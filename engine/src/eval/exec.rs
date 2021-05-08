@@ -2,14 +2,16 @@
 // I know that I should use traits to implement this, but I have major problems dealing with those
 // I am getting a vtable exception with every way I tried to implement this.
 
+use serde::{Deserialize, Serialize};
+
 use crate::ast::control::Control;
 use crate::ast::node::Node;
+use crate::ast::variant::UInt;
 use crate::eval::assign::AssignExec;
 use crate::eval::loop_::LoopExec;
 use crate::eval::terms::TermsExec;
 use crate::eval::types::{ExecutionResult, Variables};
 use crate::eval::while_::WhileExec;
-use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
 pub enum Exec {
@@ -32,7 +34,7 @@ impl Exec {
     pub fn new(node: Node) -> Self {
         match node {
             Node::Ident(_)
-            | Node::NaturalNumber(_)
+            | Node::NaturalNumber(UInt(_))
             | Node::Comparison { .. }
             | Node::BinaryOp { .. } => panic!(
                 "Cannot create direct executable from Ident, NaturalNumber, BinaryOp or Comparison"

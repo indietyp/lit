@@ -1,15 +1,17 @@
-use crate::ast::control::Control;
-use crate::ast::macros::{Macro, MacroAssign};
-use crate::ast::node::{NaturalNumber, Node};
-use crate::ast::polluted::PollutedNode;
-use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
-use crate::types::LineNo;
 use either::Either;
 use num_bigint::BigUint;
 use num_traits::Zero;
 use pest_consume::match_nodes;
 use pest_consume::Error;
 use pest_consume::Parser;
+
+use crate::ast::control::Control;
+use crate::ast::macros::{Macro, MacroAssign};
+use crate::ast::node::Node;
+use crate::ast::polluted::PollutedNode;
+use crate::ast::variant::UInt;
+use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
+use crate::types::LineNo;
 
 #[derive(new, Clone)]
 pub struct ParseSettings {
@@ -77,16 +79,16 @@ impl LoopParser {
         input
             .as_str()
             .parse::<BigUint>()
-            .map(|u| EitherNode::Right(Node::NaturalNumber(NaturalNumber(u))))
+            .map(|u| EitherNode::Right(Node::NaturalNumber(UInt(u))))
             .map_err(|e| input.error(e))
     }
 
     #[alias(atom)]
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
     fn ZERO(_input: ParseNode) -> ParseResult<EitherNode> {
-        Ok(EitherNode::Right(Node::NaturalNumber(NaturalNumber(
-            BigUint::zero(),
-        ))))
+        Ok(EitherNode::Right(Node::NaturalNumber(
+            UInt(BigUint::zero()),
+        )))
     }
 
     // Comparisons

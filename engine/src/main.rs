@@ -4,10 +4,12 @@ extern crate pest;
 #[macro_use]
 extern crate derive_new;
 
+#[macro_use]
+extern crate newtype_derive;
+
 use std::fs::read_to_string;
 
 use crate::build::Builder;
-use crate::cli::app;
 use crate::flags::CompilationFlags;
 
 mod ast;
@@ -24,6 +26,8 @@ mod utils;
 
 #[cfg(feature = "cli")]
 mod cli;
+#[cfg(feature = "cli")]
+use crate::cli::app;
 
 #[cfg(feature = "cli")]
 fn main() {

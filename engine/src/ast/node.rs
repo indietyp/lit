@@ -1,15 +1,16 @@
-use num_bigint::BigUint;
-
-use crate::ast::control::Control;
-use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
-use crate::types::LineNo;
 use core::fmt;
-use indoc::indoc;
-use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
+
+use indoc::indoc;
 
 #[cfg(feature = "cli")]
 use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
+use crate::ast::control::Control;
+use crate::ast::variant::UInt;
+use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
+use crate::types::LineNo;
 
 // Note(bmahmoud): in the future we could also support unary expressions?
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -18,7 +19,7 @@ use schemars::JsonSchema;
 pub enum Node {
     // Smallest Units
     Ident(String),
-    NaturalNumber(BigUint),
+    NaturalNumber(UInt),
 
     // Assignment and Expressions
     Comparison {

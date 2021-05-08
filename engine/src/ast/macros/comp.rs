@@ -1,21 +1,24 @@
+use core::option::Option;
+use core::option::Option::Some;
+use std::ops::Add;
+
+use either::Either;
+use indoc::indoc;
+use num_bigint::BigUint;
+use num_traits::Zero;
+
 use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::macros::expand::box_ident;
 use crate::ast::macros::Macro;
-use crate::ast::node::{NaturalNumber, Node};
+use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
+use crate::ast::variant::UInt;
 use crate::ast::verbs::ComparisonVerb;
 use crate::build::Builder;
 use crate::errors::Error;
 use crate::types::LineNo;
 use crate::utils::private_identifier;
-use core::option::Option;
-use core::option::Option::Some;
-use either::Either;
-use indoc::indoc;
-use num_bigint::BigUint;
-use num_traits::Zero;
-use std::ops::Add;
 
 fn terms_are_ok(terms: Vec<Result<Node, Vec<Error>>>) -> Result<Vec<Node>, Vec<Error>> {
     let iter = terms.iter().clone();
@@ -298,13 +301,13 @@ fn expand_comp_eq(
             lhs: Box::new(
                 comp.lhs
                     .clone()
-                    .either(|p0| Node::NaturalNumber(NaturalNumber(p0)), Node::Ident),
+                    .either(|p0| Node::NaturalNumber(UInt(p0)), Node::Ident),
             ),
             verb: ComparisonVerb::GreaterThanEqual,
             rhs: Box::new(
                 comp.rhs
                     .clone()
-                    .either(|p0| Node::NaturalNumber(NaturalNumber(p0)), Node::Ident),
+                    .either(|p0| Node::NaturalNumber(UInt(p0)), Node::Ident),
             ),
         }),
         if_terms: Box::new(PollutedNode::Macro(Macro::Conditional {
@@ -312,12 +315,12 @@ fn expand_comp_eq(
             comp: Box::new(Node::Comparison {
                 lhs: Box::new(
                     comp.lhs
-                        .either(|p0| Node::NaturalNumber(NaturalNumber(p0)), Node::Ident),
+                        .either(|p0| Node::NaturalNumber(UInt(p0)), Node::Ident),
                 ),
                 verb: ComparisonVerb::LessThanEqual,
                 rhs: Box::new(
                     comp.rhs
-                        .either(|p0| Node::NaturalNumber(NaturalNumber(p0)), Node::Ident),
+                        .either(|p0| Node::NaturalNumber(UInt(p0)), Node::Ident),
                 ),
             }),
             if_terms: Box::new(if_terms.clone()),
@@ -359,13 +362,13 @@ pub(crate) fn expand_cond(
         Node::Comparison { lhs, verb, rhs } => (
             match *lhs.clone() {
                 Node::Ident(m) => Either::Right(m),
-                Node::NaturalNumber(NaturalNumber(m)) => Either::Left(m),
+                Node::NaturalNumber(UInt(m)) => Either::Left(m),
                 _ => unreachable!(),
             },
             verb,
             match *rhs.clone() {
                 Node::Ident(m) => Either::Right(m),
-                Node::NaturalNumber(NaturalNumber(m)) => Either::Left(m),
+                Node::NaturalNumber(UInt(m)) => Either::Left(m),
                 _ => unreachable!(),
             },
         ),

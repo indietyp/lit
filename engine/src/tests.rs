@@ -4,7 +4,7 @@ use crate::flags::CompilationFlags;
 
 use indoc::indoc;
 use num_bigint::BigUint;
-use num_traits::One;
+use num_traits::{One, Zero};
 use std::collections::HashMap;
 use std::time::{Duration, SystemTime};
 

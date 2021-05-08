@@ -22,6 +22,7 @@
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/syn-121f0a398375ac07/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/wasm-bindgen-0e67f380a5e2a6c7/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/wasm-bindgen-shared-f6d1af1aa7d11a0b/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/newtype_derive-3483607dfba3974f/out" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/src/ast/macros/rules/target" />
     </content>
