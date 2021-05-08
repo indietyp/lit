@@ -6,32 +6,32 @@ import {
     foldNodeProp,
     foldInside,
     delimitedIndent,
-    continuedIndent
+    continuedIndent,
 } from '@codemirror/language';
 import { completeFromList, ifNotIn } from '@codemirror/autocomplete';
 import { styleTags, tags as t } from '@codemirror/highlight';
-import { bracketMatching } from '@codemirror/matchbrackets';
 import { snippets } from './snippets';
 
 export const LoopLanguage = LezerLanguage.define({
     parser: parser.configure({
         props: [
             indentNodeProp.add({
-                "LoopStatement IfStatement WhileStatement": continuedIndent({ except: /^\s*({|ELSE\b)/}),
-                // Block: delimitedIndent({closing: "END"})
+                'IfStatement': continuedIndent({ except: /^\s*(THEN|ELSE\b)/ }),
+                'LoopBlock WhileBlock IfBlock IfElseBlock': delimitedIndent({ closing: "END" }),
             }),
             foldNodeProp.add({
-                Block: foldInside
+                'IfBlock IfElseBlock LoopBlock': foldInside
             }),
             styleTags({
                 variableName: t.variableName,
                 Number: t.number,
-                DO: t.controlKeyword,
-                'LOOP WHILE IF THEN ELSE END': t.controlKeyword,
+                'LOOP DO WHILE IF THEN ELSE END': t.controlKeyword,
             }),
         ]
     }),
     languageData: {
+        closeBrackets: { brackets: ['END'] },
+        indentOnInput: /^\s*(?:END|DO|THEN|ELSE)$/,
     }
 });
 

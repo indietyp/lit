@@ -1,15 +1,10 @@
 @dialects { loop }
 
-@top Program { Block }
+@top Program { statements }
 
 @precedence {
-  while @left,
-  loop @left,
-  do @left,
-  if @left,
-  then @left,
-  else @left,
-  end @left
+  else @right,
+  statement @cut
 }
 
 @skip { whitespace | LineComment }
@@ -40,12 +35,16 @@ statement {
   Assign
 }
 
-LoopStatement { !loop kw<"LOOP"> VariableName !do kw<"DO"> Block !end kw<"END"> }
-IfStatement { !if kw<"IF"> BinaryCompareExpression !then kw<"THEN"> Block (!else kw<"ELSE"> Block)? !end kw<"END"> }
-WhileStatement { !while kw<"WHILE"> BinaryCompareExpression !do kw<"DO"> Block !end kw<"END"> }
+LoopStatement { kw<"LOOP"> VariableName LoopBlock }
+IfStatement { kw<"IF"> BinaryCompareExpression (IfBlock | IfElseBlock) }
+WhileStatement { kw<"WHILE"> BinaryCompareExpression LoopBlock }
 Assign { VariableName ":=" (BinaryArithExpression | Expression) }
 
-Block { statement* }
+statements { statement* }
+
+LoopBlock { kw<"DO"> statements kw<"END"> }
+IfBlock { kw<"THEN"> statements kw<"END"> }
+IfElseBlock { kw<"THEN"> statements !else kw<"ELSE"> statements kw<"END"> }
 
 kw<term> { @specialize[@name={term}]<word, term> }
 

@@ -2,7 +2,7 @@ import React from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 
 import './App.scss';
-import { Editor } from './modules/editor/Editor';
+import { LoopEditor } from './modules/editor/LoopEditor';
 
 function App() {
     return (
@@ -10,7 +10,7 @@ function App() {
             <Row>
                 <Col xs={12} md={6}>
                     <h2>LOOP (Just) In Time</h2>
-                    <Editor/>
+                    <LoopEditor/>
                 </Col>
             </Row>
         </Container>
