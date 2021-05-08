@@ -1,0 +1,43 @@
+name: Rust
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+defaults:
+  run:
+    working-directory: ./engine
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install wasm-pack
+      uses: jetli/wasm-pack-action@v0.3.0
+    - name: Install zip
+      uses: montudor/action-zip@v1
+    - name: Build WASM
+      run: wasm-pack build
+    - name: Compress Files
+      run: zip -qq -r pkg.zip pkg
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2.2.3
+      with:
+        name: wasm
+        path: ./engine/pkg.zip
+  
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run tests
+      run: cargo test --verbose
