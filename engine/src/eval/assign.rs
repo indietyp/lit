@@ -2,11 +2,14 @@ use crate::ast::node::Node;
 use crate::eval::op::BinaryOpExec;
 use crate::eval::types::{ChangeSet, Variables};
 use crate::types::LineNo;
+#[cfg(feature = "cli")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct AssignExec {
-    lhs: String, // always an ident
+    lhs: String,
     rhs: BinaryOpExec,
 
     lno: LineNo,

@@ -4,9 +4,12 @@ use crate::eval::comp::ComparisonExec;
 use crate::eval::exec::Exec;
 use crate::eval::types::{ChangeSet, Variables};
 use crate::types::LineNo;
+#[cfg(feature = "cli")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct WhileExec {
     lno: LineNo,
     comp: ComparisonExec,

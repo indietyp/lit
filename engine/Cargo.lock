@@ -231,6 +231,7 @@ dependencies = [
  "pest_derive",
  "schemars",
  "serde",
+ "serde_json",
  "structopt",
  "wasm-bindgen",
  "wasm-typescript-definition",

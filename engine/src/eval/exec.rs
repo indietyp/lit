@@ -2,6 +2,8 @@
 // I know that I should use traits to implement this, but I have major problems dealing with those
 // I am getting a vtable exception with every way I tried to implement this.
 
+#[cfg(feature = "cli")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::ast::control::Control;
@@ -14,6 +16,8 @@ use crate::eval::types::{ExecutionResult, Variables};
 use crate::eval::while_::WhileExec;
 
 #[derive(Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum Exec {
     Assign(AssignExec),
     Terms(TermsExec),

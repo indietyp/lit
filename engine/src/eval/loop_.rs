@@ -2,14 +2,18 @@ use num_bigint::BigUint;
 
 use crate::ast::control::Control;
 use crate::ast::node::Node;
+use crate::ast::variant::UInt;
 use crate::eval::exec::Exec;
 use crate::eval::types::{ChangeSet, Variables};
 use crate::types::LineNo;
 use num_traits::Zero;
+#[cfg(feature = "cli")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::ops::AddAssign;
 
 #[derive(Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct LoopExec {
     lno: LineNo,
     ident: String,
@@ -17,8 +21,8 @@ pub struct LoopExec {
 
     init: bool,
 
-    cur: BigUint,
-    iters: BigUint,
+    cur: UInt,
+    iters: UInt,
 }
 
 impl LoopExec {
@@ -26,10 +30,12 @@ impl LoopExec {
         // if not init copy the iteration count into our state
         if !self.init {
             // count setting our own value as a step -> for introspection;
-            self.iters = locals
-                .get(self.ident.as_str())
-                .unwrap_or(&BigUint::zero())
-                .clone();
+            self.iters = UInt(
+                locals
+                    .get(self.ident.as_str())
+                    .unwrap_or(&BigUint::zero())
+                    .clone(),
+            );
             self.init = true;
 
             return Some((self.lno.0, vec![String::from("<internal variable>")]));
@@ -61,8 +67,8 @@ impl LoopExec {
                 terms: Box::new(Exec::new(*terms)),
                 lno,
                 init: false,
-                cur: BigUint::zero(),
-                iters: BigUint::zero(),
+                cur: UInt(BigUint::zero()),
+                iters: UInt(BigUint::zero()),
             },
             _ => unreachable!(),
         }
@@ -75,8 +81,8 @@ impl LoopExec {
             terms: Box::new(self.terms.renew()),
 
             init: false,
-            cur: BigUint::zero(),
-            iters: BigUint::zero(),
+            cur: UInt(BigUint::zero()),
+            iters: UInt(BigUint::zero()),
         }
     }
 }

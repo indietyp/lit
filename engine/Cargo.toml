@@ -29,6 +29,7 @@ newtype_derive = "0.1.6"
 clap = { version = "2.33.3", optional = true }
 structopt = { version = "0.3.21", optional = true }
 schemars = { version = "0.8.3", features=["impl_json_schema", "derive"], optional = true }
+serde_json = { version = "1.0.64", optional = true }
 
 # WASM-Support
 wasm-bindgen = { version = "0.2.73", features = ['serde-serialize'] }
@@ -46,4 +47,4 @@ lto = true
 
 [features]
 default = ["console_error_panic_hook"]
-cli = ["clap", "structopt", "schemars"]
+cli = ["clap", "structopt", "schemars", "serde_json"]

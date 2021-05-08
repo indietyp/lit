@@ -1,5 +1,7 @@
 use num_bigint::BigUint;
 use num_traits::Zero;
+#[cfg(feature = "cli")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::ast::node::Node;
@@ -8,12 +10,14 @@ use crate::ast::verbs::ComparisonVerb;
 use crate::eval::types::Variables;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 enum ComparisonSide {
     Ident(String),
-    NaturalNumber(BigUint),
+    NaturalNumber(UInt),
 }
 
 #[derive(Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct ComparisonExec {
     lhs: ComparisonSide,
     verb: ComparisonVerb,
@@ -26,13 +30,13 @@ impl ComparisonExec {
             Node::Comparison { lhs, verb, rhs } => ComparisonExec {
                 lhs: match *lhs {
                     Node::Ident(m) => ComparisonSide::Ident(m),
-                    Node::NaturalNumber(UInt(m)) => ComparisonSide::NaturalNumber(m),
+                    Node::NaturalNumber(m) => ComparisonSide::NaturalNumber(m),
                     _ => unreachable!(),
                 },
                 verb,
                 rhs: match *rhs {
                     Node::Ident(m) => ComparisonSide::Ident(m),
-                    Node::NaturalNumber(UInt(m)) => ComparisonSide::NaturalNumber(m),
+                    Node::NaturalNumber(m) => ComparisonSide::NaturalNumber(m),
                     _ => unreachable!(),
                 },
             },
@@ -56,14 +60,14 @@ impl ComparisonExec {
                 .get(i.as_str())
                 .cloned()
                 .unwrap_or_else(BigUint::zero),
-            ComparisonSide::NaturalNumber(n) => n,
+            ComparisonSide::NaturalNumber(n) => n.0,
         };
         let rhs = match self.rhs.clone() {
             ComparisonSide::Ident(i) => locals
                 .get(i.as_str())
                 .cloned()
                 .unwrap_or_else(BigUint::zero),
-            ComparisonSide::NaturalNumber(n) => n,
+            ComparisonSide::NaturalNumber(n) => n.0,
         };
 
         match self.verb {

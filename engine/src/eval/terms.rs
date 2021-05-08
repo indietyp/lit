@@ -2,9 +2,12 @@ use crate::ast::control::Control;
 use crate::ast::node::Node;
 use crate::eval::exec::Exec;
 use crate::eval::types::{ChangeSet, Variables};
+#[cfg(feature = "cli")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct TermsExec {
     terms: Vec<Exec>,
 

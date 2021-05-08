@@ -2,6 +2,8 @@ use std::ops::Add;
 
 use num_bigint::BigUint;
 use num_traits::{CheckedSub, Zero};
+#[cfg(feature = "cli")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::ast::node::Node;
@@ -10,10 +12,11 @@ use crate::ast::verbs::OperatorVerb;
 use crate::eval::types::Variables;
 
 #[derive(Clone, Deserialize, Serialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct BinaryOpExec {
     lhs: String,
     verb: OperatorVerb,
-    rhs: BigUint,
+    rhs: UInt,
 }
 
 impl BinaryOpExec {
@@ -27,7 +30,7 @@ impl BinaryOpExec {
                 },
                 verb,
                 rhs: match *rhs {
-                    Node::NaturalNumber(UInt(m)) => m,
+                    Node::NaturalNumber(m) => m,
                     _ => unreachable!(),
                 },
             },
@@ -52,7 +55,7 @@ impl BinaryOpExec {
             .clone();
 
         match self.verb {
-            OperatorVerb::Plus => lhs.add(self.rhs.clone()),
+            OperatorVerb::Plus => lhs.add(self.rhs.0.clone()),
             OperatorVerb::Minus => lhs.checked_sub(&self.rhs).unwrap_or_else(BigUint::zero),
             OperatorVerb::Multiply => panic!("You cannot multiply in LOOP/WHILE"),
         }

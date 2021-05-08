@@ -15,6 +15,7 @@ use crate::utils::private_identifier;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum PollutedNode {
     Pure(Node),
     Macro(Macro),
@@ -83,9 +84,7 @@ impl PollutedNode {
                             comp: Box::new(Node::Comparison {
                                 lhs: Box::new(Node::Ident(tmp1.clone())),
                                 verb: ComparisonVerb::NotEqual,
-                                rhs: Box::new(Node::NaturalNumber(UInt(BigUint::from(
-                                    0u8,
-                                )))),
+                                rhs: Box::new(Node::NaturalNumber(UInt(BigUint::from(0u8)))),
                             }),
                             terms: Box::new(Node::Control(Control::Terms(vec![
                                 maybe_terms.unwrap(),
@@ -95,9 +94,9 @@ impl PollutedNode {
                                     rhs: Box::new(Node::BinaryOp {
                                         lhs: Box::new(Node::Ident(tmp1)),
                                         verb: OperatorVerb::Minus,
-                                        rhs: Box::new(Node::NaturalNumber(UInt(
-                                            BigUint::from(1u8),
-                                        ))),
+                                        rhs: Box::new(Node::NaturalNumber(UInt(BigUint::from(
+                                            1u8,
+                                        )))),
                                     }),
                                 },
                             ]))),

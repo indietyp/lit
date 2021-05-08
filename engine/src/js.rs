@@ -11,8 +11,28 @@ use crate::build::Builder;
 use crate::eval::exec::Exec;
 use crate::flags::CompilationFlags;
 use crate::runtime::Runtime;
+use crate::utils::set_panic_hook;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
+
+#[wasm_bindgen(typescript_custom_section)]
+const TS_APPEND_CONTENT: &'static str = r#"
+import {Node, PollutedNode} from "./schema";
+"#;
+
+#[wasm_bindgen(start)]
+pub fn main() {
+    set_panic_hook()
+}
+
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(typescript_type = "Node")]
+    type INode;
+
+    #[wasm_bindgen(typescript_type = "PollutedNode")]
+    type IPollutedNode;
+}
 
 #[wasm_bindgen(js_name = Runtime)]
 #[derive(Serialize, Deserialize)]
