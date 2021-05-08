@@ -60,14 +60,14 @@ impl ComparisonExec {
                 .get(i.as_str())
                 .cloned()
                 .unwrap_or_else(BigUint::zero),
-            ComparisonSide::NaturalNumber(n) => n.0,
+            ComparisonSide::NaturalNumber(UInt(n)) => n,
         };
         let rhs = match self.rhs.clone() {
             ComparisonSide::Ident(i) => locals
                 .get(i.as_str())
                 .cloned()
                 .unwrap_or_else(BigUint::zero),
-            ComparisonSide::NaturalNumber(n) => n.0,
+            ComparisonSide::NaturalNumber(UInt(n)) => n,
         };
 
         match self.verb {

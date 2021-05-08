@@ -36,7 +36,7 @@ impl AssignExec {
                     Node::Ident(m) => m,
                     _ => unreachable!(),
                 },
-                rhs: BinaryOpExec::new(*rhs.clone()),
+                rhs: BinaryOpExec::new(*rhs),
                 lno,
                 exhausted: false,
             },

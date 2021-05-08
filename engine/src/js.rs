@@ -1,23 +1,25 @@
-use std::collections::HashMap;
-
-use js_sys::Map;
-use num_bigint::BigUint;
 use wasm_bindgen::prelude::*;
-use wasm_bindgen::{JsValue, UnwrapThrowExt};
+use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::build::Builder;
 use crate::eval::exec::Exec;
+use crate::eval::types::Variables;
 use crate::flags::CompilationFlags;
 use crate::runtime::Runtime;
 use crate::utils::set_panic_hook;
+use js_sys::Map;
+use js_sys::Math::ceil;
+use num_bigint::BigUint;
+use num_traits::AsPrimitive;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::str::FromStr;
 
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
-import {Node, PollutedNode} from "./schema";
+import {Node, PollutedNode, Exec} from "./schema";
 "#;
 
 #[wasm_bindgen(start)]
@@ -28,10 +30,16 @@ pub fn main() {
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(typescript_type = "Node")]
-    type INode;
+    pub type INode;
 
     #[wasm_bindgen(typescript_type = "PollutedNode")]
-    type IPollutedNode;
+    pub type IPollutedNode;
+
+    #[wasm_bindgen(typescript_type = "Exec")]
+    pub type IExec;
+
+    #[wasm_bindgen(typescript_type = "Map<string, number>")]
+    pub type IVariables;
 }
 
 #[wasm_bindgen(js_name = Runtime)]
@@ -43,20 +51,22 @@ pub struct JavaScriptRuntime {
 #[wasm_bindgen(js_class = Runtime)]
 impl JavaScriptRuntime {
     #[wasm_bindgen(constructor)]
-    pub fn new(exec: &JsValue, locals: Map) -> Result<JavaScriptRuntime, JsValue> {
+    pub fn new(exec: IExec, locals: IVariables) -> Result<JavaScriptRuntime, JsValue> {
         let exec: Exec = exec.into_serde().unwrap_throw();
-        let mut locs: HashMap<String, BigUint> = HashMap::new();
+        let locals: Map = locals.unchecked_into::<Map>();
 
+        let mut variables: HashMap<String, BigUint> = HashMap::new();
         let mut errors = vec![];
+
         locals.for_each(&mut |value, key| {
             if key.as_string().is_some() {
-                if value.as_string().is_none() {
-                    errors
-                        .push("Value is not a string! (This is currently a limitation with WASM)");
+                let val = value.as_f64();
+                if val.is_none() || val.unwrap() < 0. {
+                    errors.push("Value is not a number or is smaller then 0.");
                 } else {
-                    locs.insert(
+                    variables.insert(
                         key.as_string().unwrap(),
-                        BigUint::from_str(&value.as_string().unwrap()).unwrap(),
+                        BigUint::from(ceil(val.unwrap()) as u64),
                     );
                 }
             } else {
@@ -69,7 +79,14 @@ impl JavaScriptRuntime {
         }
 
         Result::Ok(JavaScriptRuntime {
-            runtime: Runtime::new(exec, if locs.is_empty() { None } else { Some(locs) }),
+            runtime: Runtime::new(
+                exec,
+                if variables.is_empty() {
+                    None
+                } else {
+                    Some(variables)
+                },
+            ),
         })
     }
 
@@ -89,8 +106,10 @@ impl JavaScriptRuntime {
         self.runtime.is_running()
     }
 
-    pub fn context(&self) -> JsValue {
-        JsValue::from_serde(&self.runtime.context()).unwrap()
+    pub fn context(&self) -> IVariables {
+        JsValue::from_serde(&self.runtime.context())
+            .unwrap()
+            .unchecked_into()
     }
 }
 
@@ -102,35 +121,35 @@ pub struct JavaScriptBuilder {
 
 #[wasm_bindgen(js_class = Builder)]
 impl JavaScriptBuilder {
-    pub fn parse(source: &str) -> Result<JsValue, JsValue> {
+    pub fn parse(source: &str) -> Result<IPollutedNode, JsValue> {
         Builder::parse(source, None)
-            .map(|val| JsValue::from_serde(&val).unwrap())
+            .map(|val| JsValue::from_serde(&val).unwrap().unchecked_into())
             .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))
     }
 
-    pub fn compile(ast: &JsValue, flags: Option<CompilationFlags>) -> Result<JsValue, JsValue> {
+    pub fn compile(ast: &IPollutedNode, flags: Option<CompilationFlags>) -> Result<INode, JsValue> {
         let mut ast: Vec<PollutedNode> = ast.into_serde().unwrap();
         let result =
             Builder::compile(&mut ast, flags).map_err(|err| JsValue::from_serde(&err).unwrap())?;
 
-        Ok(JsValue::from_serde(&result).unwrap())
+        Ok(JsValue::from_serde(&result).unwrap().unchecked_into())
     }
 
-    pub fn exec(exec: &JsValue, locals: Map) -> Result<JavaScriptRuntime, JsValue> {
+    pub fn exec(exec: IExec, locals: IVariables) -> Result<JavaScriptRuntime, JsValue> {
         JavaScriptRuntime::new(exec, locals)
     }
 
-    pub fn eval(ast: &JsValue, locals: Map) -> Result<JsValue, JsValue> {
+    pub fn eval(ast: &INode) -> Result<IExec, JsValue> {
         let ast: Node = ast
             .into_serde()
             .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))?;
 
         let exec = Exec::new(ast);
 
-        Ok(JsValue::from_serde(&exec).unwrap())
+        Ok(JsValue::from_serde(&exec).unwrap().unchecked_into())
     }
 
-    pub fn display(ast: &JsValue, indent: u8) -> Result<String, JsValue> {
+    pub fn display(ast: &INode, indent: u8) -> Result<String, JsValue> {
         let ast: Node = ast
             .into_serde()
             .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))?;
