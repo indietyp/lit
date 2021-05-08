@@ -324,6 +324,7 @@ fn test_cond_gt_else() {
     assert_is_int(z, 2)
 }
 
+#[test]
 fn test_cond_gte_val() {
     let zero = BigUint::zero();
     let snip = indoc! {"
@@ -615,5 +616,5 @@ fn test_speed() {
         steps += 1;
     }
 
-    println!("ints/s: {}", steps)
+    println!("LIPS: {}", steps)
 }

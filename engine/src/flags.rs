@@ -14,6 +14,8 @@ bitflags! {
         //-- Configuration --//
         // instead of rewriting the LNO on compilation, let them stay pre expansion
         const CNF_RETAIN_LNO = 0b0001_0000;
+        // Strict mode will no longer rewrite LOOP into WHILE, and macros are disabled.
+        const CNF_STRICT_MODE = 0b0010_0000;
 
         //-- Compound Enum --//
         const LOOP_AND_WHILE = Self::LOOP.bits | Self::WHILE.bits;
