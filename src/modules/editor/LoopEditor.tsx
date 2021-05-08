@@ -27,7 +27,6 @@ export const LoopEditor: React.FunctionComponent<Props> = function () {
     return (
         <div>
             <div id={'codemirror-root'} ref={codeMirrorRootRef}/>
-            <button>DEBUG</button>
         </div>
     );
 };
