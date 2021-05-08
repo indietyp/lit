@@ -19,6 +19,21 @@ jobs:
     - name: wasm-pack-action
       uses: jetli/wasm-pack-action@v0.3.0
     - name: Build WASM
-      run: wasm-pack build --verbose
+      run: wasm-pack build
+    - name: Compress Files
+      uses: montudor/action-zip@v1
+      with:
+        args: zip -qq -r pkg.zip pkg
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v2.2.3
+      with:
+        name: wasm
+        path: pkg.zip
+  
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
     - name: Run tests
       run: cargo test --verbose
