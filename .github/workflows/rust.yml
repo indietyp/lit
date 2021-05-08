@@ -19,13 +19,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    # Install Requirements
     - uses: actions/checkout@v2
+    - name: Setup node 14
+      uses: actions/setup-node@v2
+      with:
+        node-version: 14.x
+    - name: Install Quicktype
+      run: npm i -g quicktype
     - name: Install wasm-pack
       uses: jetli/wasm-pack-action@v0.3.0
     - name: Install zip
       uses: montudor/action-zip@v1
+    # Build WASM
     - name: Build WASM
       run: wasm-pack build
+    # TypeScript Definitions from JSON-Schema
+    - name: Generate Schema
+      run: cargo run --package lit --features cli --bin lit schema --mode overwrite --output pkg/schema/
+    - name: Generate TypeScript Definitions
+      run: quicktype pkg/schema/root.json -o pkg/schema.ts -s schema --just-types --acronym-style original --nice-property-names --explicit-unions
+    # Upload Artifacts to GitHub
     - name: Compress Files
       run: zip -qq -r pkg.zip pkg
     - name: Upload Artifact
