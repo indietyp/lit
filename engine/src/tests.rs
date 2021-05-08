@@ -614,13 +614,15 @@ fn test_speed() {
     locals.insert("x".to_string(), BigUint::one());
 
     let mut exec = Builder::ext_all(snip, None, Some(locals)).unwrap();
-    let limit = SystemTime::now() + Duration::new(1, 0);
+    let start = SystemTime::now();
+    let limit = start + Duration::new(5, 0);
 
     let mut steps: usize = 0;
     while SystemTime::now() < limit {
         exec.step();
         steps += 1;
     }
+    let diff = SystemTime::now().duration_since(start).unwrap();
 
-    println!("LIPS: {}", steps)
+    println!("LIPS: {}", steps as f64 / diff.as_secs_f64())
 }

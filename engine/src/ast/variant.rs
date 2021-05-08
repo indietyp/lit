@@ -33,23 +33,22 @@ impl JsonSchema for UInt {
 }
 
 impl PartialEq for UInt {
+    #[inline]
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0
-    }
-
-    fn ne(&self, other: &Self) -> bool {
-        self.0 != other.0
     }
 }
 impl Eq for UInt {}
 
 impl Ord for UInt {
+    #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
         self.0.cmp(&other.0)
     }
 }
 
 impl PartialOrd for UInt {
+    #[inline]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
