@@ -21,7 +21,7 @@ export const LoopLanguage = LezerLanguage.define({
             }),
             foldNodeProp.add({
                 'IfBlock IfElseBlock LoopBlock': foldInside,
-                BlockComment(tree) { return { from: tree.from + 3, to: tree.to - 3 } }
+                BlockComment: (tree) => ({ from: tree.from + 3, to: tree.to - 3 }),
             }),
             styleTags({
                 variableName: t.variableName,
@@ -41,6 +41,6 @@ export const LoopLanguage = LezerLanguage.define({
 
 export function loop() {
     return new LanguageSupport(LoopLanguage, LoopLanguage.data.of({
-        autocomplete: ifNotIn(['LineComment'], completeFromList(snippets))
+        autocomplete: ifNotIn(['LineComment', 'BlockComment'], completeFromList(snippets))
     }));
 }
