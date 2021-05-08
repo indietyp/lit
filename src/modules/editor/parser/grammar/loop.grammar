@@ -7,7 +7,7 @@
   statement @cut
 }
 
-@skip { whitespace | LineComment }
+@skip { whitespace | LineComment | BlockComment }
 
 VariableName { word }
 
@@ -59,10 +59,15 @@ kw<term> { @specialize[@name={term}]<word, term> }
 
   Number { std.digit }
 
-  LineComment { "//" ![\n]* }
+  LineComment { "#" ![\n]* }
+  BlockComment { "###" BlockCommentContent "###" }
+
+  @precedence { BlockComment, LineComment }
+
+  BlockCommentContent { (![#] | "#" BlockCommentContent2)+ }
+  BlockCommentContent2 { (![#] | "#" BlockCommentContent3) }
+  BlockCommentContent3 { ![#] }
 
   ArithOp<expr> { expr }
   CompareOp<expr> { expr }
-
-  @precedence {  }
 }

@@ -20,17 +20,21 @@ export const LoopLanguage = LezerLanguage.define({
                 'LoopBlock WhileBlock IfBlock IfElseBlock': delimitedIndent({ closing: "END" }),
             }),
             foldNodeProp.add({
-                'IfBlock IfElseBlock LoopBlock': foldInside
+                'IfBlock IfElseBlock LoopBlock': foldInside,
+                BlockComment(tree) { return { from: tree.from + 3, to: tree.to - 3 } }
             }),
             styleTags({
                 variableName: t.variableName,
                 Number: t.number,
                 'LOOP DO WHILE IF THEN ELSE END': t.controlKeyword,
+                LineComment: t.lineComment,
+                BlockComment: t.blockComment,
             }),
         ]
     }),
     languageData: {
         closeBrackets: { brackets: ['END'] },
+        commentTokens: { line: '#', block: { open: '###', close: '###' } },
         indentOnInput: /^\s*(?:END|DO|THEN|ELSE)$/,
     }
 });
