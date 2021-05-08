@@ -2,11 +2,6 @@
 
 @top Program { statements }
 
-@precedence {
-  else @right,
-  statement @cut
-}
-
 @skip { whitespace | LineComment | BlockComment }
 
 VariableName { word }
@@ -44,7 +39,7 @@ statements { statement* }
 
 LoopBlock { kw<"DO"> statements kw<"END"> }
 IfBlock { kw<"THEN"> statements kw<"END"> }
-IfElseBlock { kw<"THEN"> statements !else kw<"ELSE"> statements kw<"END"> }
+IfElseBlock { kw<"THEN"> statements kw<"ELSE"> statements kw<"END"> }
 
 kw<term> { @specialize[@name={term}]<word, term> }
 
