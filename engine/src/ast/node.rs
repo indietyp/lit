@@ -14,6 +14,7 @@ use schemars::JsonSchema;
 // Note(bmahmoud): in the future we could also support unary expressions?
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum Node {
     // Smallest Units
     Ident(String),
