@@ -11,7 +11,11 @@ use crate::flags::CompilationFlags;
 use crate::utils::private_identifier;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "cli")]
+use schemars::JsonSchema;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum PollutedNode {
     Pure(Node),
     Macro(Macro),
@@ -20,8 +24,9 @@ pub enum PollutedNode {
     Control(Control<PollutedNode>),
 }
 
+// [REWORK] the match mess into a separate file and functions
 impl PollutedNode {
-    fn expand_merge_errors(maybe: &Vec<Result<Node, Vec<Error>>>) -> Vec<Error> {
+    fn expand_merge_errors(maybe: &[Result<Node, Vec<Error>>]) -> Vec<Error> {
         maybe
             .iter()
             .filter(|f| f.is_err())

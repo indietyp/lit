@@ -7,6 +7,7 @@ extern crate derive_new;
 use std::fs::read_to_string;
 
 use crate::build::Builder;
+use crate::cli::app;
 use crate::flags::CompilationFlags;
 
 mod ast;
@@ -21,34 +22,15 @@ mod tests;
 mod types;
 mod utils;
 
-// Main Command Line Interface
-fn main() {
-    let source = read_to_string("example2.loop").expect("Cannot read example file");
-    println!(
-        "{}",
-        Builder::parse_and_compile(
-            &source,
-            Some(CompilationFlags::WHILE | CompilationFlags::CNF_RETAIN_LNO)
-        )
-        .unwrap()
-        .display(4, None)
-    );
+#[cfg(feature = "cli")]
+mod cli;
 
-    // let mut runtime = Builder::ext_all(
-    //     &source,
-    //     Some(CompilationFlags::WHILE | CompilationFlags::CNF_RETAIN_LNO),
-    //     None,
-    // )
-    // .unwrap();
-    //
-    // // let running = true;
-    // while runtime.is_running() {
-    //     let result = runtime.step();
-    //     if let Some((lno, _)) = result {
-    //         let lines = source.lines().collect::<Vec<&str>>();
-    //         println!("{}: {}", lno, lines.get(lno - 1).unwrap_or(&"<Not Found>"));
-    //     }
-    // }
-    //
-    // println!("{:?}", runtime.context())
+#[cfg(feature = "cli")]
+fn main() {
+    app();
+}
+
+#[cfg(not(feature = "cli"))]
+fn main() {
+    println!("Enable the feature cli for Command Line support.")
 }

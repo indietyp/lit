@@ -1,6 +1,6 @@
 use crate::ast::control::Control;
 use crate::ast::macros::{Macro, MacroAssign};
-use crate::ast::node::Node;
+use crate::ast::node::{NaturalNumber, Node};
 use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::types::LineNo;
@@ -77,14 +77,16 @@ impl LoopParser {
         input
             .as_str()
             .parse::<BigUint>()
-            .map(|u| EitherNode::Right(Node::NaturalNumber(u)))
+            .map(|u| EitherNode::Right(Node::NaturalNumber(NaturalNumber(u))))
             .map_err(|e| input.error(e))
     }
 
     #[alias(atom)]
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
     fn ZERO(_input: ParseNode) -> ParseResult<EitherNode> {
-        Ok(EitherNode::Right(Node::NaturalNumber(BigUint::zero())))
+        Ok(EitherNode::Right(Node::NaturalNumber(NaturalNumber(
+            BigUint::zero(),
+        ))))
     }
 
     // Comparisons

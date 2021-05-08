@@ -24,6 +24,11 @@ derive-new = "0.5.9"
 indoc = "1.0.3"
 either = { version = "1.6.1", features= ["serde"] }
 
+# CLI
+clap = { version = "2.33.3", optional = true }
+structopt = { version = "0.3.21", optional = true }
+schemars = { version = "0.8.3", features=["impl_json_schema", "derive"], optional = true }
+
 # WASM-Support
 wasm-bindgen = { version = "0.2.73", features = ['serde-serialize'] }
 console_error_panic_hook = { version = "0.1.6", optional = true }
@@ -40,3 +45,4 @@ lto = true
 
 [features]
 default = ["console_error_panic_hook"]
+cli = ["clap", "structopt", "schemars"]

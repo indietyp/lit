@@ -4,7 +4,7 @@ use num_bigint::BigUint;
 use crate::ast::context::CompileContext;
 
 use crate::ast::macros::MacroAssign;
-use crate::ast::node::Node;
+use crate::ast::node::{NaturalNumber, Node};
 use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::OperatorVerb;
 use crate::build::Builder;
@@ -77,7 +77,7 @@ pub(crate) fn expand_assign_to_value(
     };
 
     let rhs = match rhs.clone() {
-        Node::NaturalNumber(n) => n,
+        Node::NaturalNumber(NaturalNumber(n)) => n,
         _ => unreachable!(),
     };
 
@@ -217,7 +217,7 @@ pub(crate) fn expand_assign_to_ident_extbinop_value(
     };
 
     let binop_rhs = match *rhs.rhs.clone() {
-        Node::NaturalNumber(n) => n,
+        Node::NaturalNumber(NaturalNumber(n)) => n,
         _ => unreachable!(),
     };
 

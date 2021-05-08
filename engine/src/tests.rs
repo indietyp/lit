@@ -601,7 +601,9 @@ fn test_macro_ident_mul_val() {
     assert_is_int(x, 6);
 }
 
-// #[test]
+// This is a special tests, that looks what the LIPS count is.
+#[test]
+#[ignore]
 fn test_speed() {
     let snip = indoc! {"
     WHILE x != 0 DO

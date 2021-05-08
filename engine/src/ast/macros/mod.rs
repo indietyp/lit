@@ -16,9 +16,13 @@ use crate::errors::Error;
 use crate::types::LineNo;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "cli")]
+use schemars::JsonSchema;
+
 // This is a shorthand for the Node::Assign,
 // I would love to make this one go away, but I have no idea how.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct MacroAssign {
     pub lhs: Box<Node>,
     pub verb: OperatorVerb,
@@ -26,6 +30,7 @@ pub struct MacroAssign {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum Macro {
     AssignToIdent {
         lno: LineNo,

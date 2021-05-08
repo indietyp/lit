@@ -2,7 +2,7 @@ use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::macros::expand::box_ident;
 use crate::ast::macros::Macro;
-use crate::ast::node::Node;
+use crate::ast::node::{NaturalNumber, Node};
 use crate::ast::polluted::PollutedNode;
 use crate::ast::verbs::ComparisonVerb;
 use crate::build::Builder;
@@ -295,16 +295,30 @@ fn expand_comp_eq(
     PollutedNode::Macro(Macro::Conditional {
         lno,
         comp: Box::new(Node::Comparison {
-            lhs: Box::new(comp.lhs.clone().either(Node::NaturalNumber, Node::Ident)),
+            lhs: Box::new(
+                comp.lhs
+                    .clone()
+                    .either(|p0| Node::NaturalNumber(NaturalNumber(p0)), Node::Ident),
+            ),
             verb: ComparisonVerb::GreaterThanEqual,
-            rhs: Box::new(comp.rhs.clone().either(Node::NaturalNumber, Node::Ident)),
+            rhs: Box::new(
+                comp.rhs
+                    .clone()
+                    .either(|p0| Node::NaturalNumber(NaturalNumber(p0)), Node::Ident),
+            ),
         }),
         if_terms: Box::new(PollutedNode::Macro(Macro::Conditional {
             lno,
             comp: Box::new(Node::Comparison {
-                lhs: Box::new(comp.lhs.either(Node::NaturalNumber, Node::Ident)),
+                lhs: Box::new(
+                    comp.lhs
+                        .either(|p0| Node::NaturalNumber(NaturalNumber(p0)), Node::Ident),
+                ),
                 verb: ComparisonVerb::LessThanEqual,
-                rhs: Box::new(comp.rhs.either(Node::NaturalNumber, Node::Ident)),
+                rhs: Box::new(
+                    comp.rhs
+                        .either(|p0| Node::NaturalNumber(NaturalNumber(p0)), Node::Ident),
+                ),
             }),
             if_terms: Box::new(if_terms.clone()),
             else_terms: Box::new(else_terms.clone()),
@@ -345,13 +359,13 @@ pub(crate) fn expand_cond(
         Node::Comparison { lhs, verb, rhs } => (
             match *lhs.clone() {
                 Node::Ident(m) => Either::Right(m),
-                Node::NaturalNumber(m) => Either::Left(m),
+                Node::NaturalNumber(NaturalNumber(m)) => Either::Left(m),
                 _ => unreachable!(),
             },
             verb,
             match *rhs.clone() {
                 Node::Ident(m) => Either::Right(m),
-                Node::NaturalNumber(m) => Either::Left(m),
+                Node::NaturalNumber(NaturalNumber(m)) => Either::Left(m),
                 _ => unreachable!(),
             },
         ),

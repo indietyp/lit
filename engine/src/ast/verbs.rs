@@ -1,10 +1,12 @@
 use core::fmt;
 use serde::{Deserialize, Serialize};
 use std::fmt::Formatter;
-use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
+#[cfg(feature = "cli")]
+use schemars::JsonSchema;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum ComparisonVerb {
     Equal,
     NotEqual,
@@ -45,8 +47,8 @@ impl fmt::Display for ComparisonVerb {
     }
 }
 
-#[wasm_bindgen]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum OperatorVerb {
     Plus,
     Minus,
