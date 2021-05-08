@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { basicSetup, EditorState, EditorView } from '@codemirror/basic-setup';
 import { loop } from './parser/grammar/loop';
-// import { javascript } from '@codemirror/lang-javascript';
-// import { html } from '@codemirror/lang-html';
 
 type Props = {};
 

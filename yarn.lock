@@ -362,6 +362,15 @@
     "@codemirror/view" "^0.18.0"
     lezer-javascript "^0.13.0"
 
+"@codemirror/lang-python@^0.18.0":
+  version "0.18.0"
+  resolved "https://registry.yarnpkg.com/@codemirror/lang-python/-/lang-python-0.18.0.tgz#d317566f7c51d906e3df98bf41a3c9a2ce03ef40"
+  integrity sha512-SZrt+TXD3uih4Cb8lTm7yt7JLIqehgI77PdGQXlPcYB/LHQdOuOPzXOXf8jqu/K+PRN72BFxfvb13teaxdERaQ==
+  dependencies:
+    "@codemirror/highlight" "^0.18.0"
+    "@codemirror/language" "^0.18.0"
+    lezer-python "^0.13.0"
+
 "@codemirror/language@^0.18.0":
   version "0.18.1"
   resolved "https://registry.yarnpkg.com/@codemirror/language/-/language-0.18.1.tgz#23682324228606c4ae5b6a9f7cd0a4b9fdff83dd"
@@ -813,6 +822,13 @@ lezer-javascript@^0.13.0:
   integrity sha512-nhRbeSwPZo2xVYq6TWyUhi/r9j0CFSUpkuA5J992Az2AYZFw2HnGVjixfP43DKufL+npJwSy0qcCcAHFQ2bFOQ==
   dependencies:
     lezer "^0.13.0"
+
+lezer-python@^0.13.0:
+  version "0.13.6"
+  resolved "https://registry.yarnpkg.com/lezer-python/-/lezer-python-0.13.6.tgz#3d4c6bc56b9ba2a9d63e85f92ea33e80dc8a7b78"
+  integrity sha512-cUZSilL3BZ+ssDkvGSOdxfL0ioajEPijWuQ31Z5vAFW8Ons53d5FILYnxRcGhZlwmBnn4cDAtxZyny0K+l6AEw==
+  dependencies:
+    lezer "^0.13.2"
 
 lezer-tree@^0.13.0, lezer-tree@^0.13.2:
   version "0.13.2"
