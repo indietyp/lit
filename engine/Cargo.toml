@@ -5,27 +5,38 @@ version = "0.1.0"
 authors = ["bmahmoud <bmahmoud@mpi-cbg.de>"]
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+# PEG-Grammar Definitions
 pest = "2.1.3"
 pest_derive = "2.1.0"
 pest_consume = "1.0.6"
+
+# BigUInt Support
 num-bigint = { version = "0.4.0", features = ['serde'] }
 num-traits = "0.2.14"
-enum-display-derive = "0.1.1"
-getrandom = { version = "0.2.2", features = ["js"] }
-rand = "0.8.3"
+
+# Configuration Flag Support
 bitflags = "1.2.1"
-wasm-bindgen = { version = "0.2.73", features = ['serde-serialize'] }
-cfg-if = "1.0.0"
+
+# Utility
 serde = { version = "1.0.125", features = ["derive"] }
-serde-wasm-bindgen = "0.1.3"
-wasm-typescript-definition = "0.1.4"
-indoc = "1.0.3"
-js-sys = "0.3.50"
 derive-new = "0.5.9"
+indoc = "1.0.3"
 either = { version = "1.6.1", features= ["serde"] }
+
+# WASM-Support
+wasm-bindgen = { version = "0.2.73", features = ['serde-serialize'] }
+console_error_panic_hook = { version = "0.1.6", optional = true }
+wasm-typescript-definition = "0.1.4"
+js-sys = "0.3.50"
+wee_alloc = { version = "0.4.5", optional = true }
 
 [lib]
 crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = "s"
+lto = true
+
+[features]
+default = ["console_error_panic_hook"]

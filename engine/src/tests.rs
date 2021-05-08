@@ -4,7 +4,7 @@ use crate::flags::CompilationFlags;
 
 use indoc::indoc;
 use num_bigint::BigUint;
-use num_traits::{One, Zero};
+use num_traits::One;
 use std::collections::HashMap;
 use std::time::{Duration, SystemTime};
 
@@ -13,16 +13,17 @@ enum ErrorCode {
     StepLimitExceeded,
 }
 
+#[allow(dead_code)]
 fn run(
     snip: &str,
     limit: Option<usize>,
     locals: Option<Variables>,
     flags: Option<CompilationFlags>,
 ) -> Result<Variables, ErrorCode> {
-    let mut maybe_exec = Builder::ext_all(snip, flags, locals);
+    let maybe_exec = Builder::ext_all(snip, flags, locals);
     assert!(
         maybe_exec.is_ok(),
-        "While creating the parser errors occured: {:?}",
+        "While creating the parser errors occurred: {:?}",
         maybe_exec.err().unwrap()
     );
     let mut exec = maybe_exec.ok().unwrap();
@@ -41,10 +42,12 @@ fn run(
     }
 }
 
+#[allow(dead_code)]
 fn assert_is_int(value: Option<&BigUint>, expect: usize) {
     assert_is_biguint(value, BigUint::from(expect))
 }
 
+#[allow(dead_code)]
 fn assert_is_biguint(value: Option<&BigUint>, expect: BigUint) {
     assert!(value.is_some());
     assert!(
@@ -55,6 +58,7 @@ fn assert_is_biguint(value: Option<&BigUint>, expect: BigUint) {
     );
 }
 
+#[allow(dead_code)]
 fn assert_result_ok(result: &Result<Variables, ErrorCode>) {
     assert!(
         result.is_ok(),
@@ -363,7 +367,7 @@ fn test_cond_gte_val() {
     assert_is_int(c, 0);
 
     let d = locals.get("d").or(Some(&zero));
-    assert_is_int(d, 0);
+    assert_is_int(d, 1);
 }
 
 #[test]

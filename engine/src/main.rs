@@ -8,7 +8,6 @@ use std::fs::read_to_string;
 
 use crate::build::Builder;
 use crate::flags::CompilationFlags;
-use std::collections::HashMap;
 
 mod ast;
 mod build;
