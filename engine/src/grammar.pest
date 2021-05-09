@@ -94,6 +94,7 @@ macroAssignToIdentExtOpValue = {
 
 // We need to check at compile time if the number of arguments is correct.
 macroFnCall = {
+   IDENT ~ ":=" ~
    IDENT ~ "(" ~ IDENT_OR_VALUE ~ ("," ~ IDENT_OR_VALUE)* ~ ")"
 }
 
@@ -147,6 +148,9 @@ macro_ = _{
 }
 
 // Function Definitions
+// used to make capturing easier
+funcRet = { "->" ~ IDENT }
+
 // This is all a bit more complicated, identifiers in macroFnDef
 // need to be prefixed and then inlined correctly, this is a BIG task
 // x  => __max1__x
@@ -155,21 +159,25 @@ macro_ = _{
 funcDef = {
     ^"FN" ~ IDENT
     ~ "(" ~ IDENT ~ ("," ~ IDENT) ~ ")"
-    ~ "->" ~ IDENT ~ ^"DECL" ~
+    ~ funcRet ~ ^"DECL" ~
     terms
     ~ "END"
 }
 
-importFn = {
+importFunc = {
     IDENT ~ (^"AS" ~ IDENT)?
+}
+
+importStmt = {
+    ( importFunc
+    | "(" ~ importFunc ~ ("," ~ importFunc)* ~ ")")
 }
 
 import = {
     ^"FROM"
     ~ (IDENT | ".") ~ ("::" ~ IDENT)* ~
     ^"IMPORT" ~
-    (importFn
-    | "(" ~ importFn ~ ("," ~ importFn)* ~ ")")
+    importStmt
 }
 
 // Expression Collection:
@@ -206,5 +214,5 @@ imports = {
 topLevel = _{
     imports? ~
     functions? ~
-    terms
+    terms?
 }

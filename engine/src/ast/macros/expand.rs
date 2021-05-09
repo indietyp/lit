@@ -37,8 +37,6 @@ pub(crate) fn expand_assign_to_ident(
         {} := {} + 0
         "}, lhs, rhs};
 
-    // we loose line numbers here
-    // this will reset the context counter
     Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
 }
 
