@@ -20,12 +20,16 @@ fn check_errors(maybe: &[Result<Node, Vec<Error>>]) -> Result<Vec<Node>, Vec<Err
     });
     let err: Vec<_> = err.iter().flat_map(|f| f.clone()).collect_vec();
 
-    return if !err.is_empty() { Err(err) } else { Ok(ok) };
+    if !err.is_empty() {
+        Err(err)
+    } else {
+        Ok(ok)
+    }
 }
 
 pub(crate) fn expand_terms(
     context: &mut CompileContext,
-    terms: &Vec<PollutedNode>,
+    terms: &[PollutedNode],
 ) -> Result<Node, Vec<Error>> {
     let maybe: Vec<_> = terms.iter().map(|term| term.expand(context)).collect();
     let nodes = check_errors(&maybe)?;
@@ -36,16 +40,14 @@ pub(crate) fn expand_terms(
 pub(crate) fn expand_loop(
     context: &mut CompileContext,
     lno: LineNo,
-    ident: &Box<PollutedNode>,
-    terms: &Box<PollutedNode>,
+    ident: &PollutedNode,
+    terms: &PollutedNode,
 ) -> Result<Node, Vec<Error>> {
     let maybe_ident = ident.expand(context);
     let maybe_terms = terms.expand(context);
 
     let mut maybe = vec![maybe_ident, maybe_terms];
-    if !context.flags.contains(CompilationFlags::WHILE)
-        && !context.flags.contains(CompilationFlags::LOOP)
-    {
+    if !context.flags.intersects(CompilationFlags::LOOP_AND_WHILE) {
         maybe.push(Err(vec![Error::new(
             lno,
             ErrorVariant::Message(String::from(
@@ -68,6 +70,17 @@ pub(crate) fn expand_loop(
             terms: Box::new(terms.clone()),
         })
     } else if context.flags.contains(CompilationFlags::WHILE) {
+        // This rewrites the LOOP into WHILE
+        // LOOP x DO
+        //  ...
+        // END
+        // is converted to:
+        // _1 := x
+        // WHILE _1 != 0 DO
+        //  ...
+        //  _1 := _1 - 1
+        // END
+
         let tmp = Box::new(Node::Ident(private_identifier(context)));
 
         Node::Control(Control::Terms(vec![
@@ -90,7 +103,7 @@ pub(crate) fn expand_loop(
                         lno,
                         lhs: tmp.clone(),
                         rhs: Box::new(Node::BinaryOp {
-                            lhs: tmp.clone(),
+                            lhs: tmp,
                             verb: OperatorVerb::Minus,
                             rhs: Box::new(Node::NaturalNumber(UInt::one())),
                         }),
@@ -108,8 +121,8 @@ pub(crate) fn expand_loop(
 pub(crate) fn expand_while(
     context: &mut CompileContext,
     lno: LineNo,
-    comp: &Box<PollutedNode>,
-    terms: &Box<PollutedNode>,
+    comp: &PollutedNode,
+    terms: &PollutedNode,
 ) -> Result<Node, Vec<Error>> {
     let maybe_comp = comp.expand(context);
     let maybe_terms = terms.expand(context);
