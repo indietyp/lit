@@ -121,8 +121,8 @@ pub struct JavaScriptBuilder {
 
 #[wasm_bindgen(js_class = Builder)]
 impl JavaScriptBuilder {
-    pub fn parse(source: &str) -> Result<IPollutedNode, JsValue> {
-        Builder::parse(source, None)
+    pub fn parse(source: &str, flags: Option<CompilationFlags>) -> Result<IPollutedNode, JsValue> {
+        Builder::parse(source, None, flags)
             .map(|val| JsValue::from_serde(&val).unwrap().unchecked_into())
             .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))
     }

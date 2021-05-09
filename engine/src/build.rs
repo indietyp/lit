@@ -11,7 +11,6 @@ use crate::ast::polluted::PollutedNode;
 use crate::eval::exec::Exec;
 use crate::flags::CompilationFlags;
 
-use crate::ast::macros::Macro;
 use crate::errors;
 use crate::eval::types::Variables;
 use crate::parser::Rule;
@@ -27,8 +26,9 @@ impl Builder {
     pub fn parse(
         source: &str,
         lno_overwrite: Option<LineNo>,
+        flags: Option<CompilationFlags>,
     ) -> Result<Vec<PollutedNode>, Error<Rule>> {
-        let settings = ParseSettings::new(lno_overwrite);
+        let settings = ParseSettings::new(lno_overwrite, flags.unwrap_or_default());
         let pairs = LoopParser::parse_with_userdata(Rule::grammar, source, &settings)?;
 
         let pair = pairs.single()?;
@@ -67,7 +67,7 @@ impl Builder {
         flags: Option<CompilationFlags>,
     ) -> Result<Node, Vec<errors::Error>> {
         Builder::compile(
-            &mut Builder::parse(source, None)
+            &mut Builder::parse(source, None, flags)
                 .map_err(|err| vec![errors::Error::new_from_parse(err)])?,
             flags,
         )
@@ -80,7 +80,7 @@ impl Builder {
         lno: Option<LineNo>,
     ) -> Result<Node, Vec<errors::Error>> {
         Builder::ext_compile(
-            &mut Builder::parse(source, lno)
+            &mut Builder::parse(source, lno, Some(context.flags))
                 .map_err(|err| vec![errors::Error::new_from_parse(err)])?,
             context,
         )
