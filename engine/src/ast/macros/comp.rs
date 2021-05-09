@@ -57,7 +57,7 @@ fn if_else_body(
         let else_body = PollutedNode::Control(Control::Loop {
             lno,
             ident: box_ident(else_ident),
-            terms: Box::new(else_terms.clone().unwrap().clone()),
+            terms: Box::new(else_terms.clone().unwrap()),
         })
         .expand(context);
 
