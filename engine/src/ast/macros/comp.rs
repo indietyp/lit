@@ -25,14 +25,14 @@ fn terms_are_ok(terms: Vec<Result<Node, Vec<Error>>>) -> Result<Vec<Node>, Vec<E
 
     let erroneous = iter.clone().filter(|res| res.is_err());
 
-    return if erroneous.clone().count() > 0 {
+    if erroneous.clone().count() > 0 {
         Err(erroneous
             .clone()
             .flat_map(|e| e.clone().err().unwrap())
             .collect())
     } else {
         Ok(iter.clone().map(|res| res.clone().ok().unwrap()).collect())
-    };
+    }
 }
 
 fn if_else_body(

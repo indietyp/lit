@@ -9,6 +9,7 @@ use crate::ast::variant::UInt;
 use crate::ast::verbs::OperatorVerb;
 use crate::build::Builder;
 use crate::errors::Error;
+use crate::flags::CompilationFlags;
 use crate::types::LineNo;
 use crate::utils::private_identifier;
 
@@ -52,14 +53,23 @@ pub(crate) fn expand_assign_to_zero(
         _ => unreachable!(),
     };
 
-    let instruction = format!(
-        indoc! {"
-        LOOP {lhs} DO
-            {lhs} := {lhs} - 1
-        END
-        "},
-        lhs = lhs
-    );
+    let instruction = if context.flags.contains(CompilationFlags::OPT_ZERO) {
+        format!(
+            indoc! {"
+            {lhs} := _zero + 0;
+            "},
+            lhs = lhs
+        )
+    } else {
+        format!(
+            indoc! {"
+            LOOP {lhs} DO
+                {lhs} := {lhs} - 1
+            END
+            "},
+            lhs = lhs
+        )
+    };
 
     Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
 }
@@ -81,14 +91,24 @@ pub(crate) fn expand_assign_to_value(
         _ => unreachable!(),
     };
 
-    let instruction = format!(
-        indoc! {"
-        {lhs} := 0
-        {lhs} := {lhs} + {rhs}
-        "},
-        lhs = lhs,
-        rhs = rhs.to_string()
-    );
+    let instruction = if context.flags.contains(CompilationFlags::OPT_ZERO) {
+        format!(
+            indoc! {"
+            {lhs} := _zero + {rhs}
+            "},
+            lhs = lhs,
+            rhs = rhs.to_string()
+        )
+    } else {
+        format!(
+            indoc! {"
+            {lhs} := 0
+            {lhs} := {lhs} + {rhs}
+            "},
+            lhs = lhs,
+            rhs = rhs.to_string()
+        )
+    };
 
     Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
 }
