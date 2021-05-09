@@ -8,10 +8,10 @@
 WHITESPACE = _{ " " | "\t" }
 COMMENT = _{ ("###" ~ (!"###" ~ ANY)* ~ "###") | ("#" ~ (!NEWLINE ~ ANY)*) }
 
-grammar = { SOI ~ terms ~ EOI }
+grammar = { SOI ~ topLevel ~ EOI }
 
 // Terminals:
-IDENT = @{ (ASCII_ALPHA | "_") ~ ASCII_ALPHANUMERIC* }
+IDENT = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 VALUE = @{ ASCII_DIGIT+ }
 ZERO = @{ "0" }
 SEP = _{ (";" | (";"? ~ NEWLINE+)) }
@@ -36,16 +36,16 @@ LT = { "<" }
 LE = { "<=" }
 
 // Comparison Collection
-compEqual = { IDENT_OR_VALUE ~ EQ ~ IDENT_OR_VALUE }
-compNotEqual = { IDENT_OR_VALUE ~ NE ~ IDENT_OR_VALUE }
-compGreaterEqual = { IDENT_OR_VALUE ~ GE ~ IDENT_OR_VALUE }
-compGreaterThan = { IDENT_OR_VALUE ~ GT  ~ IDENT_OR_VALUE }
-compLessEqual = { IDENT_OR_VALUE ~ LE ~ IDENT_OR_VALUE }
-compLessThan = { IDENT_OR_VALUE ~ LT  ~ IDENT_OR_VALUE }
+compEqual           = { IDENT_OR_VALUE ~ EQ ~ IDENT_OR_VALUE }
+compNotEqual        = { IDENT_OR_VALUE ~ NE ~ IDENT_OR_VALUE }
+compGreaterEqual    = { IDENT_OR_VALUE ~ GE ~ IDENT_OR_VALUE }
+compGreaterThan     = { IDENT_OR_VALUE ~ GT ~ IDENT_OR_VALUE }
+compLessEqual       = { IDENT_OR_VALUE ~ LE ~ IDENT_OR_VALUE }
+compLessThan        = { IDENT_OR_VALUE ~ LT ~ IDENT_OR_VALUE }
 
 // currently != 0 has a special meaning for conditionals and WHILE
-compNotEqual0 = { IDENT_OR_VALUE ~ NE ~ ZERO }
-compIdentNotEqual0 = { IDENT ~ NE ~ ZERO }
+compNotEqual0       = { IDENT_OR_VALUE ~ NE ~ ZERO }
+compIdentNotEqual0  = { IDENT ~ NE ~ ZERO }
 
 // Core Language:
 binaryOp = {
@@ -91,28 +91,10 @@ macroAssignToIdentExtOpValue = {
     IDENT ~ EXT_OPERATOR ~ VALUE
 }
 
-// Function Definitions
-
-// This is all a bit more complicated, identifiers in macroFnDef
-// need to be prefixed and then inlined correctly, this is a BIG task
-// x  => __max1__x
-// _1 => __max1___1
-// When calling the function the annotated
-macroFnDef = {
-    ^"FN" ~ IDENT
-    ~ "(" ~ IDENT ~ ("," ~ IDENT) ~ ")"
-    ~ "->" ~ IDENT ~ ^"DECL" ~
-    terms
-    ~ "END"
-}
 
 // We need to check at compile time if the number of arguments is correct.
 macroFnCall = {
    IDENT ~ "(" ~ IDENT_OR_VALUE ~ ("," ~ IDENT_OR_VALUE)* ~ ")"
-}
-
-macroFnImport = {
-    ^"IMPORT" ~ IDENT
 }
 
 // Conditionals
@@ -161,6 +143,33 @@ macro_ = _{
     | macroAssignToZero
     | macroAssignToValue
     | macroConditional
+    | macroFnCall
+}
+
+// Function Definitions
+// This is all a bit more complicated, identifiers in macroFnDef
+// need to be prefixed and then inlined correctly, this is a BIG task
+// x  => __max1__x
+// _1 => __max1___1
+// When calling the function the annotated
+funcDef = {
+    ^"FN" ~ IDENT
+    ~ "(" ~ IDENT ~ ("," ~ IDENT) ~ ")"
+    ~ "->" ~ IDENT ~ ^"DECL" ~
+    terms
+    ~ "END"
+}
+
+importFn = {
+    IDENT ~ (^"AS" ~ IDENT)?
+}
+
+import = {
+    ^"FROM"
+    ~ (IDENT | ".") ~ ("::" ~ IDENT)* ~
+    ^"IMPORT" ~
+    (importFn
+    | "(" ~ importFn ~ ("," ~ importFn)* ~ ")")
 }
 
 // Expression Collection:
@@ -177,4 +186,25 @@ terms = {
     expr ~
     (SEP ~ expr)* ~
     SEP?
+}
+
+functions = {
+    NEWLINE* ~
+    funcDef ~
+    (SEP ~ funcDef)* ~
+    SEP?
+}
+
+imports = {
+    NEWLINE* ~
+    import ~
+    (SEP ~ import)* ~
+    SEP?
+}
+
+
+topLevel = _{
+    imports? ~
+    functions? ~
+    terms
 }

@@ -5,3 +5,4 @@ pub mod node;
 pub mod polluted;
 pub mod variant;
 pub mod verbs;
+pub mod func;
