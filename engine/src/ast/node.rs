@@ -7,10 +7,16 @@ use indoc::indoc;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
+use crate::ast::polluted::expand::check_errors;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
+use crate::errors::{Error, ErrorVariant};
+use crate::flags::CompilationFlags;
 use crate::types::LineNo;
+
+pub static CONST_IDENT: [&str; 1] = ["_zero"];
 
 // Note(bmahmoud): in the future we could also support unary expressions?
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -151,6 +157,59 @@ impl Node {
                 terms = terms.display(indent, cur.map(|c| c + 1)),
                 s = spacing
             ),
+        }
+    }
+
+    pub fn verify(self, context: &mut CompileContext) -> Result<Self, Vec<Error>> {
+        match &self {
+            Node::Assign { lhs, rhs: _, lno } => {
+                let ident = match *lhs.clone() {
+                    Node::Ident(m) => m,
+                    _ => unreachable!(),
+                };
+
+                if context.flags.contains(CompilationFlags::CNF_CONST)
+                    && CONST_IDENT.contains(&ident.as_str())
+                {
+                    return Err(vec![Error::new(
+                        *lno,
+                        ErrorVariant::Message(format!(
+                            "Tried to assign a value to declared CONST {}, \
+                             not allowed with compilation flag CNF_CONST",
+                            ident
+                        )),
+                    )]);
+                }
+
+                Ok(self)
+            }
+            Node::Control(Control::Terms(t)) => {
+                let verify: Vec<_> = t.iter().map(|term| term.clone().verify(context)).collect();
+                check_errors(&verify)?;
+
+                Ok(self)
+            }
+            Node::Control(Control::While {
+                comp,
+                terms,
+                lno: _,
+            }) => {
+                let verify = vec![comp.clone().verify(context), terms.clone().verify(context)];
+                check_errors(&verify)?;
+
+                Ok(self)
+            }
+            Node::Control(Control::Loop {
+                ident,
+                terms,
+                lno: _,
+            }) => {
+                let verify = vec![ident.clone().verify(context), terms.clone().verify(context)];
+                check_errors(&verify)?;
+
+                Ok(self)
+            }
+            _ => Ok(self),
         }
     }
 }

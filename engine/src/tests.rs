@@ -601,6 +601,23 @@ fn test_macro_ident_mul_val() {
     assert_is_int(x, 6);
 }
 
+#[test]
+fn test_const() {
+    let snip = indoc! {"
+    _zero := 1
+    "};
+
+    let result = Builder::parse(snip, None);
+    assert!(result.is_ok());
+    let mut result = result.ok().unwrap();
+
+    let result = Builder::compile(
+        &mut result,
+        Some(CompilationFlags::CNF_CONST | CompilationFlags::LOOP | CompilationFlags::WHILE),
+    );
+    assert!(result.is_err());
+}
+
 // This is a special tests, that looks what the LIPS count is.
 #[test]
 #[ignore]

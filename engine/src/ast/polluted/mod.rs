@@ -1,4 +1,4 @@
-mod expand;
+pub mod expand;
 
 #[cfg(feature = "cli")]
 use schemars::JsonSchema;

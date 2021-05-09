@@ -13,7 +13,7 @@ use either::Either;
 use itertools::Itertools;
 use num_traits::{One, Zero};
 
-fn check_errors(maybe: &[Result<Node, Vec<Error>>]) -> Result<Vec<Node>, Vec<Error>> {
+pub fn check_errors(maybe: &[Result<Node, Vec<Error>>]) -> Result<Vec<Node>, Vec<Error>> {
     let (ok, err): (Vec<_>, Vec<_>) = maybe.iter().partition_map(|r| match r {
         Ok(r) => Either::Left(r.clone()),
         Err(r) => Either::Right(r.clone()),

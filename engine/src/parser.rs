@@ -17,15 +17,12 @@ use crate::types::LineNo;
 #[derive(new, Clone)]
 pub struct ParseSettings {
     lno: Option<LineNo>,
-    flags: CompilationFlags,
 }
 
 type ParseResult<T> = std::result::Result<T, Error<Rule>>;
 type ParseNode<'i, 'a> = pest_consume::Node<'i, Rule, &'a ParseSettings>;
 
 type EitherNode = Either<PollutedNode, Node>;
-
-pub static CONST_IDENT: [&str; 1] = ["_zero"];
 
 #[derive(Parser)]
 #[grammar = "grammar.pest"]
@@ -163,24 +160,10 @@ impl LoopParser {
     #[alias(expr)]
     fn assign(input: ParseNode) -> ParseResult<EitherNode> {
         let lno = LoopParserHelpers::lno(input.clone());
-        let flags = input.clone().user_data().flags;
 
         let (ident, op) = match_nodes!(input.clone().into_children();
             [atom(i), op(o)] => (i, o)
         );
-
-        if flags.contains(CompilationFlags::CNF_CONST) {
-            let ident_name = match ident.clone() {
-                Either::Right(Node::Ident(m)) => m,
-                _ => unreachable!(),
-            };
-            if CONST_IDENT.contains(&ident_name.as_str()) {
-                return Err(input.error(format!(
-                    "Tried to assign value to const {}, not allowed.",
-                    ident_name
-                )));
-            }
-        }
 
         Ok(EitherNode::Right(Node::Assign {
             lno,

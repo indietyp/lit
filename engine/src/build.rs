@@ -26,9 +26,8 @@ impl Builder {
     pub fn parse(
         source: &str,
         lno_overwrite: Option<LineNo>,
-        flags: Option<CompilationFlags>,
     ) -> Result<Vec<PollutedNode>, Error<Rule>> {
-        let settings = ParseSettings::new(lno_overwrite, flags.unwrap_or_default());
+        let settings = ParseSettings::new(lno_overwrite);
         let pairs = LoopParser::parse_with_userdata(Rule::grammar, source, &settings)?;
 
         let pair = pairs.single()?;
@@ -47,9 +46,9 @@ impl Builder {
         context: CompileContext,
     ) -> Result<Node, Vec<errors::Error>> {
         let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
-        let mut context = context.clone();
+        let mut context = context;
 
-        let expanded = wrapped.expand(&mut context)?.flatten();
+        let expanded = wrapped.expand(&mut context)?.verify(&mut context)?.flatten();
 
         Ok(expanded)
     }
@@ -67,7 +66,7 @@ impl Builder {
         flags: Option<CompilationFlags>,
     ) -> Result<Node, Vec<errors::Error>> {
         Builder::compile(
-            &mut Builder::parse(source, None, flags)
+            &mut Builder::parse(source, None)
                 .map_err(|err| vec![errors::Error::new_from_parse(err)])?,
             flags,
         )
@@ -80,7 +79,7 @@ impl Builder {
         lno: Option<LineNo>,
     ) -> Result<Node, Vec<errors::Error>> {
         Builder::ext_compile(
-            &mut Builder::parse(source, lno, Some(context.flags))
+            &mut Builder::parse(source, lno)
                 .map_err(|err| vec![errors::Error::new_from_parse(err)])?,
             context,
         )
