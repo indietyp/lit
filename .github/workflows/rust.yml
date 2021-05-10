@@ -33,7 +33,7 @@ jobs:
       uses: montudor/action-zip@v1
     # Build WASM
     - name: Build WASM
-      run: wasm-pack build
+      run: wasm-pack build --target=web
     # TypeScript Definitions from JSON-Schema
     - name: Generate Schema
       run: cargo run --package lit --features cli --bin lit schema --mode overwrite --output pkg/schema/
