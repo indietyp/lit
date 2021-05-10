@@ -11,6 +11,7 @@ use crate::ast::polluted::PollutedNode;
 use crate::eval::exec::Exec;
 use crate::flags::CompilationFlags;
 
+use crate::ast::module::Module;
 use crate::errors;
 use crate::eval::types::Variables;
 use crate::parser::Rule;
@@ -18,31 +19,32 @@ use crate::parser::{LoopParser, ParseSettings};
 use crate::runtime::Runtime;
 use crate::types::LineNo;
 use pest_consume::Parser;
+use std::collections::HashMap;
 
 #[derive(Serialize, Deserialize)]
 pub struct Builder {}
 
 impl Builder {
-    pub fn parse(
-        source: &str,
-        lno_overwrite: Option<LineNo>,
-    ) -> Result<Vec<PollutedNode>, Error<Rule>> {
+    pub fn parse(source: &str, lno_overwrite: Option<LineNo>) -> Result<Module, Error<Rule>> {
         let settings = ParseSettings::new(lno_overwrite);
         let pairs = LoopParser::parse_with_userdata(Rule::grammar, source, &settings)?;
 
         let pair = pairs.single()?;
-        Ok(vec![LoopParser::grammar(pair)?])
+        Ok(LoopParser::grammar(pair)?)
     }
 
     pub fn compile(
-        ast: &mut Vec<PollutedNode>,
+        ast: &mut PollutedNode,
         flags: Option<CompilationFlags>,
+        // fs can be used to specify additional files that can be used
+        // at compile time, HashMap for "name: contents"
+        fs: Option<HashMap<String, String>>,
     ) -> Result<Node, Vec<errors::Error>> {
         Builder::ext_compile(ast, CompileContext::new(flags.unwrap_or_default()))
     }
 
     pub(crate) fn ext_compile(
-        ast: &mut Vec<PollutedNode>,
+        ast: &mut PollutedNode,
         context: CompileContext,
     ) -> Result<Node, Vec<errors::Error>> {
         let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
