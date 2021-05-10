@@ -37,8 +37,8 @@ jobs:
     - name: Build WASM
       run: wasm-pack build --release --target=web --scope lit
     - name: Rename NPM Package
-      run: sed -i ".bak" -e 's/"name": "lit"/"name": "engine"/g' pkg/package.json
-	  - name: Remove old package.json
+      run: sed -i ".bak" -e 's/"name":."lit"/"name":."engine"/g' pkg/package.json
+    - name: Remove old package.json
       run: rm pkg/package.json.bak
     # TypeScript Definitions from JSON-Schema
     - name: Generate Schema
