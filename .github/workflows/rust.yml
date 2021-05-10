@@ -38,7 +38,7 @@ jobs:
       run: wasm-pack build --release --target=web --scope lit
     - name: Rename NPM Package
       run: |
-        sed -i -e 's#"name": "@lit/lit"#"name": "@indietyp/lit-engine"#g' pkg/package.json
+        sed -i -e 's#"name": "@lit/lit"#"name": "@indietyp/lit"#g' pkg/package.json
     # TypeScript Definitions from JSON-Schema
     - name: Generate Schema
       run: cargo run --package lit --features cli --bin lit schema --mode overwrite --output pkg/schema/
