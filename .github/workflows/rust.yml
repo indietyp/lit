@@ -28,7 +28,7 @@ jobs:
       with:
         node-version: '12.x'
         registry-url: 'https://npm.pkg.github.com'
-        scope: '@lit'
+        scope: '@indietyp'
     - name: Install Quicktype
       run: npm i -g quicktype
     - name: Install wasm-pack
