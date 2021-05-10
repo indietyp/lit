@@ -13,7 +13,8 @@
     "lezer": "^0.13.4",
     "react": "^17.0.0",
     "react-bootstrap": "^2.0.0-alpha.1",
-    "react-dom": "^17.0.0"
+    "react-dom": "^17.0.0",
+    "lit-wasm": "file:./engine/pkg"
   },
   "devDependencies": {
     "@types/react": "^17.0.0",
