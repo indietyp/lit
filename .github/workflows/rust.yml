@@ -28,16 +28,18 @@ jobs:
       with:
         node-version: '12.x'
         registry-url: 'https://npm.pkg.github.com'
-        scope: '@indietyp'
+        scope: '@lit'
     - name: Install Quicktype
       run: npm i -g quicktype
     - name: Install wasm-pack
       uses: jetli/wasm-pack-action@v0.3.0
-    - name: Install zip
-      uses: montudor/action-zip@v1
     # Build WASM
     - name: Build WASM
-      run: wasm-pack build --release --target=web
+      run: wasm-pack build --release --target=web --scope lit
+    - name: Rename NPM Package
+      run: sed -i ".bak" -e 's/"name": "lit"/"name": "engine"/g' pkg/package.json
+	  - name: Remove old package.json
+      run: rm pkg/package.json.bak
     # TypeScript Definitions from JSON-Schema
     - name: Generate Schema
       run: cargo run --package lit --features cli --bin lit schema --mode overwrite --output pkg/schema/
