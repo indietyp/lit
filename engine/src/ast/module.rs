@@ -5,6 +5,15 @@ use crate::types::LineNo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+pub(crate) mod filesystem {
+    use either::Either;
+    use std::collections::HashMap;
+
+    type FileContents = String;
+    type Directory = HashMap<String, Box<Path>>;
+    type Path = Either<FileContents, Box<Directory>>;
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct FuncDecl {
