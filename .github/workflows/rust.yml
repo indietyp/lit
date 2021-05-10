@@ -25,6 +25,8 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: 14.x
+        registry-url: 'https://npm.pkg.github.com'
+        scope: '@octocat'
     - name: Install Quicktype
       run: npm i -g quicktype
     - name: Install wasm-pack
@@ -40,13 +42,18 @@ jobs:
     - name: Generate TypeScript Definitions
       run: quicktype pkg/schema/root.json -o pkg/schema.ts -s schema --just-types --acronym-style original --nice-property-names --explicit-unions
     # Upload Artifacts to GitHub
-    - name: Compress Files
-      run: zip -qq -r pkg.zip pkg
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v2.2.3
+    - uses: actions/setup-node@v2
       with:
-        name: wasm
-        path: ./engine/pkg.zip
+        node-version: '12.x'
+        registry-url: 'https://npm.pkg.github.com'
+        # Defaults to the user or organization that owns the workflow file
+        scope: '@octocat'
+    - run: npm install
+      working-directory: ./engine/pkg
+    - run: npm publish
+      working-directory: ./engine/pkg
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   
   test:
     runs-on: ubuntu-latest
