@@ -2,7 +2,7 @@ import React from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
 
 import './App.scss';
-import { LoopEditor } from './modules/editor/LoopEditor';
+import { LoopEditor } from './components/editor/LoopEditor';
 
 function App() {
     return (

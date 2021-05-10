@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run generate-parser && tsc && vite build",
-    "generate-parser": "lezer-generator src/modules/editor/parser/grammar/loop.grammar -o src/modules/editor/parser/grammar/parser.js",
+    "generate-parser": "lezer-generator src/parser/grammar/loop.grammar -o src/parser/grammar/parser.js",
     "serve": "vite preview"
   },
   "dependencies": {

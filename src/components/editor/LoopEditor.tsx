@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { basicSetup, EditorState, EditorView } from '@codemirror/basic-setup';
-import { loop } from './parser/grammar/loop';
+import { loop } from '../../parser/grammar/loop';
 
 type Props = {};
 
