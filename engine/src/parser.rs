@@ -6,8 +6,9 @@ use pest_consume::Error;
 use pest_consume::Parser;
 
 use crate::ast::control::Control;
-use crate::ast::func::{Func, FuncCall, FuncDecl, FuncImport, FuncImportStmt};
+use crate::ast::func::{Func, FuncCall};
 use crate::ast::macros::{Macro, MacroAssign};
+use crate::ast::module::{FuncDecl, Imp, ImpFunc, Module};
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::ast::variant::UInt;
@@ -21,8 +22,6 @@ pub struct ParseSettings {
 
 type ParseResult<T> = std::result::Result<T, Error<Rule>>;
 type ParseNode<'i, 'a> = pest_consume::Node<'i, Rule, &'a ParseSettings>;
-
-type EitherNode = Either<PollutedNode, Node>;
 
 #[derive(Parser)]
 #[grammar = "grammar.pest"]
@@ -356,14 +355,14 @@ impl LoopParser {
     }
 
     #[allow(non_snake_case)]
-    fn funcDef(input: ParseNode) -> ParseResult<PollutedNode> {
+    fn funcDef(input: ParseNode) -> ParseResult<FuncDecl> {
         let lno = LoopParserHelpers::lno(input.clone());
 
         let (ident, params, ret, terms): (Node, Vec<Node>, Node, PollutedNode) = match_nodes!(input.into_children();
             [atom(ident), atom(params).., funcRet(ret), expr(terms)] => (ident, params.collect(), ret, terms)
         );
 
-        let func = FuncDecl {
+        let decl = FuncDecl {
             lno,
 
             ident: Box::new(ident),
@@ -372,37 +371,26 @@ impl LoopParser {
 
             terms: Box::new(terms),
         };
-        let node = PollutedNode::Function(Func::Decl(vec![func]));
 
-        Ok(node)
+        Ok(decl)
     }
 
-    fn functions(input: ParseNode) -> ParseResult<PollutedNode> {
-        let funcs: Vec<PollutedNode> = match_nodes!(input.into_children();
+    fn functions(input: ParseNode) -> ParseResult<Vec<FuncDecl>> {
+        let funcs: Vec<FuncDecl> = match_nodes!(input.into_children();
             [funcDef(funcs)..] => funcs.collect()
         );
 
-        let funcs: Vec<_> = funcs
-            .iter()
-            .flat_map(|f| match f {
-                PollutedNode::Function(Func::Decl(funcs)) => funcs.clone(),
-                _ => unreachable!(),
-            })
-            .collect();
-
-        let node = PollutedNode::Function(Func::Decl(funcs));
-
-        Ok(node)
+        Ok(funcs)
     }
 
     #[allow(non_snake_case)]
-    fn importFunc(input: ParseNode) -> ParseResult<FuncImportStmt> {
+    fn importFunc(input: ParseNode) -> ParseResult<ImpFunc> {
         let (ident, alias): (Node, Option<Node>) = match_nodes!(input.into_children();
             [atom(ident), atom(alias)] => (ident, Some(alias)),
             [atom(ident)] => (ident, None),
         );
 
-        let node = FuncImportStmt {
+        let node = ImpFunc {
             ident: Box::new(ident),
             alias: alias.map(|a| Box::new(a)),
         };
@@ -411,7 +399,7 @@ impl LoopParser {
     }
 
     #[allow(non_snake_case)]
-    fn importStmt(input: ParseNode) -> ParseResult<Vec<FuncImportStmt>> {
+    fn importStmt(input: ParseNode) -> ParseResult<Vec<ImpFunc>> {
         let stmt = match_nodes!(input.into_children();
             [importFunc(stmts)..] => stmts.collect()
         );
@@ -419,50 +407,46 @@ impl LoopParser {
         Ok(stmt)
     }
 
-    fn import(input: ParseNode) -> ParseResult<PollutedNode> {
+    fn import(input: ParseNode) -> ParseResult<Imp> {
         let lno = LoopParserHelpers::lno(input.clone());
 
-        let (path, stmt): (Vec<Node>, Vec<FuncImportStmt>) = match_nodes!(input.into_children();
+        let (path, stmt): (Vec<Node>, Vec<ImpFunc>) = match_nodes!(input.into_children();
             [atom(path).., importStmt(stmt)] => (path.collect(), stmt)
         );
 
-        let import = FuncImport {
+        let import = Imp {
             lno,
 
             path,
             funcs: stmt,
         };
 
-        let node = PollutedNode::Function(Func::Import(vec![import]));
-
-        Ok(node)
+        Ok(import)
     }
 
-    fn imports(input: ParseNode) -> ParseResult<PollutedNode> {
-        let imports: Vec<PollutedNode> = match_nodes!(input.into_children();
+    fn imports(input: ParseNode) -> ParseResult<Vec<Imp>> {
+        let imports: Vec<Imp> = match_nodes!(input.into_children();
             [import(imports)..] => imports.collect()
         );
 
-        let imports: Vec<_> = imports
-            .iter()
-            .flat_map(|f| match f {
-                PollutedNode::Function(Func::Import(imports)) => imports.clone(),
-                _ => unreachable!(),
-            })
-            .collect();
-
-        let node = PollutedNode::Function(Func::Import(imports));
-
-        Ok(node)
+        Ok(imports)
     }
 
     // Initialization Rule
-    pub(crate) fn grammar(input: ParseNode) -> ParseResult<PollutedNode> {
-        let terms = match_nodes!(input.into_children();
-            [expr(t), EOI(_)] => t
+    pub(crate) fn grammar(input: ParseNode) -> ParseResult<Module> {
+        let (imp, decl, code): (Option<Vec<Imp>>, Option<Vec<FuncDecl>>, PollutedNode) = match_nodes!(input.into_children();
+            [imports(i), functions(f), expr(t), EOI(_)] => (Some(i), Some(f), t),
+            [imports(i), functions(f), EOI(_)] => (Some(i), Some(f), PollutedNode::NoOp),
+            [functions(f), expr(t), EOI(_)] => (None, Some(f), t),
+            [imports(i), expr(t), EOI(_)] => (Some(i), None, t),
+            [expr(t), EOI(_)] => (None, None, t)
         );
 
-        Ok(terms)
+        Ok(Module {
+            imp: imp.unwrap_or_default(),
+            decl: decl.unwrap_or_default(),
+            code,
+        })
     }
 
     // Make the parser happy, these always error out.
