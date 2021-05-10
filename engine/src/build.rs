@@ -31,7 +31,7 @@ impl Builder {
         let pairs = LoopParser::parse_with_userdata(Rule::grammar, source, &settings)?;
 
         let pair = pairs.single()?;
-        Ok(vec![LoopParser::grammar(pair)?.left().unwrap()])
+        Ok(vec![LoopParser::grammar(pair)?])
     }
 
     pub fn compile(
@@ -48,7 +48,10 @@ impl Builder {
         let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
         let mut context = context;
 
-        let expanded = wrapped.expand(&mut context)?.verify(&mut context)?.flatten();
+        let expanded = wrapped
+            .expand(&mut context)?
+            .verify(&mut context)?
+            .flatten();
 
         Ok(expanded)
     }
