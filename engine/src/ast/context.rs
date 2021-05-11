@@ -1,18 +1,11 @@
 use crate::ast::module::filesystem;
+use crate::ast::node::Node;
+use crate::ast::polluted::PollutedNode;
 use crate::flags::CompilationFlags;
 use std::collections::HashMap;
 use wasm_bindgen::prelude::*;
 
-pub type ModuleName = String;
-pub type FunctionName = String;
-pub type FunctionAlias = String;
-pub type ModuleContext = HashMap<FunctionName, FunctionContext>;
-
-pub struct FunctionImport {
-    module: ModuleName,
-    alias: Option<FunctionName>,
-}
-
+// TODO: pub into separate function
 sum_type! {
     #[derive(Debug, Clone, PartialEq)]
     pub enum FunctionContext {
@@ -25,8 +18,19 @@ sum_type! {
 
         /// This means it is already inlined
         /// and can be used
-        Inline(Node)
+        Inline(Node),
     }
+}
+
+pub type ModuleName = String;
+pub type FunctionName = String;
+pub type FunctionAlias = String;
+pub type FunctionQualName = String;
+pub type ModuleContext = HashMap<FunctionName, FunctionContext>;
+
+pub struct FunctionImport {
+    module: ModuleName,
+    alias: Option<FunctionName>,
 }
 
 #[wasm_bindgen]
@@ -36,11 +40,18 @@ pub struct CompileContext {
     pub flags: CompilationFlags,
     pub fs: filesystem::Directory,
     pub modules: HashMap<ModuleName, ModuleContext>,
+    pub inline_counter: HashMap<FunctionQualName, usize>,
 }
 
 impl CompileContext {
-    pub fn new(flags: CompilationFlags) -> Self {
-        CompileContext { counter: 0, flags }
+    pub fn new(flags: CompilationFlags, fs: Option<filesystem::Directory>) -> Self {
+        CompileContext {
+            counter: 0,
+            flags,
+            fs: fs.unwrap_or_default(),
+            modules: HashMap::new(),
+            inline_counter: HashMap::new(),
+        }
     }
 
     pub fn incr(&mut self) -> usize {
@@ -48,5 +59,13 @@ impl CompileContext {
         self.counter += 1;
 
         cur
+    }
+
+    pub fn incr_inline(&mut self, func: FunctionQualName) -> usize {
+        let mut cur = self.inline_counter.get(func.as_str()).cloned().unwrap_or(0);
+        cur += 1;
+        self.inline_counter.insert(func, cur);
+
+        cur.clone()
     }
 }
