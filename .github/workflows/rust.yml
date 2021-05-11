@@ -37,6 +37,9 @@ jobs:
     - name: Rename NPM Package
       run: |
         sed -i -e 's#"name": "@lit/lit"#"name": "@loopit!/engine"#g' pkg/package.json
+    - name: package.json include all directory files
+      run: |
+        sed -i -e '1h;2,$H;$!d;g' -e 's#"files": \\[.*\\],#"files": ["*"],#g' pkg/package.json
     # TypeScript Definitions from JSON-Schema
     - name: Generate Schema
       run: cargo run --package lit --features cli --bin lit schema --mode overwrite --output pkg/schema/
@@ -50,6 +53,7 @@ jobs:
         access: public
         package: ./engine/pkg/package.json
         token: ${{ secrets.NPM_TOKEN }}
+        check-version: false
   
   test:
     runs-on: ubuntu-latest
