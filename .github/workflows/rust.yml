@@ -41,6 +41,7 @@ jobs:
       run: |
         sed -i -e '1h;2,$H;$!d;g' -e 's#"files": \\[.*\\],#"files": ["*"],#g' pkg/package.json
     - name: bump version if needed
+      working-directory: ./engine/pkg
       run: |
         apt-get install -y jq
         curl https://raw.githubusercontent.com/fsaintjacques/semver-tool/master/src/semver > semver
