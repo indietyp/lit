@@ -45,13 +45,14 @@ jobs:
       id: version
       with:
         cmd: 'jq .version engine/pkg/package.json -r'
-    - name: bump version if needed
+    - name: Bump package.json version
       working-directory: ./engine/pkg
       run: |
         curl https://raw.githubusercontent.com/fsaintjacques/semver-tool/master/src/semver > semver;
         chmod +x semver;
         npm version $(if [[ $(./semver compare $(npm show '@loopit!/engine' version) ${{ steps.version.outputs.value }}) -ge 1 ]]; then ./semver bump patch $(npm show '@loopit!/engine' version); else echo ${{ steps.version.outputs.value }}; fi;) --allow-same-version;
         rm semver;
+        cat package.json
     # TypeScript Definitions from JSON-Schema
     - name: Generate Schema
       run: cargo run --package lit --features cli --bin lit schema --mode overwrite --output pkg/schema/
