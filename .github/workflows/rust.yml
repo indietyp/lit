@@ -40,14 +40,18 @@ jobs:
     - name: package.json include all directory files
       run: |
         sed -i -e '1h;2,$H;$!d;g' -e 's#"files": \\[.*\\],#"files": ["*"],#g' pkg/package.json
+    - name: Extract version from package.json
+      uses: sergeysova@jq-action@v2
+      id: version
+      with:
+        cmd: 'jq .version pkg/package.json -r'
     - name: bump version if needed
       working-directory: ./engine/pkg
       run: |
-        apt-get install -y jq
-        curl https://raw.githubusercontent.com/fsaintjacques/semver-tool/master/src/semver > semver
-        chmod +x semver
-        npm version $(if [[ $(./semver compare $(npm show '@loopit!/engine' version) $(cat package.json | jq -cr ".version")) -ge 1 ]]; then ./semver bump patch $(npm show '@loopit!/engine' version); else cat package.json | jq -cr ".version"; fi;) --allow-same-version
-        rm semver
+        curl https://raw.githubusercontent.com/fsaintjacques/semver-tool/master/src/semver > semver;
+        chmod +x semver;
+        npm version $(if [[ $(./semver compare $(npm show '@loopit!/engine' version) ${{ steps.version.outputs.value }}) -ge 1 ]]; then ./semver bump patch $(npm show '@loopit!/engine' version); else ${{ steps.version.outputs.value }}; fi;) --allow-same-version;
+        rm semver;
     # TypeScript Definitions from JSON-Schema
     - name: Generate Schema
       run: cargo run --package lit --features cli --bin lit schema --mode overwrite --output pkg/schema/
