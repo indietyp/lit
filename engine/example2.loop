@@ -1,8 +1,0 @@
-h1 := 1
-
-WHILE h1 != 0 DO
-    ...
-    IF x < y THEN
-        h1 := 0
-    END
-END

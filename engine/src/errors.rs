@@ -5,6 +5,9 @@ use pest::error::{InputLocation, LineColLocation};
 use serde::{Deserialize, Serialize};
 
 #[derive(new, Debug, Serialize, Deserialize, Clone)]
+pub enum ErrorCode {}
+
+#[derive(new, Debug, Serialize, Deserialize, Clone)]
 pub struct Error {
     lno: LineNo,
     variant: ErrorVariant,
@@ -13,6 +16,7 @@ pub struct Error {
 #[derive(new, Debug, Serialize, Deserialize, Clone)]
 pub enum ErrorVariant {
     Message(String),
+    ErrorCode(ErrorCode),
     Parse(PestErrorInfo),
 }
 

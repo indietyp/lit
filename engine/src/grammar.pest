@@ -173,9 +173,15 @@ importStmt = {
     | "(" ~ importFunc ~ ("," ~ importFunc)* ~ ")")
 }
 
+importPath = {
+    IDENT
+    | "."
+    | ".."
+}
+
 import = {
     ^"FROM"
-    ~ (IDENT | ".") ~ ("::" ~ IDENT)* ~
+    ~ IDENT ~ ("::" ~ importPath)* ~
     ^"IMPORT" ~
     importStmt
 }

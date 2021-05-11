@@ -618,6 +618,137 @@ fn test_const() {
     assert!(result.is_err());
 }
 
+#[test]
+fn test_imports_fs() {
+    let snip = indoc! {"
+    FROM fs::example IMPORT a
+    FROM fs::.::example IMPORT b
+    FROM fs::.::.::.::example IMPORT c
+    FROM fs::dir::child IMPORT d
+    "};
+
+    let example = indoc! {"
+    FN a(_) -> c DECL
+        ...
+    END
+
+    FN b(_) -> c DECL
+        ...
+    END
+
+    FN c(_) -> c DECL
+        ...
+    END
+    "};
+
+    let child = indoc! {"
+    FROM fs::..::example IMPORT a
+    FROM fs::..::.::example IMPORT b
+
+    FN d(_) -> c DECL
+        ...
+    END
+    "};
+}
+
+#[test]
+fn test_imports_alias() {
+    let snip = indoc! {"
+    FROM fs::example IMPORT (a, a AS b, a AS c)
+    "};
+
+    let example = indoc! {"
+    FN a(_) -> c DECL
+        ...
+    END
+    "};
+}
+
+#[test]
+fn test_call_param_error() {
+    let snip = indoc! {"
+    FN a(b, c) -> d DECL
+        ...
+    END
+
+    a := a(1, 2)
+    a := a(1)
+    a := a(1, 2, 3)
+    "};
+}
+
+#[test]
+fn test_imports_collision() {
+    let snip = indoc! {"
+    FROM fs::example1 IMPORT a
+    FROM fs::example2 IMPORT a
+    "};
+
+    let example1 = indoc! {"
+    FN a(_) -> c DECL
+        ...
+    END
+    "};
+
+    let example2 = indoc! {"
+    FN a(_) -> c DECL
+        ...
+    END
+    "};
+}
+
+#[test]
+fn test_simple_recursion() {
+    let snip = indoc! {"
+    FN a(b) -> c DECL
+        _ := a(b)
+    END
+    "};
+}
+
+#[test]
+fn test_nested_recursion() {
+    let snip = indoc! {"
+    FN a(b) -> c DECL
+        _ := b(b)
+    END
+    FN b(b) -> c DECL
+        _ := c(b)
+    END
+    FN c(b) -> c DECL
+        _ := a(b)
+    END
+
+    x := a(2)
+    "};
+}
+
+#[test]
+fn test_nested_import() {
+    let snip = indoc! {"
+    FROM fs::prelude IMPORT (a, b)
+    "};
+
+    let prelude = indoc! {"
+    FROM fs::.::funcs IMPORT *
+    "};
+
+    let funcs = indoc! {"
+    FN a(_) -> c DECL
+        ...
+    END
+    FN b(_) -> c DECL
+        ...
+    END
+    "};
+}
+
+#[test]
+fn test_inline_simple() {}
+
+#[test]
+fn test_inline_nested() {}
+
 // This is a special tests, that looks what the LIPS count is.
 #[test]
 #[ignore]
