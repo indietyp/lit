@@ -2,7 +2,7 @@
 name = "lit"
 description = "LOOP Just In Time Interpreter"
 version = "0.1.0"
-authors = ["bmahmoud <bmahmoud@mpi-cbg.de>"]
+authors = ["Bilal Mahmoud <bilalmahmoud@posteo.de>"]
 edition = "2018"
 
 [dependencies]
