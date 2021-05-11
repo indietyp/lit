@@ -11,7 +11,7 @@ use crate::ast::polluted::PollutedNode;
 use crate::eval::exec::Exec;
 use crate::flags::CompilationFlags;
 
-use crate::ast::module::Module;
+use crate::ast::module::{filesystem, Module};
 use crate::errors;
 use crate::eval::types::Variables;
 use crate::parser::Rule;
@@ -38,7 +38,7 @@ impl Builder {
         flags: Option<CompilationFlags>,
         // fs can be used to specify additional files that can be used
         // at compile time, HashMap for "name: contents"
-        fs: Option<HashMap<String, String>>,
+        fs: Option<filesystem::Directory>,
     ) -> Result<Node, Vec<errors::Error>> {
         Builder::ext_compile(ast, CompileContext::new(flags.unwrap_or_default()))
     }

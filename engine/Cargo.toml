@@ -25,6 +25,7 @@ indoc = "1.0.3"
 either = { version = "1.6.1", features= ["serde"] }
 newtype_derive = "0.1.6"
 itertools = "0.10.0"
+sum_type = "0.2.0"
 
 # CLI
 clap = { version = "2.33.3", optional = true }

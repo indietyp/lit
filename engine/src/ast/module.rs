@@ -5,13 +5,13 @@ use crate::types::LineNo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-pub(crate) mod filesystem {
+pub mod filesystem {
     use either::Either;
     use std::collections::HashMap;
 
-    type FileContents = String;
-    type Directory = HashMap<String, Box<Path>>;
-    type Path = Either<FileContents, Box<Directory>>;
+    pub type FileContents = String;
+    pub type Directory = HashMap<String, Box<Path>>;
+    pub type Path = Either<FileContents, Box<Directory>>;
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

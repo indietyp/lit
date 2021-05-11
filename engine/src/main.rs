@@ -7,6 +7,9 @@ extern crate derive_new;
 #[macro_use]
 extern crate newtype_derive;
 
+#[macro_use]
+extern crate sum_type;
+
 use std::fs::read_to_string;
 
 use crate::build::Builder;

@@ -243,6 +243,7 @@ dependencies = [
  "serde",
  "serde_json",
  "structopt",
+ "sum_type",
  "wasm-bindgen",
  "wasm-typescript-definition",
  "wee_alloc",
@@ -586,6 +587,12 @@ dependencies = [
  "quote 1.0.9",
  "syn 1.0.70",
 ]
+
+[[package]]
+name = "sum_type"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da5b4a0c9f3c7c8e891e445a7c776627e208e8bba23ab680798066dd283e6a15"
 
 [[package]]
 name = "syn"
