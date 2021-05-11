@@ -1,10 +1,11 @@
-import { Builder } from 'lit-wasm';
-import { PollutedNode, Node, Exec } from 'lit-wasm/schema';
+// import { Builder } from '@indietyp/lit';
+import { Builder } from '../../engine/pkg';
+import { PollutedNode, Node, Exec } from '../../engine/pkg/schema';
 
 export class Program {
-    public pollutedNode: PollutedNode;
-    public node: Node;
-    public exec: Exec;
+    public pollutedNode!: PollutedNode;
+    public node!: Node;
+    public exec!: Exec;
 
     constructor(public programCode: string) {
         this.pollutedNode = Builder.parse(programCode);

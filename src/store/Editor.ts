@@ -1,23 +1,23 @@
 import { computed, makeObservable, observable } from 'mobx';
 import { EditorView } from '@codemirror/basic-setup';
-import { Builder } from 'lit-wasm';
+// import init, { Builder, Runtime } from '@indietyp/lit';
+import init, { Builder, Runtime } from '../../engine/pkg';
 import { Program } from './Program';
 
 export class Editor {
     public editorView!: EditorView;
     public latestParsedProgram: Program | null = null;
     public variableMap: Map<string, number> = new Map();
+    public runtime: Runtime | null = null;
 
     constructor() {
         makeObservable(this, {
             latestParsedProgram: observable,
             variableMap: observable,
-            variableNames: computed,
+            // variableNames: computed,
         });
-    }
-
-    public get variableNames(): string[] {
-        return Array.from(this.variableMap.keys());
+        // Load WASM Code
+        init();
     }
 
     public get editorContent(): string {
@@ -28,14 +28,14 @@ export class Editor {
         this.editorView = editorView;
     }
 
-    public parseCode() {
+    public async parseCode() {
         this.latestParsedProgram = new Program(this.editorContent);
     }
 
-    public startRuntime() {
+    public async startRuntime() {
         if (this.latestParsedProgram) {
-            const runtime = Builder.exec(this.latestParsedProgram.exec, this.variableMap);
-            console.log('runtime', runtime);
+            this.runtime = Builder.exec(this.latestParsedProgram.exec, this.variableMap);
+            return this.runtime;
         }
     }
 }
