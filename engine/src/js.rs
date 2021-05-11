@@ -128,11 +128,12 @@ impl JavaScriptBuilder {
     }
 
     pub fn compile(ast: &IPollutedNode, flags: Option<CompilationFlags>) -> Result<INode, JsValue> {
-        let mut ast: Vec<PollutedNode> = ast.into_serde().unwrap();
-        let result =
-            Builder::compile(&mut ast, flags).map_err(|err| JsValue::from_serde(&err).unwrap())?;
-
-        Ok(JsValue::from_serde(&result).unwrap().unchecked_into())
+        todo!()
+        // let mut ast: Vec<PollutedNode> = ast.into_serde().unwrap();
+        // let result =
+        //     Builder::compile(&mut ast, flags).map_err(|err| JsValue::from_serde(&err).unwrap())?;
+        //
+        // Ok(JsValue::from_serde(&result).unwrap().unchecked_into())
     }
 
     pub fn exec(exec: IExec, locals: IVariables) -> Result<JavaScriptRuntime, JsValue> {

@@ -1,18 +1,10 @@
-use crate::ast::node::Node;
-use crate::ast::polluted::PollutedNode;
-use crate::types::LineNo;
 #[cfg(feature = "cli")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-pub mod filesystem {
-    use either::Either;
-    use std::collections::HashMap;
-
-    pub type FileContents = String;
-    pub type Directory = HashMap<String, Box<Path>>;
-    pub type Path = Either<FileContents, Box<Directory>>;
-}
+use crate::ast::node::Node;
+use crate::ast::polluted::PollutedNode;
+use crate::types::LineNo;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]

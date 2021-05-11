@@ -22,9 +22,11 @@ mod flags;
 mod js;
 mod parser;
 mod runtime;
-mod tests;
 mod types;
 mod utils;
+
+#[cfg(test)]
+mod tests;
 
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]

@@ -97,34 +97,34 @@ impl Node {
     }
 
     /* Display human friendly representation */
-    pub fn display(&self, indent: u8, cur: Option<u8>) -> String {
-        let cur = cur.or(Some(0));
-        let spacing = " ".repeat((indent * cur.unwrap()) as usize);
+    pub fn display(&self, indent: u8, level: Option<u8>) -> String {
+        let level = level.or(Some(0));
+        let spacing = " ".repeat((indent * level.unwrap()) as usize);
 
         match self {
             Node::Ident(s) => s.clone(),
             Node::NaturalNumber(n) => n.to_string(),
             Node::Comparison { lhs, verb, rhs } => format!(
                 "{} {} {}",
-                lhs.display(indent, cur),
+                lhs.display(indent, level),
                 verb,
-                rhs.display(indent, cur)
+                rhs.display(indent, level)
             ),
             Node::BinaryOp { lhs, verb, rhs } => format!(
                 "{} {} {}",
-                lhs.display(indent, cur),
+                lhs.display(indent, level),
                 verb,
-                rhs.display(indent, cur)
+                rhs.display(indent, level)
             ),
             Node::Assign { lno: _, lhs, rhs } => format!(
                 "{s}{lhs} := {rhs}",
-                lhs = lhs.display(indent, cur),
-                rhs = rhs.display(indent, cur),
+                lhs = lhs.display(indent, level),
+                rhs = rhs.display(indent, level),
                 s = spacing,
             ),
             Node::Control(Control::Terms(terms)) => terms
                 .iter()
-                .map(|term| term.display(indent, cur))
+                .map(|term| term.display(indent, level))
                 .collect::<Vec<String>>()
                 .join("\n"),
             Node::Control(Control::Loop {
@@ -138,8 +138,8 @@ impl Node {
                      {terms}
                      {s}END"
                 ),
-                ident = ident.display(indent, cur),
-                terms = terms.display(indent, cur.map(|c| c + 1)),
+                ident = ident.display(indent, level),
+                terms = terms.display(indent, level.map(|c| c + 1)),
                 s = spacing
             ),
             Node::Control(Control::While {
@@ -153,8 +153,8 @@ impl Node {
                      {terms}
                      {s}END"
                 ),
-                comp = comp.display(indent, cur),
-                terms = terms.display(indent, cur.map(|c| c + 1)),
+                comp = comp.display(indent, level),
+                terms = terms.display(indent, level.map(|c| c + 1)),
                 s = spacing
             ),
         }

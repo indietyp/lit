@@ -611,11 +611,12 @@ fn test_const() {
     assert!(result.is_ok());
     let mut result = result.ok().unwrap();
 
-    let result = Builder::compile(
-        &mut result,
-        Some(CompilationFlags::CNF_CONST | CompilationFlags::LOOP | CompilationFlags::WHILE),
-    );
-    assert!(result.is_err());
+    todo!()
+    // let result = Builder::compile(
+    //     &mut result,
+    //     Some(CompilationFlags::CNF_CONST | CompilationFlags::LOOP | CompilationFlags::WHILE),
+    // );
+    // assert!(result.is_err());
 }
 
 #[test]

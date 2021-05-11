@@ -37,7 +37,7 @@ pub(crate) fn expand_assign_to_ident(
         {} := {} + 0
         "}, lhs, rhs};
 
-    Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), context.clone(), Some(lno))
 }
 
 // Macro expansion for x := 0
@@ -69,7 +69,7 @@ pub(crate) fn expand_assign_to_zero(
         )
     };
 
-    Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), context.clone(), Some(lno))
 }
 
 // Macro expansion for x := n
@@ -108,7 +108,7 @@ pub(crate) fn expand_assign_to_value(
         )
     };
 
-    Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), context.clone(), Some(lno))
 }
 
 // Macro expansion for x := y +/- z
@@ -133,7 +133,7 @@ fn expand_assign_to_ident_simple_ident(
         b = z
     );
 
-    Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), context.clone(), Some(lno))
 }
 
 // Macro expansion for x := y * z
@@ -156,7 +156,7 @@ fn expand_assign_to_ident_mul_ident(
         z = z
     );
 
-    Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), context.clone(), Some(lno))
 }
 
 // Macro expansion for x := y (+|-|*) z
@@ -214,7 +214,7 @@ fn expand_assign_to_ident_mul_value(
         tmp = tmp
     );
 
-    Builder::ext_parse_and_compile(instruction.as_str(), *context, Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), context.clone(), Some(lno))
 }
 
 // Macro expansion for x := y (*|...) n

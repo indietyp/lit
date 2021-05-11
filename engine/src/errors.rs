@@ -4,7 +4,7 @@ use either::Either;
 use pest::error::{InputLocation, LineColLocation};
 use serde::{Deserialize, Serialize};
 
-#[derive(new, Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum ErrorCode {}
 
 #[derive(new, Debug, Serialize, Deserialize, Clone)]
