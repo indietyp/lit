@@ -1,3 +1,7 @@
+use either::Either;
+use itertools::Itertools;
+use num_traits::{One, Zero};
+
 use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::macros::Macro;
@@ -8,31 +12,15 @@ use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::errors::{Error, ErrorVariant};
 use crate::flags::CompilationFlags;
 use crate::types::LineNo;
+use crate::utils;
 use crate::utils::private_identifier;
-use either::Either;
-use itertools::Itertools;
-use num_traits::{One, Zero};
-
-pub fn check_errors(maybe: &[Result<Node, Vec<Error>>]) -> Result<Vec<Node>, Vec<Error>> {
-    let (ok, err): (Vec<_>, Vec<_>) = maybe.iter().partition_map(|r| match r {
-        Ok(r) => Either::Left(r.clone()),
-        Err(r) => Either::Right(r.clone()),
-    });
-    let err: Vec<_> = err.iter().flat_map(|f| f.clone()).collect_vec();
-
-    if !err.is_empty() {
-        Err(err)
-    } else {
-        Ok(ok)
-    }
-}
 
 pub(crate) fn expand_terms(
     context: &mut CompileContext,
     terms: &[PollutedNode],
 ) -> Result<Node, Vec<Error>> {
     let maybe: Vec<_> = terms.iter().map(|term| term.expand(context)).collect();
-    let nodes = check_errors(&maybe)?;
+    let nodes = utils::check_errors(&maybe)?;
 
     Ok(Node::Control(Control::Terms(nodes)))
 }
@@ -56,7 +44,7 @@ pub(crate) fn expand_loop(
         )]))
     }
 
-    let error_free = check_errors(&maybe)?;
+    let error_free = utils::check_errors(&maybe)?;
     let (ident, terms) = match error_free.as_slice() {
         [ident, terms] => (ident, terms),
         [ident, terms, ..] => (ident, terms),
@@ -136,7 +124,7 @@ pub(crate) fn expand_while(
     }
 
     // always only two if succeeds (context check adds error, which will always get unwrapped)
-    let error_free = check_errors(&maybe)?;
+    let error_free = utils::check_errors(&maybe)?;
     let (comp, terms) = match error_free.as_slice() {
         [comp, terms] => (comp, terms),
         [comp, terms, ..] => (comp, terms),

@@ -1,6 +1,11 @@
 use crate::ast::func::filesystem::Directory;
+use crate::ast::module::Module;
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
+use crate::build::Builder;
+use crate::errors::Error;
+use crate::utils::check_errors;
+use itertools::Itertools;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
@@ -56,19 +61,35 @@ impl ModuleMap {
 }
 
 impl ModuleMap {
+    fn parse(directory: Directory) -> Result<HashMap<Vec<String>, Module>, Vec<Error>> {
+        let mut preliminary: HashMap<_, _> = directory.walk().collect();
+        let mut files = preliminary
+            .iter()
+            .map(|(k, v)| (k, Builder::parse(v.as_str(), None)));
+
+        let results: Vec<_> = files
+            .clone()
+            .map(|(k, v)| v.map_err(|err| vec![Error::new_from_parse(err)]))
+            .collect();
+        check_errors(&results)?;
+
+        // we know these are all save thanks to check_errors
+        Ok(files.map(|(k, v)| (k.clone(), v.unwrap())).collect())
+    }
     fn resolve() {}
 
-    pub fn from(self, directory: Directory) -> ModuleMap {
-        // step 1) parse all modules
+    pub fn from(self, directory: Directory) -> Result<ModuleMap, Vec<Error>> {
+        // step 1) parse all modules - DONE
         // -> create a preliminary map
-        // step 2) resolve recursively
-        // step 3) check if collision in ModuleName
-        // step 4) insert "ourselves" as _.
+        // -> parse results
+        // step 2) create an import map
+        // step 3) resolve recursively
+        //  --> check if collision in ModuleName
+        // step 5) insert "ourselves" as _.
 
         // The directory is always prefixed with fs::,
         // while all others are looking into the /lib/ folder
-
-        // let mut preliminary = HashMap::new();
+        let mut modules = Self::parse(directory);
 
         todo!()
     }

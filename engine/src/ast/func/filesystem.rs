@@ -20,8 +20,8 @@ pub struct DirectoryIterator {
 }
 
 impl DirectoryIterator {
-    fn flat_map(key: Vec<String>, value: &Box<Path>) -> FlatDirectory {
-        let path = *value.clone();
+    fn flat_map(key: Vec<String>, value: &Path) -> FlatDirectory {
+        let path = value.clone();
         match path {
             Path(Either::Left(value)) => {
                 vec![(key, value)]

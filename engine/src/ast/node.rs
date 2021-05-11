@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
-use crate::ast::polluted::expand::check_errors;
+use crate::utils::check_errors;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::errors::{Error, ErrorVariant};
