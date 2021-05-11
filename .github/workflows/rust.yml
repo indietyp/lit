@@ -41,7 +41,7 @@ jobs:
       run: |
         sed -i -e '1h;2,$H;$!d;g' -e 's#"files": \\[.*\\],#"files": ["*"],#g' pkg/package.json
     - name: Extract version from package.json
-      uses: sergeysova@jq-action@v2
+      uses: sergeysova/jq-action@v2
       id: version
       with:
         cmd: 'jq .version engine/pkg/package.json -r'
