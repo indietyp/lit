@@ -44,7 +44,7 @@ jobs:
       uses: sergeysova@jq-action@v2
       id: version
       with:
-        cmd: 'jq .version pkg/package.json -r'
+        cmd: 'jq .version engine/pkg/package.json -r'
     - name: bump version if needed
       working-directory: ./engine/pkg
       run: |
