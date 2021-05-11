@@ -47,6 +47,7 @@ jobs:
       working-directory: ./engine/pkg
     - uses: JS-DevTools/npm-publish@v1
       with:
+        package: ./engine/pkg/package.json
         token: ${{ secrets.NPM_TOKEN }}
   
   test:
