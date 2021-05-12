@@ -85,7 +85,7 @@ impl ModuleMap {
         // step 2) create an import map
         // step 3) resolve recursively
         //  --> check if collision in ModuleName
-        // step 5) insert "ourselves" as _.
+        // step 5) insert "ourselves" as main.
 
         // The directory is always prefixed with fs::,
         // while all others are looking into the /lib/ folder
