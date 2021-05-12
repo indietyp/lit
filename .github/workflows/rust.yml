@@ -37,9 +37,13 @@ jobs:
     - name: Rename NPM Package
       run: |
         sed -i -e 's#"name": "@lit/lit"#"name": "@loopit!/engine"#g' pkg/package.json
-    - name: package.json include all directory files
-      run: |
-        sed -i -e '1h;2,$H;$!d;g' -e 's#"files": \\[.*\\],#"files": ["*"],#g' pkg/package.json
+    - name: Include all files
+      uses: jossef/action-set-json-field@v1
+      with:
+        file: engine/pkg/package.json
+        field: 'files'
+        value: '["*"]'
+        parse_json: true
     - name: Extract version from package.json
       uses: sergeysova/jq-action@v2
       id: version
