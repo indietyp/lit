@@ -1,5 +1,5 @@
 use crate::ast::func::filesystem::Directory;
-use crate::ast::module::{FuncDecl, ImpFunc, ImpWildcard, Module};
+use crate::ast::module::{FuncDecl, Imp, ImpFunc, ImpWildcard, Module};
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::build::Builder;
@@ -90,7 +90,7 @@ impl ModuleMap {
             .collect();
         check_errors(&results)?;
 
-        // we know these are all save thanks to check_errors
+        // we know these are all safe thanks to check_errors
         Ok(files
             .map(|(k, v)| (k.clone(), v.unwrap()))
             .map(|(k, v)| {
@@ -100,6 +100,32 @@ impl ModuleMap {
                 (k, module)
             })
             .collect())
+    }
+
+    fn find_module(
+        modules: &HashMap<Vec<String>, Module>,
+        imp: Imp,
+    ) -> Result<(Vec<String>, Module), Vec<Error>> {
+        let module_name: Vec<_> = imp
+            .path
+            .iter()
+            .map(|p| match p.clone() {
+                Node::Ident(m) => m,
+                _ => unreachable!(),
+            })
+            .collect();
+
+        let module = modules.get(&module_name);
+        return if module.is_none() {
+            Err(vec![Error::new_from_code(
+                Some(imp.lno),
+                ErrorCode::CouldNotFindModule {
+                    module: module_name.join("::"),
+                },
+            )])
+        } else {
+            Ok((module_name, module.unwrap().clone()))
+        };
     }
 
     fn catch_circular(
@@ -138,6 +164,9 @@ impl ModuleMap {
     ) -> Result<ModuleContextHashMap, Vec<Error>> {
         Self::catch_circular(from, to, history)?;
 
+        let mut history = history.unwrap_or_default();
+        history.push(to.0.clone());
+
         let mut imports: ModuleContextHashMap = HashMap::new();
         let mut errors: Vec<Error> = vec![];
 
@@ -158,26 +187,12 @@ impl ModuleMap {
         }
 
         for imp in to.1.imp {
-            let module_name: Vec<_> = imp
-                .path
-                .iter()
-                .map(|p| match p.clone() {
-                    Node::Ident(m) => m,
-                    _ => unreachable!(),
-                })
-                .collect();
-
-            let module = modules.get(&module_name);
-            if module.is_none() {
-                errors.push(Error::new_from_code(
-                    Some(imp.lno),
-                    ErrorCode::CouldNotFindModule {
-                        module: module_name.join("::"),
-                    },
-                ));
+            let res = Self::find_module(modules, imp.clone());
+            if res.is_err() {
+                errors.extend(res.unwrap_err());
                 continue;
             }
-            let module = module.unwrap();
+            let (module_name, module) = res.unwrap();
 
             let module_imports = match imp.funcs {
                 Either::Left(remote) => {
@@ -185,10 +200,10 @@ impl ModuleMap {
                     for import in remote {
                         let import = Self::search_single(
                             from,
-                            (&module_name, module),
+                            (&module_name, &module),
                             &import,
                             modules,
-                            history.clone(),
+                            Some(history.clone()),
                         );
                         if import.is_err() {
                             errors.extend(import.err().unwrap());
@@ -203,12 +218,17 @@ impl ModuleMap {
                 Either::Right(_) => {
                     let module_imports = Self::search_wildcard(
                         from,
-                        (&module_name, module),
+                        (&module_name, &module),
                         modules,
-                        history.clone(),
-                    )?;
+                        Some(history.clone()),
+                    );
 
-                    vec![module_imports]
+                    if module_imports.is_err() {
+                        errors.extend(module_imports.err().unwrap());
+                        vec![]
+                    } else {
+                        vec![module_imports.unwrap()]
+                    }
                 }
             };
 
@@ -249,6 +269,8 @@ impl ModuleMap {
         let mut imports = HashMap::new();
         let mut history = history.unwrap_or_default();
         history.push(to.0.clone());
+
+        let mut errors = vec![];
 
         // try if we have a function of that name
         let decl: Vec<_> = to.1.decl.iter().filter(|f| match *f.ident.clone() {
@@ -332,7 +354,61 @@ impl ModuleMap {
         // look in all wildcards if we find something
         // TODO: implement
 
-        todo!()
+        let wildcards: Vec<_> = to.1.imp.iter().filter(|i| i.funcs.is_right()).collect();
+
+        for wildcard in wildcards {
+            let res = Self::find_module(modules, wildcard.clone());
+            if res.is_err() {
+                errors.extend(res.unwrap_err());
+                continue;
+            }
+            let (module_name, module) = res.unwrap();
+
+            let res = Self::search_wildcard(
+                from,
+                (&module_name, &module),
+                modules,
+                Some(history.clone()),
+            );
+            if res.is_err() {
+                errors.extend(res.unwrap_err());
+                continue;
+            }
+            let wildcard_context = res.unwrap();
+            let func_name: FunctionName = match *target.ident.clone() {
+                Node::Ident(m) => m,
+                _ => unreachable!(),
+            }
+            .into();
+            let func = wildcard_context.get(&func_name);
+
+            if func.is_some() {
+                imports.insert(
+                    match *target.alias.unwrap_or(target.clone().ident).clone() {
+                        Node::Ident(m) => m,
+                        _ => unreachable!(),
+                    }
+                    .into(),
+                    func.unwrap().clone(),
+                );
+
+                // early return, we do not need to look at the others
+                return Ok(imports);
+            }
+        }
+
+        errors.push(Error::new_from_code(
+            None,
+            ErrorCode::CouldNotFindFunction {
+                module: to.0.join("::"),
+                func: match *target.ident.clone() {
+                    Node::Ident(m) => m,
+                    _ => unreachable!(),
+                },
+            },
+        ));
+
+        Err(errors)
     }
 
     fn search(
