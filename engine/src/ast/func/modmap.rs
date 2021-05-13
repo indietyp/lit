@@ -687,6 +687,7 @@ impl ModuleMap {
             impfunc: HashMap::new(),
         };
 
+        // iterate over all modules, not only Main so that we can be sure everything is included
         for (name, module) in modules.clone() {
             let res = Self::resolve((&name, &module), &mut modules, &mut cache);
             if let Err(err) = res {
@@ -878,7 +879,15 @@ mod test {
 
         assert_eq!(main, expected);
 
+        let math_name = vec!["std", "math"].into();
+        assert!(map.0.contains_key(&math_name));
+
         Ok(())
+    }
+
+    #[test]
+    fn test_std_wildcard() -> Result<(), Vec<Error>> {
+        todo!()
     }
 
     #[test]
