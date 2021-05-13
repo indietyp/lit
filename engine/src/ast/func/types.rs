@@ -1,5 +1,5 @@
 use crate::ast::func::filesystem::Directory;
-use crate::ast::module::{FuncDecl, Imp, ImpFunc, ImpWildcard, Module};
+use crate::ast::module::{FuncDecl, Imp, ImpFunc, Module};
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::build::Builder;
@@ -81,14 +81,14 @@ impl ModuleMap {
     /// Parses a directory of modules into their AST representation,
     /// strips their module body as a normalization step. They are only used as function/import referer.
     fn parse(directory: Directory) -> Result<HashMap<Vec<String>, Module>, Vec<Error>> {
-        let mut preliminary: HashMap<_, _> = directory.walk().collect();
-        let mut files = preliminary
+        let preliminary: HashMap<_, _> = directory.walk().collect();
+        let files = preliminary
             .iter()
             .map(|(k, v)| (k, Builder::parse(v.as_str(), None)));
 
         let results: Vec<_> = files
             .clone()
-            .map(|(k, v)| v.map_err(|err| vec![Error::new_from_parse(err)]))
+            .map(|(_, v)| v.map_err(|err| vec![Error::new_from_parse(err)]))
             .collect();
         check_errors(&results)?;
 
@@ -124,12 +124,12 @@ impl ModuleMap {
         // early if it does not exist.
         // if nothing is found. We parse that module and add it to the modules to avoid unnecessary
         // re-parsing.
-        let module = modules.get(&module_name);
+        let module = modules.get(&module_name).cloned();
         if module.is_none() && module_name.first().cloned() != Some("fs".to_string()) {
             let mut buffer = PathBuf::new();
             buffer.push("./lib");
 
-            for p in module_name {
+            for p in module_name.clone() {
                 buffer.push(p);
 
                 if !buffer.exists() {
@@ -207,7 +207,7 @@ impl ModuleMap {
         modules: &mut HashMap<Vec<String>, Module>,
         history: Option<Vec<Vec<String>>>,
     ) -> Result<ModuleContextHashMap, Vec<Error>> {
-        Self::catch_circular(from, to, history)?;
+        Self::catch_circular(from, to, history.clone())?;
 
         let mut history = history.unwrap_or_default();
         history.push(to.0.clone());
@@ -216,7 +216,7 @@ impl ModuleMap {
         let mut errors: Vec<Error> = vec![];
 
         // add our functions declarations (if we have any)
-        for func in to.1.decl {
+        for func in &to.1.decl {
             let name: FunctionName = match *func.ident.clone() {
                 Node::Ident(m) => m,
                 _ => unreachable!(),
@@ -234,7 +234,7 @@ impl ModuleMap {
 
         // add our imports (if we have any), either recursively calls ourselves
         // (with a guard in place to stop circular imports) or finds a single module.
-        for imp in to.1.imp {
+        for imp in &to.1.imp {
             let res = Self::find_module(modules, imp.clone());
             if res.is_err() {
                 errors.extend(res.unwrap_err());
@@ -242,7 +242,7 @@ impl ModuleMap {
             }
             let (module_name, module) = res.unwrap();
 
-            let module_imports = match imp.funcs {
+            let module_imports = match &imp.funcs {
                 Either::Left(remote) => {
                     let mut individual = vec![];
                     for import in remote {
@@ -318,7 +318,7 @@ impl ModuleMap {
         modules: &mut HashMap<Vec<String>, Module>,
         history: Option<Vec<Vec<String>>>,
     ) -> Result<ModuleContextHashMap, Vec<Error>> {
-        Self::catch_circular(from, to, history)?;
+        Self::catch_circular(from, to, history.clone())?;
 
         // This means this is a single import.
         let mut imports = HashMap::new();
@@ -340,7 +340,7 @@ impl ModuleMap {
         // This is always our end-state.
         if !decl.is_empty() {
             imports.insert(
-                match *target.alias.unwrap_or(target.clone().ident).clone() {
+                match *target.clone().alias.unwrap_or(target.clone().ident).clone() {
                     Node::Ident(m) => m,
                     _ => unreachable!(),
                 }
@@ -362,18 +362,13 @@ impl ModuleMap {
         // we can also guarantee unique results.
         // We also eliminate the same import using .unique()
         let imp: Vec<_> =
-            to.1.imp
-                .iter()
+            to.1.imp.clone()
+                .into_iter()
                 .filter(|imp| imp.funcs.is_left())
-                .flat_map(|imp| {
-                    imp.funcs.unwrap_left().iter().map(|func| {
-                        (
-                            imp.clone(),
-                            func.clone(),
-                        )
-                    })
+                .flat_map(|imp| -> Vec<(Imp, ImpFunc)> {
+                    imp.funcs.clone().unwrap_left().into_iter().map(|func| (imp.clone(), func.clone())).collect()
                 })
-                .filter(|(_, func)| match *func.alias.unwrap_or(func.clone().ident).clone() {
+                .filter(|(_, func)| match *func.clone().alias.unwrap_or(func.clone().ident).clone() {
                     Node::Ident(m) => m,
                     _ => unreachable!()
                 } == match *target.ident.clone() {
@@ -430,7 +425,7 @@ impl ModuleMap {
 
             if func.is_some() {
                 imports.insert(
-                    match *target.alias.unwrap_or(target.clone().ident).clone() {
+                    match *target.clone().alias.unwrap_or(target.clone().ident).clone() {
                         Node::Ident(m) => m,
                         _ => unreachable!(),
                     }
@@ -471,14 +466,15 @@ impl ModuleMap {
         let mut context: ModuleContextHashMap = HashMap::new();
         let mut errors = vec![];
 
-        for imp in from.1.imp {
+        for imp in &from.1.imp {
             let res = Self::find_module(modules, imp.clone());
             if res.is_err() {
-                errors.extend(res.unwrap_err())
+                errors.extend(res.unwrap_err());
+                continue;
             }
             let (module_name, module) = res.unwrap();
 
-            let results = match imp.funcs {
+            let results = match &imp.funcs {
                 Either::Left(funcs) => {
                     let mut results = vec![];
                     for func in funcs {
@@ -497,15 +493,17 @@ impl ModuleMap {
                     let res = Self::resolve_wildcard(from, (&module_name, &module), modules, None);
                     if res.is_err() {
                         errors.extend(res.unwrap_err());
+                        vec![]
+                    } else {
+                        vec![res.unwrap()]
                     }
-                    vec![res.unwrap()]
                 }
             };
 
             for res in results {
                 let overlapping: Vec<_> = res.keys().filter(|k| context.contains_key(k)).collect();
 
-                for collision in overlapping {
+                for collision in overlapping.clone() {
                     errors.push(Error::new_from_code(
                         Some(imp.lno),
                         ErrorCode::FunctionNameCollision {
@@ -541,8 +539,8 @@ impl ModuleMap {
             let imp = module.clone().imp;
 
             // chain the declarations and import names together
-            let duplicates: HashMap<_, _> = decl
-                .iter()
+            let flat: HashMap<_, _> = decl
+                .into_iter()
                 .map(|d| match *d.clone().ident {
                     Node::Ident(m) => m,
                     _ => unreachable!(),
@@ -550,19 +548,21 @@ impl ModuleMap {
                 .chain(
                     imp.iter()
                         // ignore wildcard imports, as we do not know yet if they can collide
-                        .filter(|i| i.funcs.is_left())
-                        .flat_map(|i| i.funcs.unwrap_left())
+                        .filter(|i| i.clone().funcs.is_left())
+                        .flat_map(|i| i.clone().funcs.unwrap_left())
                         // first try to use the alias, if there is none use the real name
-                        .map(|i| match *i.alias.unwrap_or(i.clone().ident).clone() {
-                            Node::Ident(m) => m,
-                            _ => unreachable!(),
-                        }),
+                        .map(
+                            |i| match *i.clone().alias.unwrap_or(i.clone().ident).clone() {
+                                Node::Ident(m) => m,
+                                _ => unreachable!(),
+                            },
+                        ),
                 )
-                // use counts() from itertools to determine if there are more than 1 present
-                .counts()
-                .iter()
-                .filter(|(k, v)| v.clone().clone() > 1)
-                .collect();
+                .counts();
+
+            // use counts() from itertools to determine if there are more than 1 present
+            let duplicates: HashMap<_, _> =
+                flat.into_iter().filter(|(_, v)| v.clone() > 1).collect();
 
             // if there are any duplicates add them to the error list.
             for (func, count) in duplicates {
@@ -619,6 +619,7 @@ impl ModuleMap {
             let res = Self::resolve((&name, &module), &mut modules);
             if res.is_err() {
                 errors.extend(res.unwrap_err());
+                continue;
             }
             let context = ModuleContext(res.unwrap());
             map.insert(ModuleName(name), context);
@@ -645,7 +646,7 @@ impl Into<FunctionName> for String {
 
 #[cfg(test)]
 mod test {
-    use crate::ast::func::filesystem::{Directory, Path};
+    use crate::ast::func::filesystem::Directory;
     use crate::ast::func::types::ModuleMap;
     use crate::build::Builder;
     use indoc::indoc;
@@ -666,6 +667,7 @@ mod test {
         dir.insert("a".to_string(), sibling.to_string().into());
 
         let ast = Builder::parse(snip, None);
+        println!("{:?}", ast);
         assert!(ast.is_ok());
         let ast = ast.unwrap();
 

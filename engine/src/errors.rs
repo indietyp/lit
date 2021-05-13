@@ -26,14 +26,9 @@ pub enum ErrorCode {
     },
 }
 
-#[derive(Serialize, Deserialize)]
-#[serde(remote = "io::ErrorKind")]
-pub enum IoErrorKindDef {}
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum RustError {
-    #[serde(with = "IoErrorKindDef")]
-    Io(io::ErrorKind),
+    Io(String),
 }
 
 #[derive(new, Debug, Serialize, Deserialize, Clone)]
@@ -75,7 +70,7 @@ impl Error {
     pub fn new_from_io(error: io::Error) -> Self {
         Error {
             lno: (0, 0),
-            variant: ErrorVariant::Rust(RustError::Io(error.kind())),
+            variant: ErrorVariant::Rust(RustError::Io(format!("{:?}", error.kind()))),
         }
     }
 }
