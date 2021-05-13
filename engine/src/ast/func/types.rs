@@ -584,7 +584,7 @@ impl ModuleMap {
         }
     }
 
-    pub fn from(self, directory: Directory) -> Result<ModuleMap, Vec<Error>> {
+    pub fn from(main: Module, directory: Directory) -> Result<ModuleMap, Vec<Error>> {
         // step 1) parse all modules - DONE
         // -> create a preliminary map
         // -> parse results
@@ -607,6 +607,7 @@ impl ModuleMap {
                 (k_new, v.clone())
             })
             .collect();
+        modules.insert(vec!["fs".to_string(), "main".to_string()], main);
 
         Self::basic_collision_check(&modules)?;
 
@@ -623,7 +624,7 @@ impl ModuleMap {
             map.insert(ModuleName(name), context);
         }
 
-        if errors {
+        if !errors.is_empty() {
             Err(errors)
         } else {
             Ok(map)
@@ -644,12 +645,34 @@ impl Into<FunctionName> for String {
 
 #[cfg(test)]
 mod test {
+    use crate::ast::func::filesystem::{Directory, Path};
+    use crate::ast::func::types::ModuleMap;
+    use crate::build::Builder;
     use indoc::indoc;
 
     #[test]
-    fn test_simple_import() {
+    fn test_simple_fs_import() {
         let snip = indoc! {"
-
+        FROM fs::a IMPORT b
         "};
+
+        let sibling = indoc! {"
+        FN a(b) -> c DECL
+            ...
+        END
+        "};
+
+        let mut dir = Directory::new();
+        dir.insert("a".to_string(), sibling.to_string().into());
+
+        let ast = Builder::parse(snip, None);
+        assert!(ast.is_ok());
+        let ast = ast.unwrap();
+
+        let map = ModuleMap::from(ast, dir);
+        assert!(map.is_ok());
+        let map = map.unwrap();
+
+        println!("{:?}", map)
     }
 }

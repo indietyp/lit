@@ -7,7 +7,7 @@ use schemars::JsonSchema;
 // Control Structures have in their body potentially
 // polluted information, these need to changed/unpolluted via
 // macro expansion
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Ord, PartialOrd, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum Control<TNode> {
     Terms(Vec<TNode>),

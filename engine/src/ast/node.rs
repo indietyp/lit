@@ -9,17 +9,17 @@ use serde::{Deserialize, Serialize};
 
 use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
-use crate::utils::check_errors;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::errors::{Error, ErrorVariant};
 use crate::flags::CompilationFlags;
 use crate::types::LineNo;
+use crate::utils::check_errors;
 
 pub static CONST_IDENT: [&str; 1] = ["_zero"];
 
 // Note(bmahmoud): in the future we could also support unary expressions?
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Ord, PartialOrd, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum Node {

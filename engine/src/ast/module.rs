@@ -19,7 +19,7 @@ pub struct FuncDecl {
     pub terms: Box<PollutedNode>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Ord, PartialOrd, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct ImpWildcard {}
 

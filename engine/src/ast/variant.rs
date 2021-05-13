@@ -11,7 +11,7 @@ use schemars::JsonSchema;
 use std::cmp::Ordering;
 use std::ops::{Add, Mul};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
 pub struct UInt(pub BigUint);
 
 NewtypeDeref! {() pub struct UInt(pub BigUint); }

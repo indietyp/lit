@@ -5,7 +5,7 @@ use std::fmt::Formatter;
 #[cfg(feature = "cli")]
 use schemars::JsonSchema;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Ord, PartialOrd, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum ComparisonVerb {
     Equal,
@@ -47,7 +47,7 @@ impl fmt::Display for ComparisonVerb {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Ord, PartialOrd, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum OperatorVerb {
     Plus,

@@ -23,7 +23,7 @@ pub fn set_panic_hook() {
     console_error_panic_hook::set_once();
 }
 
-pub fn check_errors<T>(maybe: &[Result<T, Vec<Error>>]) -> Result<Vec<T>, Vec<Error>> {
+pub fn check_errors<T: Clone>(maybe: &[Result<T, Vec<Error>>]) -> Result<Vec<T>, Vec<Error>> {
     let (ok, err): (Vec<_>, Vec<_>) = maybe.iter().partition_map(|r| match r {
         Ok(r) => Either::Left(r.clone()),
         Err(r) => Either::Right(r.clone()),
