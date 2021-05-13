@@ -3,6 +3,7 @@ use crate::types::LineNo;
 use either::Either;
 use pest::error::{InputLocation, LineColLocation};
 use serde::{Deserialize, Serialize};
+use std::io;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum ErrorCode {
@@ -21,7 +22,18 @@ pub enum ErrorCode {
     FunctionNameCollision {
         module: String,
         func: String,
+        count: Option<usize>,
     },
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(remote = "io::ErrorKind")]
+pub enum IoErrorKindDef {}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum RustError {
+    #[serde(with = "IoErrorKindDef")]
+    Io(io::ErrorKind),
 }
 
 #[derive(new, Debug, Serialize, Deserialize, Clone)]
@@ -35,6 +47,7 @@ pub enum ErrorVariant {
     Message(String),
     ErrorCode(ErrorCode),
     Parse(PestErrorInfo),
+    Rust(RustError),
 }
 
 impl Error {
@@ -56,6 +69,13 @@ impl Error {
         Error {
             lno,
             variant: ErrorVariant::ErrorCode(code),
+        }
+    }
+
+    pub fn new_from_io(error: io::Error) -> Self {
+        Error {
+            lno: (0, 0),
+            variant: ErrorVariant::Rust(RustError::Io(error.kind())),
         }
     }
 }
@@ -130,5 +150,17 @@ impl ExtractInformation for pest::error::Error<Rule> {
             location: Box::new(self.location.extract()),
             line_col: Box::new(self.line_col.extract()),
         }
+    }
+}
+
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Self {
+        Error::new_from_io(err)
+    }
+}
+
+impl From<Error> for Vec<Error> {
+    fn from(err: Error) -> Self {
+        vec![err]
     }
 }
