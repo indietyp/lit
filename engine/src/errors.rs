@@ -5,7 +5,9 @@ use pest::error::{InputLocation, LineColLocation};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum ErrorCode {}
+pub enum ErrorCode {
+    CouldNotFindModule,
+}
 
 #[derive(new, Debug, Serialize, Deserialize, Clone)]
 pub struct Error {
@@ -30,6 +32,15 @@ impl Error {
         Error {
             lno,
             variant: ErrorVariant::Parse(error.extract()),
+        }
+    }
+
+    pub fn new_from_code(lno: Option<LineNo>, code: ErrorCode) -> Self {
+        let lno: LineNo = lno.unwrap_or((0, 0));
+
+        Error {
+            lno,
+            variant: ErrorVariant::ErrorCode(code),
         }
     }
 }

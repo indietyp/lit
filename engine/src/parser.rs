@@ -8,7 +8,7 @@ use pest_consume::Parser;
 use crate::ast::control::Control;
 use crate::ast::func::{Func, FuncCall};
 use crate::ast::macros::{Macro, MacroAssign};
-use crate::ast::module::{FuncDecl, Imp, ImpFunc, Module};
+use crate::ast::module::{FuncDecl, Imp, ImpFunc, ImpWildcard, Module};
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::ast::variant::UInt;
@@ -399,9 +399,10 @@ impl LoopParser {
     }
 
     #[allow(non_snake_case)]
-    fn importStmt(input: ParseNode) -> ParseResult<Vec<ImpFunc>> {
+    fn importStmt(input: ParseNode) -> ParseResult<Either<Vec<ImpFunc>, ImpWildcard>> {
         let stmt = match_nodes!(input.into_children();
-            [importFunc(stmts)..] => stmts.collect()
+            [importFunc(stmts)..] => Either::Left(stmts.collect()),
+            [WILDCARD(_)] => Either::Right(ImpWildcard {})
         );
 
         Ok(stmt)
@@ -410,7 +411,7 @@ impl LoopParser {
     fn import(input: ParseNode) -> ParseResult<Imp> {
         let lno = LoopParserHelpers::lno(input.clone());
 
-        let (path, stmt): (Vec<Node>, Vec<ImpFunc>) = match_nodes!(input.into_children();
+        let (path, stmt): (Vec<Node>, Either<Vec<ImpFunc>, ImpWildcard>) = match_nodes!(input.into_children();
             [atom(path).., importStmt(stmt)] => (path.collect(), stmt)
         );
 
@@ -485,5 +486,9 @@ impl LoopParser {
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
     fn OP_MULTIPLY(input: ParseNode) -> ParseResult<Node> {
         Err(input.error("Cannot directly parse OP_MULTIPLY"))
+    }
+    #[allow(non_snake_case, clippy::upper_case_acronyms)]
+    fn WILDCARD(input: ParseNode) -> ParseResult<Node> {
+        Err(input.error("Cannot directly parse WILDCARD"))
     }
 }

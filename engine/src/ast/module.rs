@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::ast::node::Node;
 use crate::ast::polluted::PollutedNode;
 use crate::types::LineNo;
+use either::Either;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
@@ -20,6 +21,10 @@ pub struct FuncDecl {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
+pub struct ImpWildcard {}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct ImpFunc {
     pub ident: Box<Node>,
     pub alias: Option<Box<Node>>,
@@ -31,7 +36,7 @@ pub struct Imp {
     pub lno: LineNo,
 
     pub path: Vec<Node>,
-    pub funcs: Vec<ImpFunc>,
+    pub funcs: Either<Vec<ImpFunc>, ImpWildcard>,
 }
 
 // Used as a container for all Module related codes, this contains:

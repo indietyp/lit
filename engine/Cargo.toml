@@ -22,7 +22,7 @@ bitflags = "1.2.1"
 serde = { version = "1.0.125", features = ["derive"] }
 derive-new = "0.5.9"
 indoc = "1.0.3"
-either = { version = "1.6.1", features= ["serde"] }
+either = { version = "1.6.1", features = ["serde"] }
 newtype_derive = "0.1.6"
 itertools = "0.10.0"
 sum_type = "0.2.0"
@@ -30,7 +30,7 @@ sum_type = "0.2.0"
 # CLI
 clap = { version = "2.33.3", optional = true }
 structopt = { version = "0.3.21", optional = true }
-schemars = { version = "0.8.3", features=["impl_json_schema", "derive"], optional = true }
+schemars = { version = "0.8.3", features = ["impl_json_schema", "derive", "either"], optional = true }
 serde_json = { version = "1.0.64", optional = true }
 
 # WASM-Support
