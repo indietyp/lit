@@ -56,6 +56,9 @@ impl ModuleMap {
             .collect())
     }
 
+    /// Utility function to find a specific module by [`Imp`]. THis uses modules to check,
+    /// if the target module does **not** start fs and the module is not yet present, search for it
+    /// in the local lib folder and add it to the `modules` HashMap.
     fn find_module(
         modules: &mut HashMap<Vec<String>, Module>,
         imp: Imp,
@@ -340,18 +343,20 @@ impl ModuleMap {
                 .unique()
                 .next();
 
-        // if there is an import matching our target alias/ident, then use that to find the correct thing.
+        // if there is an import matching our target alias/ident, then use that to find the correct target.
         if let Some((imp, func)) = local_imports {
             let (module_name, module) = Self::find_module(modules, imp)?;
 
             return Self::resolve_imp(from, (&module_name, &module), &func, modules, Some(history));
         }
 
-        // look in all wildcards if we find something, return that,
-        // this means that we potentially search multiple times, but that should be fine
-        // for now, definitely room for improvement
+        // Look in all wildcards if we find our target function return it, if not return all errors
+        // collected and a [`ErrorKind::CouldNotFindFunction`].
+        // Due to how we search, this means that we potentially search multiple times every wildcard,
+        // which is not optional and definitely something that could use a [REWORK].
+        // You could imagine creating a cache of some sorts, due to code size and speed our current
+        // implementation is good enough for educational purposes.
         let wildcards: Vec<_> = to.1.imp.iter().filter(|i| i.funcs.is_right()).collect();
-
         for wildcard in wildcards {
             let res = Self::find_module(modules, wildcard.clone());
             if let Err(err) = res {
@@ -484,7 +489,7 @@ impl ModuleMap {
     }
 
     /// This is the first preliminary collision check, it checks if there are any colliding
-    /// names (without wildcard import). The thorough check of wildcard violates happens at a
+    /// names (without wildcard import). The thorough check of wildcard violations happens at a
     /// later date, to be exact they happen in the resolution stage.
     fn basic_collision_check(modules: &HashMap<Vec<String>, Module>) -> Result<(), Vec<Error>> {
         let mut errors = vec![];
@@ -536,7 +541,11 @@ impl ModuleMap {
         }
     }
 
-    pub fn insert_funcs(
+    /// The [`ModuleMap.resolve`] function only resolves the imports,
+    /// but does not add the actual functions, this is done by this specific function.
+    /// It fetches all declared functions for each loaded module and attaches them to the
+    /// [`ModuleMap`]. This function also check potential collisions.
+    fn insert_funcs(
         modules: &HashMap<Vec<String>, Module>,
         context: &mut ModuleMap,
     ) -> Result<(), Vec<Error>> {
@@ -544,6 +553,8 @@ impl ModuleMap {
 
         for (name, module) in modules {
             let module_name = ModuleName(name.clone());
+            // create or get a new context, there could be instances where a function is loaded
+            // but has no actual other import
             let mut ctx = context
                 .0
                 .get_mut(&module_name)
@@ -557,6 +568,8 @@ impl ModuleMap {
                 }
                 .into();
 
+                // something with that name already exists in the NS
+                // we know we fail, but just continue and get some more errors
                 if ctx.0.contains_key(&function_name) {
                     errors.push(Error::new_from_code(
                         Some(func.lno),
@@ -583,15 +596,15 @@ impl ModuleMap {
         }
     }
 
+    /// Creates a new ModuleMap from [`Module`] and a local filesystem (done through [`Directory`])
+    /// The from method does a distinctive 3 step process:
+    /// 1) parse the fs modules and flatten them
+    /// 2) check if there are any collisions in the modules
+    /// 3) recursively resolve all imports to their destination,
+    ///     this means A -> B -> C is resolved to A -> C
+    /// 4) insert all functions to all modules (includes another collision check)
+    /// 5) return the result or return all errors where we could recover from
     pub fn from(main: Module, directory: Directory) -> Result<ModuleMap, Vec<Error>> {
-        // step 1) parse all modules - DONE
-        // -> create a preliminary map
-        // -> parse results
-        // step 2) create an import map
-        // step 3) resolve recursively
-        //  --> check if collision in ModuleName
-        // step 5) insert "ourselves" as main.
-
         // The directory is always prefixed with fs::,
         // while all others are looking into the /lib/ folder
         let mut modules: HashMap<Vec<String>, Module> = Self::parse(directory)?;
