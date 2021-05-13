@@ -19,10 +19,14 @@ use std::path::PathBuf;
 pub struct ModuleMap(pub ModuleHashMap);
 pub type ModuleHashMap = HashMap<ModuleName, ModuleContext>;
 
+type ImpFuncKeyFrom = (Vec<String>, Module);
+type ImpFuncKey = (ImpFuncKeyFrom, ImpFunc);
+type CacheResult = Result<ModuleContextHashMap, Vec<Error>>;
+
 #[derive(Debug)]
 struct Cache {
-    wildcard: HashMap<(Vec<String>, Module), Result<ModuleContextHashMap, Vec<Error>>>,
-    impfunc: HashMap<((Vec<String>, Module), ImpFunc), Result<ModuleContextHashMap, Vec<Error>>>,
+    wildcard: HashMap<(Vec<String>, Module), CacheResult>,
+    impfunc: HashMap<ImpFuncKey, CacheResult>,
 }
 
 impl ModuleMap {
