@@ -43,12 +43,6 @@ pub struct FunctionAlias(String);
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord, Hash)]
 pub struct FunctionQualName(String);
 
-impl FunctionQualName {
-    pub fn as_str(&self) -> &str {
-        self.0.as_str()
-    }
-}
-
 type ModuleHashMap = HashMap<ModuleName, ModuleContext>;
 #[derive(Debug, Clone)]
 pub struct ModuleMap(pub ModuleHashMap);
@@ -96,7 +90,7 @@ impl ModuleMap {
         Ok(files
             .map(|(k, v)| (k.clone(), v.unwrap()))
             .map(|(k, v)| {
-                let mut module = v.clone();
+                let mut module = v;
                 module.code = PollutedNode::NoOp;
 
                 (k, module)
@@ -140,8 +134,8 @@ impl ModuleMap {
             if buffer.is_file() {
                 let contents =
                     read_to_string(buffer).map_err(|err| vec![Error::new_from_io(err)])?;
-                let mut contents = Builder::parse(contents.as_str(), None)
-                    .map_err(|err| Error::new_from_parse(err))?;
+                let mut contents =
+                    Builder::parse(contents.as_str(), None).map_err(Error::new_from_parse)?;
                 // erase all code
                 contents.code = PollutedNode::NoOp;
 
@@ -149,16 +143,15 @@ impl ModuleMap {
             }
         }
 
-        return if module.is_none() {
-            Err(vec![Error::new_from_code(
+        match module {
+            None => Err(vec![Error::new_from_code(
                 Some(imp.lno),
                 ErrorCode::CouldNotFindModule {
                     module: module_name.join("::"),
                 },
-            )])
-        } else {
-            Ok((module_name, module.unwrap().clone()))
-        };
+            )]),
+            Some(module) => Ok((module_name, module)),
+        }
     }
 
     /// This checks the history, and start point to check if we have a circular import somewhere
@@ -172,13 +165,12 @@ impl ModuleMap {
         history.insert(0, from.0.clone());
 
         let circular = history
-            .iter()
+            .clone()
+            .into_iter()
             .enumerate()
-            .filter(|(idx, h)| h.clone() == to.0)
-            .next();
+            .find(|(_, h)| *h == *to.0);
 
-        if circular.is_some() {
-            let (idx, circular) = circular.unwrap();
+        if let Some((idx, circular)) = circular {
             let history: Vec<String> = history.iter().map(|f| f.join("::")).collect();
             let (prev, path) = history.split_at(idx);
 
@@ -236,8 +228,8 @@ impl ModuleMap {
         // (with a guard in place to stop circular imports) or finds a single module.
         for imp in &to.1.imp {
             let res = Self::find_module(modules, imp.clone());
-            if res.is_err() {
-                errors.extend(res.unwrap_err());
+            if let Err(err) = res {
+                errors.extend(err);
                 continue;
             }
             let (module_name, module) = res.unwrap();
@@ -321,7 +313,7 @@ impl ModuleMap {
         Self::catch_circular(from, to, history.clone())?;
 
         // This means this is a single import.
-        let mut imports = HashMap::new();
+        let mut imports: ModuleContextHashMap = HashMap::new();
         let mut history = history.unwrap_or_default();
         history.push(to.0.clone());
 
@@ -340,7 +332,7 @@ impl ModuleMap {
         // This is always our end-state.
         if !decl.is_empty() {
             imports.insert(
-                match *target.clone().alias.unwrap_or(target.clone().ident).clone() {
+                match *target.clone().alias.unwrap_or(target.clone().ident) {
                     Node::Ident(m) => m,
                     _ => unreachable!(),
                 }
@@ -366,9 +358,9 @@ impl ModuleMap {
                 .into_iter()
                 .filter(|imp| imp.funcs.is_left())
                 .flat_map(|imp| -> Vec<(Imp, ImpFunc)> {
-                    imp.funcs.clone().unwrap_left().into_iter().map(|func| (imp.clone(), func.clone())).collect()
+                    imp.funcs.clone().unwrap_left().into_iter().map(|func| (imp.clone(), func)).collect()
                 })
-                .filter(|(_, func)| match *func.clone().alias.unwrap_or(func.clone().ident).clone() {
+                .filter(|(_, func)| match *func.clone().alias.unwrap_or(func.clone().ident) {
                     Node::Ident(m) => m,
                     _ => unreachable!()
                 } == match *target.ident.clone() {
@@ -383,13 +375,7 @@ impl ModuleMap {
             let (imp, func) = imp.get(0).unwrap().clone();
             let (module_name, module) = Self::find_module(modules, imp)?;
 
-            return Self::resolve_imp(
-                from,
-                (&module_name, &module),
-                &func,
-                modules,
-                Some(history.clone()),
-            );
+            return Self::resolve_imp(from, (&module_name, &module), &func, modules, Some(history));
         }
 
         // look in all wildcards if we find something, return that,
@@ -399,8 +385,8 @@ impl ModuleMap {
 
         for wildcard in wildcards {
             let res = Self::find_module(modules, wildcard.clone());
-            if res.is_err() {
-                errors.extend(res.unwrap_err());
+            if let Err(err) = res {
+                errors.extend(err);
                 continue;
             }
             let (module_name, module) = res.unwrap();
@@ -411,8 +397,8 @@ impl ModuleMap {
                 modules,
                 Some(history.clone()),
             );
-            if res.is_err() {
-                errors.extend(res.unwrap_err());
+            if let Err(err) = res {
+                errors.extend(err);
                 continue;
             }
             let wildcard_context = res.unwrap();
@@ -423,14 +409,14 @@ impl ModuleMap {
             .into();
             let func = wildcard_context.get(&func_name);
 
-            if func.is_some() {
+            if let Some(func) = func {
                 imports.insert(
-                    match *target.clone().alias.unwrap_or(target.clone().ident).clone() {
+                    match *target.clone().alias.unwrap_or(target.clone().ident) {
                         Node::Ident(m) => m,
                         _ => unreachable!(),
                     }
                     .into(),
-                    func.unwrap().clone(),
+                    func.clone(),
                 );
 
                 // early return, we do not need to look at the others
@@ -468,8 +454,8 @@ impl ModuleMap {
 
         for imp in &from.1.imp {
             let res = Self::find_module(modules, imp.clone());
-            if res.is_err() {
-                errors.extend(res.unwrap_err());
+            if let Err(err) = res {
+                errors.extend(err);
                 continue;
             }
             let (module_name, module) = res.unwrap();
@@ -480,8 +466,8 @@ impl ModuleMap {
                     for func in funcs {
                         let res =
                             Self::resolve_imp(from, (&module_name, &module), &func, modules, None);
-                        if res.is_err() {
-                            errors.extend(res.unwrap_err());
+                        if let Err(err) = res {
+                            errors.extend(err);
                             continue;
                         }
                         let res = res.unwrap();
@@ -491,8 +477,8 @@ impl ModuleMap {
                 }
                 Either::Right(_) => {
                     let res = Self::resolve_wildcard(from, (&module_name, &module), modules, None);
-                    if res.is_err() {
-                        errors.extend(res.unwrap_err());
+                    if let Err(err) = res {
+                        errors.extend(err);
                         vec![]
                     } else {
                         vec![res.unwrap()]
@@ -541,28 +527,25 @@ impl ModuleMap {
             // chain the declarations and import names together
             let flat: HashMap<_, _> = decl
                 .into_iter()
-                .map(|d| match *d.clone().ident {
+                .map(|d| match *d.ident {
                     Node::Ident(m) => m,
                     _ => unreachable!(),
                 })
                 .chain(
                     imp.iter()
                         // ignore wildcard imports, as we do not know yet if they can collide
-                        .filter(|i| i.clone().funcs.is_left())
+                        .filter(|i| (*i).funcs.is_left())
                         .flat_map(|i| i.clone().funcs.unwrap_left())
                         // first try to use the alias, if there is none use the real name
-                        .map(
-                            |i| match *i.clone().alias.unwrap_or(i.clone().ident).clone() {
-                                Node::Ident(m) => m,
-                                _ => unreachable!(),
-                            },
-                        ),
+                        .map(|i| match *i.clone().alias.unwrap_or(i.ident) {
+                            Node::Ident(m) => m,
+                            _ => unreachable!(),
+                        }),
                 )
                 .counts();
 
             // use counts() from itertools to determine if there are more than 1 present
-            let duplicates: HashMap<_, _> =
-                flat.into_iter().filter(|(_, v)| v.clone() > 1).collect();
+            let duplicates: HashMap<_, _> = flat.into_iter().filter(|(_, v)| *v > 1).collect();
 
             // if there are any duplicates add them to the error list.
             for (func, count) in duplicates {
@@ -571,7 +554,7 @@ impl ModuleMap {
                     ErrorVariant::ErrorCode(ErrorCode::FunctionNameCollision {
                         module: name.clone().join("::"),
                         func: func.clone(),
-                        count: Some(count.clone()),
+                        count: Some(count),
                     }),
                 ))
             }
@@ -617,8 +600,8 @@ impl ModuleMap {
 
         for (name, module) in modules.clone() {
             let res = Self::resolve((&name, &module), &mut modules);
-            if res.is_err() {
-                errors.extend(res.unwrap_err());
+            if let Err(err) = res {
+                errors.extend(err);
                 continue;
             }
             let context = ModuleContext(res.unwrap());
@@ -633,14 +616,14 @@ impl ModuleMap {
     }
 }
 
-impl Into<ModuleName> for Vec<String> {
-    fn into(self) -> ModuleName {
-        ModuleName(self)
+impl From<Vec<String>> for ModuleName {
+    fn from(val: Vec<String>) -> Self {
+        Self(val)
     }
 }
-impl Into<FunctionName> for String {
-    fn into(self) -> FunctionName {
-        FunctionName(self)
+impl From<String> for FunctionName {
+    fn from(val: String) -> Self {
+        Self(val)
     }
 }
 
