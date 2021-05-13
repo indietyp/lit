@@ -7,7 +7,6 @@ use crate::errors::Error;
 use crate::errors::ErrorCode;
 use crate::utils::check_errors;
 use either::Either;
-use itertools::Itertools;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
@@ -103,9 +102,11 @@ impl ModuleMap {
     }
 
     fn find_module(
-        modules: &HashMap<Vec<String>, Module>,
+        modules: &mut HashMap<Vec<String>, Module>,
         imp: Imp,
     ) -> Result<(Vec<String>, Module), Vec<Error>> {
+        // TODO: also try to load from std if needed
+
         let module_name: Vec<_> = imp
             .path
             .iter()
@@ -159,7 +160,7 @@ impl ModuleMap {
     fn search_wildcard(
         from: (&Vec<String>, &Module),
         to: (&Vec<String>, &Module),
-        modules: &HashMap<Vec<String>, Module>,
+        modules: &mut HashMap<Vec<String>, Module>,
         history: Option<Vec<Vec<String>>>,
     ) -> Result<ModuleContextHashMap, Vec<Error>> {
         Self::catch_circular(from, to, history)?;
@@ -260,7 +261,7 @@ impl ModuleMap {
         from: (&Vec<String>, &Module),
         to: (&Vec<String>, &Module),
         target: &ImpFunc,
-        modules: &HashMap<Vec<String>, Module>,
+        modules: &mut HashMap<Vec<String>, Module>,
         history: Option<Vec<Vec<String>>>,
     ) -> Result<ModuleContextHashMap, Vec<Error>> {
         Self::catch_circular(from, to, history)?;
@@ -308,18 +309,12 @@ impl ModuleMap {
                 .flat_map(|imp| {
                     imp.funcs.unwrap_left().iter().map(|func| {
                         (
-                            imp.path
-                                .iter()
-                                .map(|p| match p {
-                                    Node::Ident(m) => m.clone(),
-                                    _ => unreachable!(),
-                                })
-                                .collect_vec(),
+                            imp.clone(),
                             func.clone(),
                         )
                     })
                 })
-                .filter(|(module, func)| match *func.alias.unwrap_or(func.clone().ident).clone() {
+                .filter(|(_, func)| match *func.alias.unwrap_or(func.clone().ident).clone() {
                     Node::Ident(m) => m,
                     _ => unreachable!()
                 } == match *target.ident.clone() {
@@ -329,31 +324,22 @@ impl ModuleMap {
                 .collect();
 
         if !imp.is_empty() {
-            let (module_name, import) = imp.get(0).unwrap();
-
-            let module = modules.get(module_name);
-            if module.is_none() {
-                return Err(vec![Error::new_from_code(
-                    None,
-                    ErrorCode::CouldNotFindModule {
-                        module: module_name.join("::"),
-                    },
-                )]);
-            }
-            let module = module.unwrap();
+            // use find module instead
+            let (imp, func) = imp.get(0).unwrap().clone();
+            let (module_name, module) = Self::find_module(modules, imp)?;
 
             return Self::search_single(
                 from,
-                (module_name, module),
-                import,
+                (&module_name, &module),
+                &func,
                 modules,
                 Some(history.clone()),
             );
         }
 
-        // look in all wildcards if we find something
-        // TODO: implement
-
+        // look in all wildcards if we find something, return that,
+        // this means that we potentially search multiple times, but that should be fine
+        // for now, definitely room for improvement
         let wildcards: Vec<_> = to.1.imp.iter().filter(|i| i.funcs.is_right()).collect();
 
         for wildcard in wildcards {
@@ -415,22 +401,14 @@ impl ModuleMap {
         from: (&Vec<String>, &Module),
         to: (&Vec<String>, &Module),
         target: &Either<ImpFunc, ImpWildcard>,
-        modules: &HashMap<Vec<String>, Module>,
-    ) -> Result<HashMap<Vec<String>, FunctionImport>, Vec<Error>> {
+        modules: &mut HashMap<Vec<String>, Module>,
+    ) -> Result<ModuleContextHashMap, Vec<Error>> {
         // wildcard means to add everything we have in the module
         // how to avoid searching twice?
-        let mut imports: ModuleContextHashMap = HashMap::new();
-
         match target {
-            Either::Left(func) => {
-                Self::search_single(from, to, func, modules, None);
-            }
-            Either::Right(_) => {
-                // import everything
-            }
+            Either::Left(func) => Self::search_single(from, to, func, modules, None),
+            Either::Right(_) => Self::search_wildcard(from, to, modules, None),
         }
-
-        todo!()
     }
 
     /// Creates an import map, this means it will follow and resolve all imports to their destination.
