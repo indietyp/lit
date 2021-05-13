@@ -7,7 +7,7 @@ use crate::types::LineNo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct FuncCall {
     pub ident: Box<Node>,
@@ -17,7 +17,7 @@ pub struct FuncCall {
 // TODO: Func recursion detection on expand
 // TODO: on inline check if argument count is correct
 // TODO: outline, import and inline and name collision detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum Func {
     // Call corresponds to:

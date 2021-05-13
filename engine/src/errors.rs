@@ -24,6 +24,10 @@ pub enum ErrorCode {
         func: String,
         count: Option<usize>,
     },
+    MultipleModuleCandidates {
+        module: String,
+        count: usize,
+    },
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

@@ -13,7 +13,7 @@ use crate::ast::polluted::expand::{expand_loop, expand_terms, expand_while};
 
 use crate::errors::Error;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum PollutedNode {

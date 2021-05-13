@@ -19,7 +19,7 @@ use crate::utils::check_errors;
 pub static CONST_IDENT: [&str; 1] = ["_zero"];
 
 // Note(bmahmoud): in the future we could also support unary expressions?
-#[derive(Debug, Clone, Serialize, Deserialize, Hash, Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum Node {

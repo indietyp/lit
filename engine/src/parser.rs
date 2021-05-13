@@ -354,7 +354,7 @@ impl LoopParser {
         );
 
         if let Some((ident, params)) = atoms.split_first() {
-            if let Some((ret, params)) = atoms.split_last() {
+            if let Some((ret, params)) = params.split_last() {
                 let decl = FuncDecl {
                     lno,
 

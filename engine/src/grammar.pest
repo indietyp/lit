@@ -159,7 +159,7 @@ funcDef = {
     ~ "(" ~ IDENT ~ ("," ~ IDENT)* ~ ")"
     ~ "->" ~ IDENT ~ ^"DECL" ~
     terms
-    ~ "END"
+    ~ ^"END"
 }
 
 importFunc = {

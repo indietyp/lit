@@ -12,14 +12,14 @@ use std::collections::HashMap;
 use std::fs::read_to_string;
 use std::path::PathBuf;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord, Hash)]
 pub struct FunctionImport {
     module: ModuleName,
     ident: FunctionName,
 }
 
 sum_type! {
-    #[derive(Debug, Clone)]
+    #[derive(Debug, Clone, PartialEq, Eq, Hash)]
     pub enum FunctionContext {
         // This means it is an import
         Import(FunctionImport),
@@ -44,11 +44,11 @@ pub struct FunctionAlias(String);
 pub struct FunctionQualName(String);
 
 type ModuleHashMap = HashMap<ModuleName, ModuleContext>;
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModuleMap(pub ModuleHashMap);
 
 type ModuleContextHashMap = HashMap<FunctionName, FunctionContext>;
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModuleContext(pub ModuleContextHashMap);
 
 impl ModuleMap {
@@ -118,28 +118,40 @@ impl ModuleMap {
         // early if it does not exist.
         // if nothing is found. We parse that module and add it to the modules to avoid unnecessary
         // re-parsing.
-        let module = modules.get(&module_name).cloned();
+        let mut module = modules.get(&module_name).cloned();
         if module.is_none() && module_name.first().cloned() != Some("fs".to_string()) {
             let mut buffer = PathBuf::new();
             buffer.push("./lib");
+            buffer.extend(module_name.clone());
 
-            for p in module_name.clone() {
-                buffer.push(p);
+            let mut inserted = 0usize;
+            // there are multiple extension that we support, search all of them
+            for extension in &["lp", "loop", "while", "wh"] {
+                let mut buf = buffer.clone();
+                buf.set_extension(extension);
 
-                if !buffer.exists() {
-                    break;
+                if buf.exists() && buf.is_file() {
+                    let contents =
+                        read_to_string(buf).map_err(|err| vec![Error::new_from_io(err)])?;
+                    let mut contents =
+                        Builder::parse(contents.as_str(), None).map_err(Error::new_from_parse)?;
+                    // erase all code
+                    contents.code = PollutedNode::NoOp;
+
+                    modules.insert(module_name.clone(), contents.clone());
+                    module = Some(contents);
+                    inserted += 1;
                 }
             }
 
-            if buffer.is_file() {
-                let contents =
-                    read_to_string(buffer).map_err(|err| vec![Error::new_from_io(err)])?;
-                let mut contents =
-                    Builder::parse(contents.as_str(), None).map_err(Error::new_from_parse)?;
-                // erase all code
-                contents.code = PollutedNode::NoOp;
-
-                modules.insert(module_name.clone(), contents);
+            if inserted > 1 {
+                return Err(vec![Error::new_from_code(
+                    Some(imp.lno),
+                    ErrorCode::MultipleModuleCandidates {
+                        module: module_name.join("::"),
+                        count: inserted,
+                    },
+                )]);
             }
         }
 
@@ -245,8 +257,8 @@ impl ModuleMap {
                             modules,
                             Some(history.clone()),
                         );
-                        if import.is_err() {
-                            errors.extend(import.err().unwrap());
+                        if let Err(err) = import {
+                            errors.extend(err);
                             continue;
                         }
                         let import = import.unwrap();
@@ -263,8 +275,8 @@ impl ModuleMap {
                         Some(history.clone()),
                     );
 
-                    if module_imports.is_err() {
-                        errors.extend(module_imports.err().unwrap());
+                    if let Err(err) = module_imports {
+                        errors.extend(err);
                         vec![]
                     } else {
                         vec![module_imports.unwrap()]
@@ -566,6 +578,53 @@ impl ModuleMap {
         }
     }
 
+    pub fn insert_funcs(
+        modules: &HashMap<Vec<String>, Module>,
+        context: &mut ModuleMap,
+    ) -> Result<(), Vec<Error>> {
+        let mut errors = vec![];
+
+        for (name, module) in modules {
+            let module_name = ModuleName(name.clone());
+            let mut ctx = context
+                .0
+                .get_mut(&module_name)
+                .cloned()
+                .unwrap_or_else(ModuleContext::new);
+
+            for func in &module.decl {
+                let function_name: FunctionName = match *func.clone().ident {
+                    Node::Ident(m) => m,
+                    _ => unreachable!(),
+                }
+                .into();
+
+                if ctx.0.contains_key(&function_name) {
+                    errors.push(Error::new_from_code(
+                        Some(func.lno),
+                        ErrorCode::FunctionNameCollision {
+                            module: name.join("::"),
+                            func: function_name.0,
+                            count: None,
+                        },
+                    ));
+                    continue;
+                }
+
+                ctx.0
+                    .insert(function_name, FunctionContext::Func(func.clone()));
+            }
+
+            context.0.insert(module_name, ctx);
+        }
+
+        if !errors.is_empty() {
+            Err(errors)
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn from(main: Module, directory: Directory) -> Result<ModuleMap, Vec<Error>> {
         // step 1) parse all modules - DONE
         // -> create a preliminary map
@@ -577,7 +636,7 @@ impl ModuleMap {
 
         // The directory is always prefixed with fs::,
         // while all others are looking into the /lib/ folder
-        let mut modules = Self::parse(directory)?;
+        let mut modules: HashMap<Vec<String>, Module> = Self::parse(directory)?;
 
         // prefix initial modules with the fs prefix
         modules = modules
@@ -607,6 +666,11 @@ impl ModuleMap {
             map.insert(ModuleName(name), context);
         }
 
+        let res = Self::insert_funcs(&modules, &mut map);
+        if let Err(err) = res {
+            errors.extend(err)
+        }
+
         if !errors.is_empty() {
             Err(errors)
         } else {
@@ -620,16 +684,31 @@ impl From<Vec<String>> for ModuleName {
         Self(val)
     }
 }
+impl From<Vec<&str>> for ModuleName {
+    fn from(val: Vec<&str>) -> Self {
+        Self(val.iter().map(|v| v.to_string()).collect())
+    }
+}
 impl From<String> for FunctionName {
     fn from(val: String) -> Self {
         Self(val)
     }
 }
+impl From<&str> for FunctionName {
+    fn from(val: &str) -> Self {
+        Self(val.into())
+    }
+}
 
 #[cfg(test)]
 mod test {
+    use crate::ast::control::Control;
     use crate::ast::func::filesystem::Directory;
-    use crate::ast::func::types::ModuleMap;
+    use crate::ast::func::types::FunctionContext::{Func, Import};
+    use crate::ast::func::types::{FunctionImport, ModuleContext, ModuleMap, ModuleName};
+    use crate::ast::module::FuncDecl;
+    use crate::ast::node::Node;
+    use crate::ast::polluted::PollutedNode;
     use crate::build::Builder;
     use crate::errors::Error;
     use indoc::indoc;
@@ -641,7 +720,7 @@ mod test {
         "};
 
         let sibling = indoc! {"
-        FN a(b) -> c DECL
+        FN b(b) -> c DECL
             ...
         END
         "};
@@ -651,10 +730,140 @@ mod test {
 
         let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
         let map = ModuleMap::from(ast, dir)?;
-        // println!("{:#?}", map);
-        // assert!(map.is_ok());
 
-        // println!("{:?}", map)
+        let mut expected = ModuleMap::new();
+        expected.insert(vec!["fs", "main"].into(), {
+            let mut ctx = ModuleContext::new();
+            ctx.0.insert(
+                "b".into(),
+                Import(FunctionImport {
+                    module: vec!["fs", "a"].into(),
+                    ident: "b".into(),
+                }),
+            );
+
+            ctx
+        });
+        expected.insert(vec!["fs", "a"].into(), {
+            let mut ctx = ModuleContext::new();
+            ctx.0.insert(
+                "b".into(),
+                Func(FuncDecl {
+                    lno: (1, 3),
+
+                    ident: Box::new(Node::Ident("b".into())),
+                    params: vec![Node::Ident("b".into())],
+                    ret: Box::new(Node::Ident("c".into())),
+
+                    terms: Box::new(PollutedNode::Control(Control::Terms(vec![
+                        PollutedNode::NoOp,
+                    ]))),
+                }),
+            );
+            ctx
+        });
+
+        assert_eq!(map, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_simple_fs_nested_import_with_alias() -> Result<(), Vec<Error>> {
+        let snip = indoc! {"
+        FROM fs::a IMPORT b
+        "};
+
+        let module_a = indoc! {"
+        FROM fs::b IMPORT c as b
+        "};
+        let module_b = indoc! {"
+        FN c(d) -> e DECL
+            ...
+        END
+        "};
+
+        let mut dir = Directory::new();
+        dir.insert("a".to_string(), module_a.to_string().into());
+        dir.insert("b".to_string(), module_b.to_string().into());
+
+        let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
+        let map = ModuleMap::from(ast, dir)?;
+
+        let mut expected = ModuleMap::new();
+        expected.insert(vec!["fs", "main"].into(), {
+            let mut ctx = ModuleContext::new();
+            ctx.0.insert(
+                "b".into(),
+                Import(FunctionImport {
+                    module: vec!["fs", "b"].into(),
+                    ident: "c".into(),
+                }),
+            );
+
+            ctx
+        });
+        expected.insert(vec!["fs", "a"].into(), {
+            let mut ctx = ModuleContext::new();
+            ctx.0.insert(
+                "b".into(),
+                Import(FunctionImport {
+                    module: vec!["fs", "b"].into(),
+                    ident: "c".into(),
+                }),
+            );
+
+            ctx
+        });
+        expected.insert(vec!["fs", "b"].into(), {
+            let mut ctx = ModuleContext::new();
+            ctx.0.insert(
+                "c".into(),
+                Func(FuncDecl {
+                    lno: (1, 3),
+
+                    ident: Box::new(Node::Ident("c".into())),
+                    params: vec![Node::Ident("d".into())],
+                    ret: Box::new(Node::Ident("e".into())),
+
+                    terms: Box::new(PollutedNode::Control(Control::Terms(vec![
+                        PollutedNode::NoOp,
+                    ]))),
+                }),
+            );
+            ctx
+        });
+
+        assert_eq!(map, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_simple_std_import() -> Result<(), Vec<Error>> {
+        let snip = indoc! {"
+        FROM std::math IMPORT max
+        "};
+
+        let dir = Directory::new();
+        let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
+        let map = ModuleMap::from(ast, dir)?;
+
+        let module_name = vec!["fs", "main"].into();
+        let main = map.0.get(&module_name);
+        assert!(main.is_some());
+        let main = main.unwrap().clone();
+
+        let mut expected = ModuleContext::new();
+        expected.0.insert(
+            "max".into(),
+            Import(FunctionImport {
+                module: vec!["std", "math"].into(),
+                ident: "max".into(),
+            }),
+        );
+
+        assert_eq!(main, expected);
 
         Ok(())
     }

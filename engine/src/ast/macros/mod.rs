@@ -21,7 +21,7 @@ use schemars::JsonSchema;
 
 // This is a shorthand for the Node::Assign,
 // I would love to make this one go away, but I have no idea how.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct MacroAssign {
     pub lhs: Box<Node>,
@@ -29,7 +29,7 @@ pub struct MacroAssign {
     pub rhs: Box<Node>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum Macro {
     AssignToIdent {
