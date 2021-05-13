@@ -19,6 +19,12 @@ use std::path::PathBuf;
 pub struct ModuleMap(pub ModuleHashMap);
 pub type ModuleHashMap = HashMap<ModuleName, ModuleContext>;
 
+#[derive(Debug)]
+struct Cache {
+    wildcard: HashMap<(Vec<String>, Module), Result<ModuleContextHashMap, Vec<Error>>>,
+    impfunc: HashMap<((Vec<String>, Module), ImpFunc), Result<ModuleContextHashMap, Vec<Error>>>,
+}
+
 impl ModuleMap {
     pub fn new() -> Self {
         ModuleMap(HashMap::new())
@@ -171,7 +177,15 @@ impl ModuleMap {
         to: (&Vec<String>, &Module),
         modules: &mut HashMap<Vec<String>, Module>,
         history: Option<Vec<Vec<String>>>,
+        cache: &mut Cache,
     ) -> Result<ModuleContextHashMap, Vec<Error>> {
+        // check if we already cached the result
+        let cache_key = (to.0.clone(), to.1.clone());
+        if let Some(cached) = cache.wildcard.get(&cache_key) {
+            println!("Hit the wildcard cache");
+            return cached.clone();
+        }
+
         Self::catch_circular(from, to, history.clone())?;
 
         let mut history = history.unwrap_or_default();
@@ -211,12 +225,13 @@ impl ModuleMap {
                 Either::Left(remote) => {
                     let mut individual = vec![];
                     for import in remote {
-                        let import = Self::resolve_imp(
+                        let import = Self::resolve_impfunc(
                             from,
                             (&module_name, &module),
                             &import,
                             modules,
                             Some(history.clone()),
+                            cache,
                         );
                         if let Err(err) = import {
                             errors.extend(err);
@@ -234,6 +249,7 @@ impl ModuleMap {
                         (&module_name, &module),
                         modules,
                         Some(history.clone()),
+                        cache,
                     );
 
                     if let Err(err) = module_imports {
@@ -264,11 +280,14 @@ impl ModuleMap {
             }
         }
 
-        if !errors.is_empty() {
-            return Err(errors);
-        }
+        let res = if !errors.is_empty() {
+            Err(errors)
+        } else {
+            Ok(imports)
+        };
 
-        Ok(imports)
+        cache.wildcard.insert(cache_key, res.clone());
+        res
     }
 
     // Search for a single import,
@@ -276,13 +295,20 @@ impl ModuleMap {
     // FROM x::y::z IMPORT a as b
     // or
     // FROM x::y::z IMPORT (a as b, c, d as e)
-    fn resolve_imp(
+    fn resolve_impfunc(
         from: (&Vec<String>, &Module),
         to: (&Vec<String>, &Module),
         target: &ImpFunc,
         modules: &mut HashMap<Vec<String>, Module>,
         history: Option<Vec<Vec<String>>>,
+        cache: &mut Cache,
     ) -> Result<ModuleContextHashMap, Vec<Error>> {
+        let cache_key = ((to.0.clone(), to.1.clone()), target.clone());
+        if let Some(cached) = cache.impfunc.get(&cache_key) {
+            println!("Hit the impfunc cache");
+            return cached.clone();
+        }
+
         Self::catch_circular(from, to, history.clone())?;
 
         // This means this is a single import.
@@ -319,7 +345,10 @@ impl ModuleMap {
                     .into(),
                 }),
             );
-            return Ok(imports);
+
+            let res = Ok(imports);
+            cache.impfunc.insert(cache_key, res.clone());
+            return res;
         }
 
         // This flattens all imports. Every import is (module, vec<import>),
@@ -347,7 +376,17 @@ impl ModuleMap {
         if let Some((imp, func)) = local_imports {
             let (module_name, module) = Self::find_module(modules, imp)?;
 
-            return Self::resolve_imp(from, (&module_name, &module), &func, modules, Some(history));
+            let res = Self::resolve_impfunc(
+                from,
+                (&module_name, &module),
+                &func,
+                modules,
+                Some(history),
+                cache,
+            );
+
+            cache.impfunc.insert(cache_key, res.clone());
+            return res;
         }
 
         // Look in all wildcards if we find our target function return it, if not return all errors
@@ -370,6 +409,7 @@ impl ModuleMap {
                 (&module_name, &module),
                 modules,
                 Some(history.clone()),
+                cache,
             );
             if let Err(err) = res {
                 errors.extend(err);
@@ -394,7 +434,9 @@ impl ModuleMap {
                 );
 
                 // early return, we do not need to look at the others
-                return Ok(imports);
+                let res = Ok(imports);
+                cache.impfunc.insert(cache_key, res.clone());
+                return res;
             }
         }
 
@@ -411,7 +453,9 @@ impl ModuleMap {
             },
         ));
 
-        Err(errors)
+        let res = Err(errors);
+        cache.impfunc.insert(cache_key, res.clone());
+        res
     }
 
     /// Creates an import map, this means it will follow and resolve all imports to their destination.
@@ -420,6 +464,7 @@ impl ModuleMap {
     fn resolve(
         from: (&Vec<String>, &Module),
         modules: &mut HashMap<Vec<String>, Module>,
+        cache: &mut Cache,
     ) -> Result<ModuleContextHashMap, Vec<Error>> {
         // wildcard means to add everything we have in the module
         // how to avoid searching twice?
@@ -438,8 +483,14 @@ impl ModuleMap {
                 Either::Left(funcs) => {
                     let mut results = vec![];
                     for func in funcs {
-                        let res =
-                            Self::resolve_imp(from, (&module_name, &module), &func, modules, None);
+                        let res = Self::resolve_impfunc(
+                            from,
+                            (&module_name, &module),
+                            &func,
+                            modules,
+                            None,
+                            cache,
+                        );
                         if let Err(err) = res {
                             errors.extend(err);
                             continue;
@@ -450,7 +501,8 @@ impl ModuleMap {
                     results
                 }
                 Either::Right(_) => {
-                    let res = Self::resolve_wildcard(from, (&module_name, &module), modules, None);
+                    let res =
+                        Self::resolve_wildcard(from, (&module_name, &module), modules, None, cache);
                     if let Err(err) = res {
                         errors.extend(err);
                         vec![]
@@ -626,9 +678,13 @@ impl ModuleMap {
         // import and resolve everything properly
         let mut errors = vec![];
         let mut map = ModuleMap::new();
+        let mut cache = Cache {
+            wildcard: HashMap::new(),
+            impfunc: HashMap::new(),
+        };
 
         for (name, module) in modules.clone() {
-            let res = Self::resolve((&name, &module), &mut modules);
+            let res = Self::resolve((&name, &module), &mut modules, &mut cache);
             if let Err(err) = res {
                 errors.extend(err);
                 continue;
@@ -877,6 +933,11 @@ mod test {
 
     #[test]
     fn test_fn_name_clash() {
+        todo!()
+    }
+
+    #[test]
+    fn test_wildcard_name_clash() {
         todo!()
     }
 }

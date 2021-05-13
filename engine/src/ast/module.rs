@@ -44,7 +44,7 @@ pub struct Imp {
 // - declarations (decl)
 // - code (code)
 // Code is replaced with NoOp if it is loaded via an import
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Module {
