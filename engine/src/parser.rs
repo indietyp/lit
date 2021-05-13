@@ -15,7 +15,7 @@ use crate::ast::variant::UInt;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::types::LineNo;
 
-#[derive(new, Clone)]
+#[derive(new, Clone, Debug)]
 pub struct ParseSettings {
     lno: Option<LineNo>,
 }
@@ -347,32 +347,31 @@ impl LoopParser {
 
     // Function Definition
     #[allow(non_snake_case)]
-    fn funcRet(input: ParseNode) -> ParseResult<Node> {
-        let ident: Node = match_nodes!(input.into_children();
-            [atom(item)] => item
-        );
-        Ok(ident)
-    }
-
-    #[allow(non_snake_case)]
     fn funcDef(input: ParseNode) -> ParseResult<FuncDecl> {
         let lno = LoopParserHelpers::lno(input.clone());
-
-        let (ident, params, ret, terms): (Node, Vec<Node>, Node, PollutedNode) = match_nodes!(input.into_children();
-            [atom(ident), atom(params).., funcRet(ret), expr(terms)] => (ident, params.collect(), ret, terms)
+        let (atoms, terms): (Vec<Node>, PollutedNode) = match_nodes!(input.clone().into_children();
+            [atom(atoms).., expr(terms)] => (atoms.collect(), terms)
         );
 
-        let decl = FuncDecl {
-            lno,
+        if let Some((ident, params)) = atoms.split_first() {
+            if let Some((ret, params)) = atoms.split_last() {
+                let decl = FuncDecl {
+                    lno,
 
-            ident: Box::new(ident),
-            params,
-            ret: Box::new(ret),
+                    ident: Box::new(ident.clone()),
+                    params: params.to_vec(),
+                    ret: Box::new(ret.clone()),
 
-            terms: Box::new(terms),
-        };
+                    terms: Box::new(terms),
+                };
 
-        Ok(decl)
+                Ok(decl)
+            } else {
+                Err(input.error("Unable to destructure function into ident, params and return"))
+            }
+        } else {
+            Err(input.error("Unable to destructure function into ident and params"))
+        }
     }
 
     fn functions(input: ParseNode) -> ParseResult<Vec<FuncDecl>> {
@@ -392,7 +391,7 @@ impl LoopParser {
 
         let node = ImpFunc {
             ident: Box::new(ident),
-            alias: alias.map(|a| Box::new(a)),
+            alias: alias.map(Box::new),
         };
 
         Ok(node)
@@ -436,10 +435,15 @@ impl LoopParser {
     // Initialization Rule
     pub(crate) fn grammar(input: ParseNode) -> ParseResult<Module> {
         let (imp, decl, code): (Option<Vec<Imp>>, Option<Vec<FuncDecl>>, PollutedNode) = match_nodes!(input.into_children();
+            // Full Module
             [imports(i), functions(f), expr(t), EOI(_)] => (Some(i), Some(f), t),
+            // Mixed Module
             [imports(i), functions(f), EOI(_)] => (Some(i), Some(f), PollutedNode::NoOp),
             [functions(f), expr(t), EOI(_)] => (None, Some(f), t),
             [imports(i), expr(t), EOI(_)] => (Some(i), None, t),
+            // Single Purpose Module
+            [functions(f), EOI(_)] => (None, Some(f), PollutedNode::NoOp),
+            [imports(i), EOI(_)] => (Some(i), None, PollutedNode::NoOp),
             [expr(t), EOI(_)] => (None, None, t)
         );
 

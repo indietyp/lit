@@ -149,9 +149,6 @@ macro_ = _{
 }
 
 // Function Definitions
-// used to make capturing easier
-funcRet = { "->" ~ IDENT }
-
 // This is all a bit more complicated, identifiers in macroFnDef
 // need to be prefixed and then inlined correctly, this is a BIG task
 // x  => __max1__x
@@ -159,8 +156,8 @@ funcRet = { "->" ~ IDENT }
 // When calling the function the annotated
 funcDef = {
     ^"FN" ~ IDENT
-    ~ "(" ~ IDENT ~ ("," ~ IDENT) ~ ")"
-    ~ funcRet ~ ^"DECL" ~
+    ~ "(" ~ IDENT ~ ("," ~ IDENT)* ~ ")"
+    ~ "->" ~ IDENT ~ ^"DECL" ~
     terms
     ~ "END"
 }
@@ -170,20 +167,16 @@ importFunc = {
 }
 
 importStmt = {
-    importFunc
-    | WILDCARD
+    WILDCARD
+    | importFunc
     | ( "(" ~ importFunc ~
         ("," ~ importFunc)* ~ ")"
       )
 }
 
-importPath = {
-    IDENT
-}
-
 import = {
     ^"FROM"
-    ~ IDENT ~ ("::" ~ importPath)* ~
+    ~ IDENT ~ ("::" ~ IDENT)* ~
     ^"IMPORT" ~
     importStmt
 }

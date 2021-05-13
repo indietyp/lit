@@ -353,7 +353,7 @@ impl ModuleMap {
         // this flattens the result into (module, import), with that approach
         // we can also guarantee unique results.
         // We also eliminate the same import using .unique()
-        let imp: Vec<_> =
+        let local_imports =
             to.1.imp.clone()
                 .into_iter()
                 .filter(|imp| imp.funcs.is_left())
@@ -368,11 +368,10 @@ impl ModuleMap {
                     _ => unreachable!()
                 })
                 .unique()
-                .collect();
+                .next();
 
         // if there is an import matching our target alias/ident, then use that to find the correct thing.
-        if !imp.is_empty() {
-            let (imp, func) = imp.get(0).unwrap().clone();
+        if let Some((imp, func)) = local_imports {
             let (module_name, module) = Self::find_module(modules, imp)?;
 
             return Self::resolve_imp(from, (&module_name, &module), &func, modules, Some(history));
@@ -632,10 +631,11 @@ mod test {
     use crate::ast::func::filesystem::Directory;
     use crate::ast::func::types::ModuleMap;
     use crate::build::Builder;
+    use crate::errors::Error;
     use indoc::indoc;
 
     #[test]
-    fn test_simple_fs_import() {
+    fn test_simple_fs_import() -> Result<(), Vec<Error>> {
         let snip = indoc! {"
         FROM fs::a IMPORT b
         "};
@@ -649,15 +649,13 @@ mod test {
         let mut dir = Directory::new();
         dir.insert("a".to_string(), sibling.to_string().into());
 
-        let ast = Builder::parse(snip, None);
-        println!("{:?}", ast);
-        assert!(ast.is_ok());
-        let ast = ast.unwrap();
+        let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
+        let map = ModuleMap::from(ast, dir)?;
+        // println!("{:#?}", map);
+        // assert!(map.is_ok());
 
-        let map = ModuleMap::from(ast, dir);
-        assert!(map.is_ok());
-        let map = map.unwrap();
+        // println!("{:?}", map)
 
-        println!("{:?}", map)
+        Ok(())
     }
 }
