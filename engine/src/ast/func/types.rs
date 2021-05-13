@@ -714,7 +714,7 @@ mod test {
     use indoc::indoc;
 
     #[test]
-    fn test_simple_fs_import() -> Result<(), Vec<Error>> {
+    fn test_fs_import() -> Result<(), Vec<Error>> {
         let snip = indoc! {"
         FROM fs::a IMPORT b
         "};
@@ -769,7 +769,7 @@ mod test {
     }
 
     #[test]
-    fn test_simple_fs_nested_import_with_alias() -> Result<(), Vec<Error>> {
+    fn test_fs_nested_import_with_alias() -> Result<(), Vec<Error>> {
         let snip = indoc! {"
         FROM fs::a IMPORT b
         "};
@@ -840,7 +840,7 @@ mod test {
     }
 
     #[test]
-    fn test_simple_std_import() -> Result<(), Vec<Error>> {
+    fn test_std_import() -> Result<(), Vec<Error>> {
         let snip = indoc! {"
         FROM std::math IMPORT max
         "};
@@ -860,6 +860,50 @@ mod test {
             Import(FunctionImport {
                 module: vec!["std", "math"].into(),
                 ident: "max".into(),
+            }),
+        );
+
+        assert_eq!(main, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_fs_wildcard() -> Result<(), Vec<Error>> {
+        let snip = indoc! {"
+        FROM fs::a IMPORT d as c
+        "};
+
+        let module_a = indoc! {"
+        FROM fs::b IMPORT *
+        "};
+        let module_b = indoc! {"
+        FN c(d) -> e DECL
+            ...
+        END
+        FN d(d) -> e DECL
+            ...
+        END
+        "};
+
+        let mut dir = Directory::new();
+        dir.insert("a".to_string(), module_a.to_string().into());
+        dir.insert("b".to_string(), module_b.to_string().into());
+
+        let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
+        let map = ModuleMap::from(ast, dir)?;
+
+        let module_name = vec!["fs", "main"].into();
+        let main = map.0.get(&module_name);
+        assert!(main.is_some());
+        let main = main.unwrap().clone();
+
+        let mut expected = ModuleContext::new();
+        expected.0.insert(
+            "c".into(),
+            Import(FunctionImport {
+                module: vec!["fs", "b"].into(),
+                ident: "d".into(),
             }),
         );
 

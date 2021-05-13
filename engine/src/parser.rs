@@ -492,7 +492,7 @@ impl LoopParser {
         Err(input.error("Cannot directly parse OP_MULTIPLY"))
     }
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn WILDCARD(input: ParseNode) -> ParseResult<Node> {
-        Err(input.error("Cannot directly parse WILDCARD"))
+    fn WILDCARD(input: ParseNode) -> ParseResult<()> {
+        Ok(())
     }
 }
