@@ -9,9 +9,10 @@ use schemars::schema::{InstanceType, Schema, SchemaObject};
 #[cfg(feature = "cli")]
 use schemars::JsonSchema;
 use std::cmp::Ordering;
+use std::hash::{Hash, Hasher};
 use std::ops::{Add, Mul};
 
-#[derive(Debug, Clone, Serialize, Deserialize, Hash)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UInt(pub BigUint);
 
 NewtypeDeref! {() pub struct UInt(pub BigUint); }
@@ -85,5 +86,11 @@ impl Zero for UInt {
 impl One for UInt {
     fn one() -> Self {
         Self(BigUint::one())
+    }
+}
+
+impl Hash for UInt {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.hash(state)
     }
 }

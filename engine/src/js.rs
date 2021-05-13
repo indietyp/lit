@@ -2,17 +2,15 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 
 use crate::ast::node::Node;
-use crate::ast::polluted::PollutedNode;
 use crate::build::Builder;
 use crate::eval::exec::Exec;
-use crate::eval::types::Variables;
 use crate::flags::CompilationFlags;
 use crate::runtime::Runtime;
 use crate::utils::set_panic_hook;
+
 use js_sys::Map;
 use js_sys::Math::ceil;
 use num_bigint::BigUint;
-use num_traits::AsPrimitive;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::str::FromStr;

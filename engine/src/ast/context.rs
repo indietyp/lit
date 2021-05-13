@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 
 use crate::ast::func;
-use crate::ast::func::types::{FunctionQualName, ModuleContext, ModuleMap, ModuleName};
+use crate::ast::func::modctx::ModuleContext;
+use crate::ast::func::modmap::ModuleMap;
+use crate::ast::func::types::{FunctionQualName, ModuleName};
 use crate::flags::CompilationFlags;
 
 #[derive(Debug, Clone)]
