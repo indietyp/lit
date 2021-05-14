@@ -13,6 +13,7 @@ use crate::ast::polluted::PollutedNode;
 use crate::build::Builder;
 use crate::errors::{Error, ErrorCode, ErrorVariant};
 use crate::utils::check_errors;
+use std::cmp::Ordering;
 use std::path::PathBuf;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -21,12 +22,12 @@ pub type ModuleHashMap = HashMap<ModuleName, ModuleContext>;
 
 type ImpFuncKeyFrom = (Vec<String>, Module);
 type ImpFuncKey = (ImpFuncKeyFrom, ImpFunc);
-type CacheResult = Result<ModuleContextHashMap, Vec<Error>>;
+type ResolveResult = Result<(ModuleContextHashMap, Vec<Vec<String>>), Vec<Error>>;
 
 #[derive(Debug)]
 struct Cache {
-    wildcard: HashMap<(Vec<String>, Module), CacheResult>,
-    impfunc: HashMap<ImpFuncKey, CacheResult>,
+    wildcard: HashMap<(Vec<String>, Module), ResolveResult>,
+    impfunc: HashMap<ImpFuncKey, ResolveResult>,
 }
 
 impl ModuleMap {
@@ -72,7 +73,8 @@ impl ModuleMap {
     fn find_module(
         modules: &mut HashMap<Vec<String>, Module>,
         imp: Imp,
-    ) -> Result<(Vec<String>, Module), Vec<Error>> {
+    ) -> Result<(Vec<String>, Module, bool), Vec<Error>> {
+        let mut new = false;
         let module_name: Vec<_> = imp
             .path
             .iter()
@@ -124,6 +126,9 @@ impl ModuleMap {
                     },
                 )]);
             }
+            if inserted == 1 {
+                new = true;
+            }
         }
 
         match module {
@@ -133,7 +138,7 @@ impl ModuleMap {
                     module: module_name.join("::"),
                 },
             )]),
-            Some(module) => Ok((module_name, module)),
+            Some(module) => Ok((module_name, module, new)),
         }
     }
 
@@ -157,6 +162,10 @@ impl ModuleMap {
             let history: Vec<String> = history.iter().map(|f| f.join("::")).collect();
             let (prev, path) = history.split_at(idx);
 
+            // append our current module
+            let mut path = path.to_vec();
+            path.push(circular.join("::"));
+
             Err(vec![Error::new_from_code(
                 None,
                 ErrorCode::CircularImport {
@@ -167,6 +176,7 @@ impl ModuleMap {
                     ),
                     history,
                     origin: from.0.join("::"),
+                    module: circular.join("::"),
                 },
             )])
         } else {
@@ -182,9 +192,11 @@ impl ModuleMap {
         modules: &mut HashMap<Vec<String>, Module>,
         history: Option<Vec<Vec<String>>>,
         cache: &mut Cache,
-    ) -> Result<ModuleContextHashMap, Vec<Error>> {
+    ) -> ResolveResult {
         // check if we already cached the result
         let cache_key = (to.0.clone(), to.1.clone());
+        let mut new = vec![];
+
         if let Some(cached) = cache.wildcard.get(&cache_key) {
             println!("Hit the wildcard cache");
             return cached.clone();
@@ -223,7 +235,10 @@ impl ModuleMap {
                 errors.extend(err);
                 continue;
             }
-            let (module_name, module) = res.unwrap();
+            let (module_name, module, imported) = res.unwrap();
+            if imported {
+                new.push(module_name.clone());
+            }
 
             let module_imports = match &imp.funcs {
                 Either::Left(remote) => {
@@ -266,7 +281,8 @@ impl ModuleMap {
             };
 
             // tries to resolve them, if there is an error, append it and exit as late as possible
-            for res in module_imports {
+            for (res, imported) in module_imports {
+                new.extend(imported);
                 for (name, context) in res {
                     if imports.get(&name).is_some() {
                         errors.push(Error::new_from_code(
@@ -287,7 +303,7 @@ impl ModuleMap {
         let res = if !errors.is_empty() {
             Err(errors)
         } else {
-            Ok(imports)
+            Ok((imports, new))
         };
 
         cache.wildcard.insert(cache_key, res.clone());
@@ -306,8 +322,9 @@ impl ModuleMap {
         modules: &mut HashMap<Vec<String>, Module>,
         history: Option<Vec<Vec<String>>>,
         cache: &mut Cache,
-    ) -> Result<ModuleContextHashMap, Vec<Error>> {
+    ) -> ResolveResult {
         let cache_key = ((to.0.clone(), to.1.clone()), target.clone());
+        let mut new = vec![];
         if let Some(cached) = cache.impfunc.get(&cache_key) {
             println!("Hit the impfunc cache");
             return cached.clone();
@@ -350,7 +367,7 @@ impl ModuleMap {
                 }),
             );
 
-            let res = Ok(imports);
+            let res = Ok((imports, new));
             cache.impfunc.insert(cache_key, res.clone());
             return res;
         }
@@ -378,7 +395,10 @@ impl ModuleMap {
 
         // if there is an import matching our target alias/ident, then use that to find the correct target.
         if let Some((imp, func)) = local_imports {
-            let (module_name, module) = Self::find_module(modules, imp)?;
+            let (module_name, module, created) = Self::find_module(modules, imp)?;
+            if created {
+                new.push(module_name.clone());
+            }
 
             let res = Self::resolve_impfunc(
                 from,
@@ -406,7 +426,10 @@ impl ModuleMap {
                 errors.extend(err);
                 continue;
             }
-            let (module_name, module) = res.unwrap();
+            let (module_name, module, created) = res.unwrap();
+            if created {
+                new.push(module_name.clone())
+            }
 
             let res = Self::resolve_wildcard(
                 from,
@@ -419,7 +442,9 @@ impl ModuleMap {
                 errors.extend(err);
                 continue;
             }
-            let wildcard_context = res.unwrap();
+            let (wildcard_context, imported) = res.unwrap();
+            new.extend(imported);
+
             let func_name: FunctionName = match *target.ident.clone() {
                 Node::Ident(m) => m,
                 _ => unreachable!(),
@@ -438,7 +463,7 @@ impl ModuleMap {
                 );
 
                 // early return, we do not need to look at the others
-                let res = Ok(imports);
+                let res = Ok((imports, new));
                 cache.impfunc.insert(cache_key, res.clone());
                 return res;
             }
@@ -469,10 +494,11 @@ impl ModuleMap {
         from: (&Vec<String>, &Module),
         modules: &mut HashMap<Vec<String>, Module>,
         cache: &mut Cache,
-    ) -> Result<ModuleContextHashMap, Vec<Error>> {
+    ) -> ResolveResult {
         // wildcard means to add everything we have in the module
         // how to avoid searching twice?
         let mut context: ModuleContextHashMap = HashMap::new();
+        let mut new = vec![];
         let mut errors = vec![];
 
         for imp in &from.1.imp {
@@ -481,7 +507,10 @@ impl ModuleMap {
                 errors.extend(err);
                 continue;
             }
-            let (module_name, module) = res.unwrap();
+            let (module_name, module, created) = res.unwrap();
+            if created {
+                new.push(module_name.clone());
+            }
 
             let results = match &imp.funcs {
                 Either::Left(funcs) => {
@@ -516,8 +545,9 @@ impl ModuleMap {
                 }
             };
 
-            for res in results {
+            for (res, modules) in results {
                 let overlapping: Vec<_> = res.keys().filter(|k| context.contains_key(k)).collect();
+                new.extend(modules);
 
                 for collision in overlapping.clone() {
                     errors.push(Error::new_from_code(
@@ -540,7 +570,7 @@ impl ModuleMap {
         if !errors.is_empty() {
             Err(errors)
         } else {
-            Ok(context)
+            Ok((context, new))
         }
     }
 
@@ -675,7 +705,9 @@ impl ModuleMap {
                 (k_new, v.clone())
             })
             .collect();
-        modules.insert(vec!["fs".to_string(), "main".to_string()], main);
+
+        let main_module = (vec!["fs".to_string(), "main".to_string()], main);
+        modules.insert(main_module.0.clone(), main_module.1.clone());
 
         Self::basic_collision_check(&modules)?;
 
@@ -687,15 +719,55 @@ impl ModuleMap {
             impfunc: HashMap::new(),
         };
 
-        // iterate over all modules, not only Main so that we can be sure everything is included
-        for (name, module) in modules.clone() {
-            let res = Self::resolve((&name, &module), &mut modules, &mut cache);
-            if let Err(err) = res {
-                errors.extend(err);
+        let mut ptr = 0;
+        let mut stack: Vec<_> = modules
+            .keys()
+            .cloned()
+            .clone()
+            .into_iter()
+            .sorted_by(|a, b| {
+                // Guarantee that the main module is always the first one in the stack
+                if a.cmp(&main_module.0) == Ordering::Equal {
+                    Ordering::Less
+                } else if b.cmp(&main_module.0) == Ordering::Equal {
+                    Ordering::Greater
+                } else {
+                    a.cmp(b)
+                }
+            })
+            .collect();
+
+        while ptr < stack.len() {
+            // we know it is safe, panic if we cannot unwrap
+            let name = stack.get(ptr).unwrap().clone();
+            let module = modules.get(&name);
+
+            ptr += 1;
+            if module.is_none() {
+                errors.push(Error::new_from_code(
+                    None,
+                    ErrorCode::CouldNotFindModule {
+                        module: name.clone().join("::"),
+                    },
+                ));
                 continue;
             }
-            let context = ModuleContext(res.unwrap());
-            map.insert(ModuleName(name), context);
+            let module = module.unwrap().clone();
+
+            // iterate over all modules, not only Main so that we can be sure everything is included
+            let res = Self::resolve((&name, &module), &mut modules, &mut cache);
+
+            if let Err(err) = res {
+                errors.extend(err);
+            } else {
+                let (ctx, modules) = res.unwrap();
+
+                let new: Vec<_> = modules.into_iter().filter(|m| stack.contains(m)).collect();
+                stack.extend(new);
+
+                let context = ModuleContext(ctx);
+                map.insert(name.into(), context);
+            }
         }
 
         let res = Self::insert_funcs(&modules, &mut map);
@@ -704,7 +776,10 @@ impl ModuleMap {
         }
 
         if !errors.is_empty() {
-            Err(errors)
+            Err(errors
+                .into_iter()
+                .unique_by(|f| f.variant.clone())
+                .collect())
         } else {
             Ok(map)
         }
@@ -725,7 +800,7 @@ mod test {
     use crate::ast::node::Node;
     use crate::ast::polluted::PollutedNode;
     use crate::build::Builder;
-    use crate::errors::Error;
+    use crate::errors::{Error, ErrorCode, ErrorVariant};
 
     #[test]
     fn test_fs_import() -> Result<(), Vec<Error>> {
@@ -817,6 +892,9 @@ mod test {
 
             ctx
         });
+
+        // HashMap is empty because it has no function declaration, the imports will only get resolved
+        // for the main module.
         expected.insert(vec!["fs", "a"].into(), {
             let mut ctx = ModuleContext::new();
             ctx.0.insert(
@@ -826,7 +904,6 @@ mod test {
                     ident: "c".into(),
                 }),
             );
-
             ctx
         });
         expected.insert(vec!["fs", "b"].into(), {
@@ -887,7 +964,34 @@ mod test {
 
     #[test]
     fn test_std_wildcard() -> Result<(), Vec<Error>> {
-        todo!()
+        let snip = indoc! {"
+        FROM std::prelude IMPORT *
+        "};
+
+        let dir = Directory::new();
+        let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
+        let map = ModuleMap::from(ast, dir)?;
+
+        let module_name = vec!["fs", "main"].into();
+        let main = map.0.get(&module_name);
+        assert!(main.is_some());
+        let main = main.unwrap().clone();
+
+        let fn_name = "max".into();
+        let func = main.0.get(&fn_name).cloned();
+        assert!(func.is_some());
+        assert_eq!(
+            func.unwrap(),
+            Import(FunctionImport {
+                module: vec!["std", "math"].into(),
+                ident: "max".into(),
+            })
+        );
+
+        let math_name = vec!["std", "math"].into();
+        assert!(map.0.contains_key(&math_name));
+
+        Ok(())
     }
 
     #[test]
@@ -935,8 +1039,66 @@ mod test {
     }
 
     #[test]
-    fn test_circular_import() {
-        todo!()
+    fn test_circular_import() -> Result<(), Vec<Error>> {
+        let snip = indoc! {"
+        FROM fs::a IMPORT d
+        "};
+
+        let module_a = indoc! {"
+        # fully imports b, which imports a, which then fully imports b
+        FROM fs::b IMPORT *
+
+        FN c(d) -> e DECL
+            ...
+        END
+        "};
+        let module_b = indoc! {"
+        FROM fs::a IMPORT *
+
+        FN d(d) -> e DECL
+            ...
+        END
+        "};
+
+        let mut dir = Directory::new();
+        dir.insert("a".to_string(), module_a.to_string().into());
+        dir.insert("b".to_string(), module_b.to_string().into());
+
+        let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
+        let map = ModuleMap::from(ast, dir);
+
+        assert!(map.is_err());
+        let err = map.unwrap_err();
+        assert_eq!(err.len(), 2);
+
+        let err = match err.first() {
+            Some(err) => err.clone(),
+            _ => unreachable!(),
+        };
+
+        let (_, history, origin, module) = match err.variant {
+            ErrorVariant::ErrorCode(ErrorCode::CircularImport {
+                message,
+                history,
+                origin,
+                module,
+            }) => (message, history, origin, module),
+            _ => panic!("Variant was not CircularImport!"),
+        };
+
+        assert_eq!(
+            history,
+            vec![
+                "fs::main".to_string(),
+                "fs::a".to_string(),
+                "fs::b".to_string()
+            ]
+        );
+
+        assert_eq!(origin, "fs::main".to_string());
+        assert_eq!(module, "fs::a".to_string());
+
+        Ok(())
     }
 
     #[test]

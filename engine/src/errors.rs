@@ -5,7 +5,7 @@ use pest::error::{InputLocation, LineColLocation};
 use serde::{Deserialize, Serialize};
 use std::io;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 pub enum ErrorCode {
     CouldNotFindModule {
         module: String,
@@ -16,6 +16,7 @@ pub enum ErrorCode {
     },
     CircularImport {
         message: String,
+        module: String,
         history: Vec<String>,
         origin: String,
     },
@@ -30,18 +31,18 @@ pub enum ErrorCode {
     },
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 pub enum RustError {
     Io(String),
 }
 
 #[derive(new, Debug, Serialize, Deserialize, Clone)]
 pub struct Error {
-    lno: LineNo,
-    variant: ErrorVariant,
+    pub lno: LineNo,
+    pub variant: ErrorVariant,
 }
 
-#[derive(new, Debug, Serialize, Deserialize, Clone)]
+#[derive(new, Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 pub enum ErrorVariant {
     Message(String),
     ErrorCode(ErrorCode),
@@ -85,7 +86,7 @@ import information from Pest Errors into Serde,
 this isn't perfect nor good, but the only way I could come up with
 */
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 pub enum PestErrorInfo {
     Error {
         variant: Box<PestErrorInfo>,
