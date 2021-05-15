@@ -796,7 +796,7 @@ mod test {
     use crate::ast::func::modctx::ModuleContext;
     use crate::ast::func::modmap::ModuleMap;
     use crate::ast::func::types::FunctionContext::{Func, Import};
-    use crate::ast::func::types::{FunctionImport, ModuleName};
+    use crate::ast::func::types::{FunctionContext, FunctionImport, ModuleName};
     use crate::ast::module::FuncDecl;
     use crate::ast::node::Node;
     use crate::ast::polluted::PollutedNode;
@@ -1240,6 +1240,100 @@ mod test {
         assert_eq!(module, "fs::main".to_string());
         assert_eq!(func, "d".to_string());
         assert_eq!(count, None);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_wildcard_fn_name_clash() -> Result<(), Vec<Error>> {
+        let snip = indoc! {"
+        FROM fs::a IMPORT *
+
+        FN d(d) -> e DECL
+            ...
+        END
+        "};
+
+        let module_a = indoc! {"
+        FN d(d) -> e DECL
+            ...
+        END
+        "};
+
+        let mut dir = Directory::new();
+        dir.insert("a".to_string(), module_a.to_string().into());
+
+        let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
+        let map = ModuleMap::from(ast, dir);
+
+        let err = map.expect_err("Expected error, but somehow test passed?");
+        assert_eq!(err.len(), 1);
+        let err = err
+            .first()
+            .cloned()
+            .expect("Expected single error, but got None?");
+
+        let (module, func, count) = match err.variant {
+            ErrorVariant::ErrorCode(ErrorCode::FunctionNameCollision {
+                module,
+                func,
+                count,
+            }) => (module, func, count),
+            _ => panic!("Variant was not FunctionNameCollision!"),
+        };
+
+        assert_eq!(module, "fs::main".to_string());
+        assert_eq!(func, "d".to_string());
+        assert_eq!(count, None);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_wildcard_impfunc() -> Result<(), Vec<Error>> {
+        let snip = indoc! {"
+        FROM fs::a IMPORT *
+        "};
+
+        let module_a = indoc! {"
+        FROM fs::b IMPORT d AS c
+        "};
+
+        let module_b = indoc! {"
+        FN d(d) -> e DECL
+            ...
+        END
+        "};
+
+        let mut dir = Directory::new();
+        dir.insert("a".to_string(), module_a.to_string().into());
+        dir.insert("b".to_string(), module_b.to_string().into());
+
+        let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
+        let map = ModuleMap::from(ast, dir);
+
+        let map = map.expect("Expect successful import.");
+        let main = vec!["fs", "main"].into();
+        let main = map
+            .0
+            .get(&main)
+            .cloned()
+            .expect("Expected fs::main context, get None.");
+
+        let c_name = "c".into();
+        let c_ctx = main
+            .0
+            .get(&c_name)
+            .cloned()
+            .expect("Expected function context for c, got None");
+
+        match c_ctx {
+            Import(import) => {
+                assert_eq!(import.ident, "d".into());
+                assert_eq!(import.module, vec!["fs", "b"].into());
+            }
+            _ => panic!("Expected it to be Import, but didn't get anything."),
+        }
 
         Ok(())
     }
