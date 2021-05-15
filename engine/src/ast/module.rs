@@ -1,16 +1,10 @@
-use either::Either;
 #[cfg(feature = "cli")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::ast::expr::Expr;
 use crate::ast::hir::func::decl::FuncDecl;
 use crate::ast::hir::func::imp::Imp;
 use crate::ast::hir::Hir;
-use crate::ast::utils::unwrap_ident;
-use crate::errors::{Error, ErrorCode, StdResult};
-use crate::types::LineNo;
-use crate::utils::check_errors;
 
 // Used as a container for all Module related codes, this contains:
 // - imports (imp)

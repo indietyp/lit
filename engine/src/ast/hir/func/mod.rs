@@ -15,6 +15,7 @@ pub mod imp;
 pub mod lower;
 pub mod module;
 pub mod types;
+pub mod utils;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
