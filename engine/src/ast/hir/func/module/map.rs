@@ -10,7 +10,7 @@ use crate::ast::expr::Expr;
 use crate::ast::hir::func::fs::Directory;
 use crate::ast::hir::func::imp::{Imp, ImpFunc};
 use crate::ast::hir::func::module::ctx::{ModuleContext, ModuleContextHashMap};
-use crate::ast::hir::func::types::{FunctionContext, FunctionImport, FunctionName, ModuleName};
+use crate::ast::hir::func::types::{FuncContext, FuncImport, FunctionName, ModuleName};
 use crate::ast::hir::Hir;
 use crate::ast::module::Module;
 use crate::build::Builder;
@@ -224,7 +224,7 @@ impl ModuleMap {
 
             imports.insert(
                 name.clone(),
-                FunctionContext::Import(FunctionImport {
+                FuncContext::Import(FuncImport {
                     module: to.0.clone().into(),
                     ident: name,
                 }),
@@ -361,7 +361,7 @@ impl ModuleMap {
                     _ => unreachable!(),
                 }
                 .into(),
-                FunctionContext::Import(FunctionImport {
+                FuncContext::Import(FuncImport {
                     module: to.0.clone().into(),
                     ident: match *target.clone().ident {
                         Expr::Ident(m) => m,
@@ -672,8 +672,7 @@ impl ModuleMap {
                     continue;
                 }
 
-                ctx.0
-                    .insert(function_name, FunctionContext::Func(func.clone()));
+                ctx.0.insert(function_name, FuncContext::Func(func.clone()));
             }
 
             context.0.insert(module_name, ctx);
@@ -801,8 +800,8 @@ mod test {
     use crate::ast::hir::func::fs::Directory;
     use crate::ast::hir::func::module::ctx::ModuleContext;
     use crate::ast::hir::func::module::map::ModuleMap;
-    use crate::ast::hir::func::types::FunctionContext::{Func, Import};
-    use crate::ast::hir::func::types::{FunctionContext, FunctionImport, ModuleName};
+    use crate::ast::hir::func::types::FuncContext::{Func, Import};
+    use crate::ast::hir::func::types::{FuncContext, FuncImport, ModuleName};
     use crate::ast::hir::Hir;
     use crate::build::Builder;
     use crate::errors::{Error, ErrorCode, ErrorVariant};
@@ -830,7 +829,7 @@ mod test {
             let mut ctx = ModuleContext::new();
             ctx.0.insert(
                 "b".into(),
-                Import(FunctionImport {
+                Import(FuncImport {
                     module: vec!["fs", "a"].into(),
                     ident: "b".into(),
                 }),
@@ -887,7 +886,7 @@ mod test {
             let mut ctx = ModuleContext::new();
             ctx.0.insert(
                 "b".into(),
-                Import(FunctionImport {
+                Import(FuncImport {
                     module: vec!["fs", "b"].into(),
                     ident: "c".into(),
                 }),
@@ -902,7 +901,7 @@ mod test {
             let mut ctx = ModuleContext::new();
             ctx.0.insert(
                 "b".into(),
-                Import(FunctionImport {
+                Import(FuncImport {
                     module: vec!["fs", "b"].into(),
                     ident: "c".into(),
                 }),
@@ -949,7 +948,7 @@ mod test {
         let mut expected = ModuleContext::new();
         expected.0.insert(
             "max".into(),
-            Import(FunctionImport {
+            Import(FuncImport {
                 module: vec!["std", "math"].into(),
                 ident: "max".into(),
             }),
@@ -983,7 +982,7 @@ mod test {
         assert!(func.is_some());
         assert_eq!(
             func.unwrap(),
-            Import(FunctionImport {
+            Import(FuncImport {
                 module: vec!["std", "math"].into(),
                 ident: "max".into(),
             })
@@ -1028,7 +1027,7 @@ mod test {
         let mut expected = ModuleContext::new();
         expected.0.insert(
             "c".into(),
-            Import(FunctionImport {
+            Import(FuncImport {
                 module: vec!["fs", "b"].into(),
                 ident: "d".into(),
             }),

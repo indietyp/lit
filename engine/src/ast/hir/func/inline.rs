@@ -1,7 +1,7 @@
 use crate::ast::context::CompileContext;
 use crate::ast::hir::func::decl::FuncDecl;
 use crate::ast::hir::func::types::{
-    FunctionContext, FunctionImport, FunctionInline, FunctionQualName, ModuleName,
+    FuncContext, FuncImport, FuncInline, FunctionQualName, ModuleName,
 };
 use crate::ast::hir::func::utils::{could_not_find_function, could_not_find_module};
 use crate::errors::{Error, ErrorCode, StdResult};
@@ -9,33 +9,21 @@ use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 
 pub trait Inline {
-    fn inline(
-        &self,
-        context: &mut CompileContext,
-        module: &ModuleName,
-    ) -> StdResult<FunctionInline>;
+    fn inline(&self, context: &mut CompileContext, module: &ModuleName) -> StdResult<FuncInline>;
 }
 
-impl Inline for FunctionContext {
-    fn inline(
-        &self,
-        context: &mut CompileContext,
-        module: &ModuleName,
-    ) -> StdResult<FunctionInline> {
+impl Inline for FuncContext {
+    fn inline(&self, context: &mut CompileContext, module: &ModuleName) -> StdResult<FuncInline> {
         match self {
-            FunctionContext::Import(imp) => imp.inline(context, module),
-            FunctionContext::Func(func) => func.inline(context, module),
-            FunctionContext::Inline(inline) => inline.inline(context, module),
+            FuncContext::Import(imp) => imp.inline(context, module),
+            FuncContext::Func(func) => func.inline(context, module),
+            FuncContext::Inline(inline) => inline.inline(context, module),
         }
     }
 }
 
-impl Inline for FunctionImport {
-    fn inline(
-        &self,
-        context: &mut CompileContext,
-        module: &ModuleName,
-    ) -> StdResult<FunctionInline> {
+impl Inline for FuncImport {
+    fn inline(&self, context: &mut CompileContext, module: &ModuleName) -> StdResult<FuncInline> {
         let qual: FunctionQualName = (self.module.clone(), self.ident.clone()).into();
 
         let module_ctx = context
@@ -49,25 +37,21 @@ impl Inline for FunctionImport {
         )?;
 
         match func_ctx {
-            FunctionContext::Import(imp) => imp.inline(context, &self.module),
-            FunctionContext::Func(func) => func.inline(context, module),
-            FunctionContext::Inline(inline) => inline.inline(context, module),
+            FuncContext::Import(imp) => imp.inline(context, &self.module),
+            FuncContext::Func(func) => func.inline(context, module),
+            FuncContext::Inline(inline) => inline.inline(context, module),
         }
     }
 }
 
-impl Inline for FunctionInline {
-    fn inline(&self, _: &mut CompileContext, _: &ModuleName) -> StdResult<FunctionInline> {
+impl Inline for FuncInline {
+    fn inline(&self, _: &mut CompileContext, _: &ModuleName) -> StdResult<FuncInline> {
         Ok(self.clone())
     }
 }
 
 impl Inline for FuncDecl {
-    fn inline(
-        &self,
-        context: &mut CompileContext,
-        module: &ModuleName,
-    ) -> StdResult<FunctionInline> {
+    fn inline(&self, context: &mut CompileContext, module: &ModuleName) -> StdResult<FuncInline> {
         let mut errors = vec![];
 
         // parse and unwrap the different needed values, doing this at the start
@@ -118,7 +102,7 @@ impl Inline for FuncDecl {
             //  this means that calls() get potentially double prefixed
             terms.prefix(context);
 
-            let inline = FunctionInline {
+            let inline = FuncInline {
                 lno: self.lno,
                 ident: func_name,
                 params,

@@ -8,13 +8,13 @@ use itertools::Itertools;
 use std::collections::HashSet;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct FunctionImport {
+pub struct FuncImport {
     pub module: ModuleName,
     pub ident: FunctionName,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct FunctionInline {
+pub struct FuncInline {
     pub lno: LineNo,
 
     pub ident: String,
@@ -27,9 +27,9 @@ pub struct FunctionInline {
 
 sum_type! {
     #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-    pub enum FunctionContext {
+    pub enum FuncContext {
         // This means it is an import
-        Import(FunctionImport),
+        Import(FuncImport),
 
         /// This means it is still a function,
         /// which needs to be inlined
@@ -37,7 +37,7 @@ sum_type! {
 
         /// This means it is already inlined
         /// and can be used
-        Inline(FunctionInline),
+        Inline(FuncInline),
     }
 }
 

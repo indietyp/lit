@@ -3,13 +3,11 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::ast::expr::Expr;
-use crate::ast::hir::func::types::FunctionInline;
 use crate::ast::hir::func::utils::unwrap_ident;
 use crate::ast::hir::Hir;
 use crate::errors::StdResult;
 use crate::types::LineNo;
 use crate::utils::check_errors;
-use crate::ast::context::CompileContext;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]

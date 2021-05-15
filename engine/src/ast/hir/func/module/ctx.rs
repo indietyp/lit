@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use crate::ast::hir::func::types::{FunctionContext, FunctionName};
+use crate::ast::hir::func::types::{FuncContext, FunctionName};
 
-pub type ModuleContextHashMap = HashMap<FunctionName, FunctionContext>;
+pub type ModuleContextHashMap = HashMap<FunctionName, FuncContext>;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModuleContext(pub ModuleContextHashMap);
 
@@ -14,7 +14,7 @@ impl ModuleContext {
         ModuleContext(HashMap::new())
     }
 
-    pub fn insert(&mut self, key: FunctionName, value: FunctionContext) -> Option<FunctionContext> {
+    pub fn insert(&mut self, key: FunctionName, value: FuncContext) -> Option<FuncContext> {
         self.0.insert(key, value)
     }
 }
