@@ -1337,4 +1337,50 @@ mod test {
 
         Ok(())
     }
+
+    #[test]
+    fn test_no_std_module() -> Result<(), Vec<Error>> {
+        let snip = indoc! {"
+        FROM std::oof::ono IMPORT c
+        "};
+
+        let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
+        let map = ModuleMap::from(ast, Directory::new());
+
+        let err = map.expect_err("Expected error, but somehow oof module exists?");
+        assert_eq!(err.len(), 1);
+        let err = err.first().cloned().expect("Expected at lease one error");
+
+        match err.variant {
+            ErrorVariant::ErrorCode(ErrorCode::CouldNotFindModule { module }) => {
+                assert_eq!(module, "std::oof::ono".to_string());
+            }
+            _ => panic!("Expected ErrorCode::CouldNotFindModule"),
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_no_fs_module() -> Result<(), Vec<Error>> {
+        let snip = indoc! {"
+        FROM fs::a IMPORT b
+        "};
+
+        let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
+        let map = ModuleMap::from(ast, Directory::new());
+
+        let err = map.expect_err("Expected error, but somehow oof module exists?");
+        assert_eq!(err.len(), 1);
+        let err = err.first().cloned().expect("Expected at lease one error");
+
+        match err.variant {
+            ErrorVariant::ErrorCode(ErrorCode::CouldNotFindModule { module }) => {
+                assert_eq!(module, "fs::a".to_string());
+            }
+            _ => panic!("Expected ErrorCode::CouldNotFindModule"),
+        }
+
+        Ok(())
+    }
 }
