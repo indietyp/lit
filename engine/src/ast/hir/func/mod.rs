@@ -1,17 +1,17 @@
-pub mod fs;
-pub mod lower;
-pub mod modctx;
-pub mod modmap;
-pub mod types;
+#[cfg(feature = "cli")]
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 use crate::ast::context::CompileContext;
 use crate::ast::expr::Expr;
 use crate::ast::hir::func::types::ModuleName;
 use crate::errors::StdResult;
 use crate::types::LineNo;
-#[cfg(feature = "cli")]
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
+
+pub mod fs;
+pub mod lower;
+pub mod module;
+pub mod types;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]

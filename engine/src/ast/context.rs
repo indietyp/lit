@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::ast::expr::Expr;
 use crate::ast::hir::func::fs::Directory;
-use crate::ast::hir::func::modmap::ModuleMap;
+use crate::ast::hir::func::module::map::ModuleMap;
 use crate::ast::hir::func::types::{FunctionQualName, ModuleName};
 use crate::ast::module::{FuncDecl, Module};
 use crate::errors::{Error, StdResult};

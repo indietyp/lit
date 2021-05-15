@@ -6,7 +6,7 @@ use itertools::Itertools;
 
 use crate::ast::expr::Expr;
 use crate::ast::hir::func::fs::Directory;
-use crate::ast::hir::func::modctx::{ModuleContext, ModuleContextHashMap};
+use crate::ast::hir::func::module::ctx::{ModuleContext, ModuleContextHashMap};
 use crate::ast::hir::func::types::{FunctionContext, FunctionImport, FunctionName, ModuleName};
 use crate::ast::hir::Hir;
 use crate::ast::module::{Imp, ImpFunc, Module};
@@ -794,8 +794,8 @@ mod test {
     use crate::ast::control::Control;
     use crate::ast::expr::Expr;
     use crate::ast::hir::func::fs::Directory;
-    use crate::ast::hir::func::modctx::ModuleContext;
-    use crate::ast::hir::func::modmap::ModuleMap;
+    use crate::ast::hir::func::module::ctx::ModuleContext;
+    use crate::ast::hir::func::module::map::ModuleMap;
     use crate::ast::hir::func::types::FunctionContext::{Func, Import};
     use crate::ast::hir::func::types::{FunctionContext, FunctionImport, ModuleName};
     use crate::ast::hir::Hir;
