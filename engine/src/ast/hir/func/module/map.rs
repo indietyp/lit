@@ -10,7 +10,7 @@ use crate::ast::expr::Expr;
 use crate::ast::hir::func::fs::Directory;
 use crate::ast::hir::func::imp::{Imp, ImpFunc};
 use crate::ast::hir::func::module::ctx::{ModuleContext, ModuleContextHashMap};
-use crate::ast::hir::func::types::{FuncContext, FuncImport, FunctionName, ModuleName};
+use crate::ast::hir::func::types::{FuncContext, FuncImport, FuncName, ModuleName};
 use crate::ast::hir::Hir;
 use crate::ast::module::Module;
 use crate::build::Builder;
@@ -216,7 +216,7 @@ impl ModuleMap {
 
         // add our functions declarations (if we have any)
         for func in &to.1.decl {
-            let name: FunctionName = match *func.ident.clone() {
+            let name: FuncName = match *func.ident.clone() {
                 Expr::Ident(m) => m,
                 _ => unreachable!(),
             }
@@ -449,7 +449,7 @@ impl ModuleMap {
             let (wildcard_context, imported) = res.unwrap();
             new.extend(imported);
 
-            let func_name: FunctionName = match *target.ident.clone() {
+            let func_name: FuncName = match *target.ident.clone() {
                 Expr::Ident(m) => m,
                 _ => unreachable!(),
             }
@@ -652,7 +652,7 @@ impl ModuleMap {
                 .unwrap_or_else(ModuleContext::new);
 
             for func in &module.decl {
-                let function_name: FunctionName = match *func.clone().ident {
+                let function_name: FuncName = match *func.clone().ident {
                     Expr::Ident(m) => m,
                     _ => unreachable!(),
                 }

@@ -1,16 +1,13 @@
-use crate::ast::context::CompileContext;
 use crate::ast::expr::Expr;
 use crate::ast::hir::func::decl::FuncDecl;
-use crate::ast::hir::func::utils::{could_not_find_function, could_not_find_module};
-use crate::errors::StdResult;
+
 use crate::types::LineNo;
 use itertools::Itertools;
-use std::collections::HashSet;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FuncImport {
     pub module: ModuleName,
-    pub ident: FunctionName,
+    pub ident: FuncName,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -53,19 +50,19 @@ impl ModuleName {
 }
 
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord, Hash)]
-pub struct FunctionName(pub String);
-NewtypeDeref! {() pub struct FunctionName(pub String); }
-NewtypeDerefMut! {() pub struct FunctionName(pub String); }
+pub struct FuncName(pub String);
+NewtypeDeref! {() pub struct FuncName(pub String); }
+NewtypeDerefMut! {() pub struct FuncName(pub String); }
 
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord, Hash)]
-pub struct FunctionAlias(pub String);
-NewtypeDeref! {() pub struct FunctionAlias(pub String); }
-NewtypeDerefMut! {() pub struct FunctionAlias(pub String); }
+pub struct FuncAlias(pub String);
+NewtypeDeref! {() pub struct FuncAlias(pub String); }
+NewtypeDerefMut! {() pub struct FuncAlias(pub String); }
 
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord, Hash)]
-pub struct FunctionQualName(pub String);
-NewtypeDeref! {() pub struct FunctionQualName(pub String); }
-NewtypeDerefMut! {() pub struct FunctionQualName(pub String); }
+pub struct FuncQualName(pub String);
+NewtypeDeref! {() pub struct FuncQualName(pub String); }
+NewtypeDerefMut! {() pub struct FuncQualName(pub String); }
 
 impl From<Vec<String>> for ModuleName {
     fn from(val: Vec<String>) -> Self {
@@ -77,28 +74,28 @@ impl From<Vec<&str>> for ModuleName {
         Self(val.iter().map(|v| v.to_string()).collect())
     }
 }
-impl From<String> for FunctionName {
+impl From<String> for FuncName {
     fn from(val: String) -> Self {
         Self(val)
     }
 }
-impl From<&str> for FunctionName {
+impl From<&str> for FuncName {
     fn from(val: &str) -> Self {
         Self(val.into())
     }
 }
-impl From<String> for FunctionQualName {
+impl From<String> for FuncQualName {
     fn from(val: String) -> Self {
         Self(val)
     }
 }
-impl From<&str> for FunctionQualName {
+impl From<&str> for FuncQualName {
     fn from(val: &str) -> Self {
         Self(val.into())
     }
 }
-impl From<(ModuleName, FunctionName)> for FunctionQualName {
-    fn from((module, func): (ModuleName, FunctionName)) -> Self {
+impl From<(ModuleName, FuncName)> for FuncQualName {
+    fn from((module, func): (ModuleName, FuncName)) -> Self {
         Self(
             module
                 .0

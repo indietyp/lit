@@ -1,12 +1,10 @@
 use crate::ast::context::CompileContext;
 use crate::ast::hir::func::decl::FuncDecl;
-use crate::ast::hir::func::types::{
-    FuncContext, FuncImport, FuncInline, FunctionQualName, ModuleName,
-};
+use crate::ast::hir::func::types::{FuncContext, FuncImport, FuncInline, FuncQualName, ModuleName};
 use crate::ast::hir::func::utils::{could_not_find_function, could_not_find_module};
 use crate::errors::{Error, ErrorCode, StdResult};
 use itertools::Itertools;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 pub trait Inline {
     fn inline(&self, context: &mut CompileContext, module: &ModuleName) -> StdResult<FuncInline>;
@@ -24,7 +22,7 @@ impl Inline for FuncContext {
 
 impl Inline for FuncImport {
     fn inline(&self, context: &mut CompileContext, module: &ModuleName) -> StdResult<FuncInline> {
-        let qual: FunctionQualName = (self.module.clone(), self.ident.clone()).into();
+        let qual: FuncQualName = (self.module.clone(), self.ident.clone()).into();
 
         let module_ctx = context
             .modules

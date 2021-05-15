@@ -6,7 +6,7 @@ use crate::ast::expr::Expr;
 use crate::ast::hir::func::decl::FuncDecl;
 use crate::ast::hir::func::fs::Directory;
 use crate::ast::hir::func::module::map::ModuleMap;
-use crate::ast::hir::func::types::{FunctionQualName, ModuleName};
+use crate::ast::hir::func::types::{FuncQualName, ModuleName};
 use crate::ast::module::Module;
 use crate::errors::{Error, StdResult};
 use crate::flags::CompileFlags;
@@ -23,7 +23,7 @@ impl Default for CompileLocalContext {
 #[derive(Debug, Clone)]
 pub struct CompileContext {
     counter: usize,
-    inline_counter: HashMap<FunctionQualName, usize>,
+    inline_counter: HashMap<FuncQualName, usize>,
 
     // implement a call stack of some sorts when lowering
     // .call() which also gives you a new CompileContext?
@@ -54,11 +54,11 @@ impl CompileContext {
     }
 }
 
-type CallStack = Vec<FunctionQualName>;
+type CallStack = Vec<FuncQualName>;
 impl CompileContext {
     pub fn call<T>(
         &mut self,
-        qual: FunctionQualName,
+        qual: FuncQualName,
         func: impl Fn(&mut CompileContext, &CallStack, &mut CompileLocalContext) -> StdResult<T>,
     ) -> StdResult<T> {
         if self.stack_ctx.is_none() {
@@ -86,7 +86,7 @@ impl CompileContext {
         cur
     }
 
-    fn incr_inline(&mut self, func: FunctionQualName) -> usize {
+    fn incr_inline(&mut self, func: FuncQualName) -> usize {
         let mut cur = self.inline_counter.get(&func).cloned().unwrap_or(0);
         cur += 1;
         self.inline_counter.insert(func, cur);
@@ -114,7 +114,7 @@ impl CompileContext {
         )?;
 
         let func_name = func.get_ident()?;
-        let qual_name: FunctionQualName = (module.clone(), func_name.into()).into();
+        let qual_name: FuncQualName = (module.clone(), func_name.into()).into();
 
         let name = format!(
             "_{}_{}_{}__{}",

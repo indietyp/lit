@@ -1,5 +1,5 @@
 use crate::ast::expr::Expr;
-use crate::ast::hir::func::types::{FunctionName, ModuleName};
+use crate::ast::hir::func::types::{FuncName, ModuleName};
 use crate::errors::{Error, ErrorCode, StdResult};
 use crate::types::LineNo;
 
@@ -33,7 +33,7 @@ pub fn could_not_find_module(lno: Option<LineNo>, module: &ModuleName) -> Vec<Er
 pub fn could_not_find_function(
     lno: Option<LineNo>,
     module: &ModuleName,
-    function: &FunctionName,
+    function: &FuncName,
 ) -> Vec<Error> {
     vec![Error::new_from_code(
         lno,
