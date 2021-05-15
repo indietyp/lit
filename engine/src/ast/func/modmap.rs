@@ -720,6 +720,7 @@ impl ModuleMap {
         };
 
         let mut ptr = 0;
+        // stack of modules to resolve()
         let mut stack: Vec<_> = modules
             .keys()
             .cloned()
@@ -1067,8 +1068,7 @@ mod test {
         let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
         let map = ModuleMap::from(ast, dir);
 
-        assert!(map.is_err());
-        let err = map.unwrap_err();
+        let err = map.expect_err("Expected error, but got Ok.");
         assert_eq!(err.len(), 2);
 
         let err = match err.first() {
@@ -1102,17 +1102,145 @@ mod test {
     }
 
     #[test]
-    fn test_import_name_clash() {
-        todo!()
+    fn test_import_name_clash() -> Result<(), Vec<Error>> {
+        let snip = indoc! {"
+        FROM fs::a IMPORT d
+        FROM fs::b IMPORT d
+        FROM fs::a IMPORT d
+        FROM fs::b IMPORT d
+        "};
+
+        let module_a = indoc! {"
+        FN d(d) -> e DECL
+            ...
+        END
+        "};
+        let module_b = indoc! {"
+        FN d(d) -> e DECL
+            ...
+        END
+        "};
+
+        let mut dir = Directory::new();
+        dir.insert("a".to_string(), module_a.to_string().into());
+        dir.insert("b".to_string(), module_b.to_string().into());
+
+        let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
+        let map = ModuleMap::from(ast, dir);
+
+        let err = map.expect_err("Expected error, but got Ok.");
+        assert_eq!(err.len(), 1);
+
+        let err = match err.first() {
+            Some(err) => err.clone(),
+            _ => unreachable!(),
+        };
+
+        let (module, func, count) = match err.variant {
+            ErrorVariant::ErrorCode(ErrorCode::FunctionNameCollision {
+                module,
+                func,
+                count,
+            }) => (module, func, count),
+            _ => panic!("Variant was not FunctionNameCollision!"),
+        };
+
+        let count = count.expect("Expected count, but have None.");
+        assert_eq!(module, "fs::main".to_string());
+        assert_eq!(func, "d".to_string());
+        assert_eq!(count, 4);
+
+        Ok(())
     }
 
     #[test]
-    fn test_fn_name_clash() {
-        todo!()
+    fn test_fn_name_clash() -> Result<(), Vec<Error>> {
+        let snip = indoc! {"
+        FN d(d) -> e DECL
+            ...
+        END
+
+        FN d(d) -> e DECL
+            ...
+        END
+
+        FN d(d) -> e DECL
+            ...
+        END
+        "};
+
+        let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
+        let map = ModuleMap::from(ast, Directory::new());
+
+        let err = map.expect_err("Expected error, but somehow test passed?");
+        assert_eq!(err.len(), 1);
+        let err = err
+            .first()
+            .cloned()
+            .expect("Expected single error, but got None?");
+
+        let (module, func, count) = match err.variant {
+            ErrorVariant::ErrorCode(ErrorCode::FunctionNameCollision {
+                module,
+                func,
+                count,
+            }) => (module, func, count),
+            _ => panic!("Variant was not FunctionNameCollision!"),
+        };
+
+        let count = count.expect("Expected count, but have None.");
+        assert_eq!(module, "fs::main".to_string());
+        assert_eq!(func, "d".to_string());
+        assert_eq!(count, 3);
+
+        Ok(())
     }
 
     #[test]
-    fn test_wildcard_name_clash() {
-        todo!()
+    fn test_wildcard_name_clash() -> Result<(), Vec<Error>> {
+        let snip = indoc! {"
+        FROM fs::a IMPORT *
+        FROM fs::b IMPORT *
+        "};
+
+        let module_a = indoc! {"
+        FN d(d) -> e DECL
+            ...
+        END
+        "};
+        let module_b = indoc! {"
+        FN d(d) -> e DECL
+            ...
+        END
+        "};
+
+        let mut dir = Directory::new();
+        dir.insert("a".to_string(), module_a.to_string().into());
+        dir.insert("b".to_string(), module_b.to_string().into());
+
+        let ast = Builder::parse(snip, None).map_err(|err| vec![Error::new_from_parse(err)])?;
+        let map = ModuleMap::from(ast, dir);
+
+        let err = map.expect_err("Expected error, but somehow test passed?");
+        assert_eq!(err.len(), 1);
+        let err = err
+            .first()
+            .cloned()
+            .expect("Expected single error, but got None?");
+
+        let (module, func, count) = match err.variant {
+            ErrorVariant::ErrorCode(ErrorCode::FunctionNameCollision {
+                module,
+                func,
+                count,
+            }) => (module, func, count),
+            _ => panic!("Variant was not FunctionNameCollision!"),
+        };
+
+        assert_eq!(module, "fs::main".to_string());
+        assert_eq!(func, "d".to_string());
+        assert_eq!(count, None);
+
+        Ok(())
     }
 }

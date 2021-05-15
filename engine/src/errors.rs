@@ -85,7 +85,7 @@ This is a super hacky way to deserialize and
 import information from Pest Errors into Serde,
 this isn't perfect nor good, but the only way I could come up with
 */
-
+type LineCol = (usize, usize);
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 pub enum PestErrorInfo {
     Error {
@@ -99,7 +99,7 @@ pub enum PestErrorInfo {
     },
     ErrorVariantCustomError(String),
     InputLocation(Either<usize, (usize, usize)>),
-    LineColLocation(Either<(usize, usize), ((usize, usize), (usize, usize))>),
+    LineColLocation(Either<LineCol, (LineCol, LineCol)>),
 }
 
 trait ExtractInformation {
