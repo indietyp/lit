@@ -1,5 +1,5 @@
 use crate::ast::expr::Expr;
-use crate::ast::module::FuncDecl;
+use crate::ast::hir::func::decl::FuncDecl;
 use crate::types::LineNo;
 use itertools::Itertools;
 

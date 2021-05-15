@@ -1,13 +1,15 @@
 use std::collections::HashMap;
 
+use either::Either;
+
 use crate::ast::expr::Expr;
+use crate::ast::hir::func::decl::FuncDecl;
 use crate::ast::hir::func::fs::Directory;
 use crate::ast::hir::func::module::map::ModuleMap;
 use crate::ast::hir::func::types::{FunctionQualName, ModuleName};
-use crate::ast::module::{FuncDecl, Module};
+use crate::ast::module::Module;
 use crate::errors::{Error, StdResult};
 use crate::flags::CompileFlags;
-use either::Either;
 
 #[derive(Debug, Clone)]
 pub struct CompileContext {

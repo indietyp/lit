@@ -7,10 +7,12 @@ use pest_consume::Parser;
 
 use crate::ast::control::Control;
 use crate::ast::expr::Expr;
+use crate::ast::hir::func::decl::FuncDecl;
+use crate::ast::hir::func::imp::{Imp, ImpFunc, ImpWildcard};
 use crate::ast::hir::func::{Func, FuncCall};
 use crate::ast::hir::macros::{Macro, MacroAssign};
 use crate::ast::hir::Hir;
-use crate::ast::module::{FuncDecl, Imp, ImpFunc, ImpWildcard, Module};
+use crate::ast::module::Module;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::types::LineNo;

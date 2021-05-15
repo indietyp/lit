@@ -4,11 +4,14 @@ use serde::{Deserialize, Serialize};
 
 use crate::ast::context::CompileContext;
 use crate::ast::expr::Expr;
+use crate::ast::hir::func::lower::lower_call;
 use crate::ast::hir::func::types::ModuleName;
 use crate::errors::StdResult;
 use crate::types::LineNo;
 
+pub mod decl;
 pub mod fs;
+pub mod imp;
 pub mod lower;
 pub mod module;
 pub mod types;
@@ -42,6 +45,14 @@ impl Func {
         context: &mut CompileContext,
         module: Option<ModuleName>,
     ) -> StdResult<Expr> {
-        todo!()
+        match self {
+            Func::Call { lno, lhs, rhs } => lower_call(
+                context,
+                module.unwrap_or(ModuleName::main()),
+                *lno,
+                *lhs.clone(),
+                rhs.clone(),
+            ),
+        }
     }
 }

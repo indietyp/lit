@@ -1,20 +1,21 @@
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::fs::read_to_string;
+use std::path::PathBuf;
 
 use either::Either;
 use itertools::Itertools;
 
 use crate::ast::expr::Expr;
 use crate::ast::hir::func::fs::Directory;
+use crate::ast::hir::func::imp::{Imp, ImpFunc};
 use crate::ast::hir::func::module::ctx::{ModuleContext, ModuleContextHashMap};
 use crate::ast::hir::func::types::{FunctionContext, FunctionImport, FunctionName, ModuleName};
 use crate::ast::hir::Hir;
-use crate::ast::module::{Imp, ImpFunc, Module};
+use crate::ast::module::Module;
 use crate::build::Builder;
 use crate::errors::{Error, ErrorCode, ErrorVariant};
 use crate::utils::check_errors;
-use std::cmp::Ordering;
-use std::path::PathBuf;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModuleMap(pub ModuleHashMap);
@@ -793,13 +794,13 @@ mod test {
 
     use crate::ast::control::Control;
     use crate::ast::expr::Expr;
+    use crate::ast::hir::func::decl::FuncDecl;
     use crate::ast::hir::func::fs::Directory;
     use crate::ast::hir::func::module::ctx::ModuleContext;
     use crate::ast::hir::func::module::map::ModuleMap;
     use crate::ast::hir::func::types::FunctionContext::{Func, Import};
     use crate::ast::hir::func::types::{FunctionContext, FunctionImport, ModuleName};
     use crate::ast::hir::Hir;
-    use crate::ast::module::FuncDecl;
     use crate::build::Builder;
     use crate::errors::{Error, ErrorCode, ErrorVariant};
 
