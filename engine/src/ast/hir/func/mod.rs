@@ -13,6 +13,7 @@ use crate::types::LineNo;
 pub mod decl;
 pub mod fs;
 pub mod imp;
+pub mod inline;
 pub mod lower;
 pub mod module;
 pub mod types;

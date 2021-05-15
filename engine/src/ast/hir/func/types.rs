@@ -1,7 +1,11 @@
+use crate::ast::context::CompileContext;
 use crate::ast::expr::Expr;
 use crate::ast::hir::func::decl::FuncDecl;
+use crate::ast::hir::func::utils::{could_not_find_function, could_not_find_module};
+use crate::errors::StdResult;
 use crate::types::LineNo;
 use itertools::Itertools;
+use std::collections::HashSet;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FunctionImport {

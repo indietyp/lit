@@ -1,4 +1,5 @@
 use crate::ast::expr::Expr;
+use crate::ast::hir::func::types::{FunctionName, ModuleName};
 use crate::errors::{Error, ErrorCode, StdResult};
 use crate::types::LineNo;
 
@@ -18,4 +19,27 @@ pub fn unwrap_ident(
             },
         )]),
     }
+}
+
+pub fn could_not_find_module(lno: Option<LineNo>, module: &ModuleName) -> Vec<Error> {
+    vec![Error::new_from_code(
+        lno,
+        ErrorCode::CouldNotFindModule {
+            module: module.join("::"),
+        },
+    )]
+}
+
+pub fn could_not_find_function(
+    lno: Option<LineNo>,
+    module: &ModuleName,
+    function: &FunctionName,
+) -> Vec<Error> {
+    vec![Error::new_from_code(
+        lno,
+        ErrorCode::CouldNotFindFunction {
+            module: module.join("::"),
+            func: function.to_string(),
+        },
+    )]
 }
