@@ -17,9 +17,12 @@ use crate::build::Builder;
 use crate::errors::{Error, ErrorCode, ErrorVariant};
 use crate::utils::check_errors;
 
+pub type ModuleHashMap = HashMap<ModuleName, ModuleContext>;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ModuleMap(pub ModuleHashMap);
-pub type ModuleHashMap = HashMap<ModuleName, ModuleContext>;
+
+NewtypeDeref! {() pub struct ModuleMap(pub ModuleHashMap); }
+NewtypeDerefMut! {() pub struct ModuleMap(pub ModuleHashMap); }
 
 type ImpFuncKeyFrom = (Vec<String>, Module);
 type ImpFuncKey = (ImpFuncKeyFrom, ImpFunc);

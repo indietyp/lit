@@ -6,6 +6,7 @@ use crate::ast::context::CompileContext;
 use crate::ast::expr::Expr;
 use crate::ast::hir::func::lower::lower_call;
 use crate::ast::hir::func::types::ModuleName;
+use crate::ast::hir::func::utils::unwrap_ident;
 use crate::errors::StdResult;
 use crate::types::LineNo;
 
@@ -22,6 +23,14 @@ pub mod utils;
 pub struct FuncCall {
     pub ident: Box<Expr>,
     pub args: Vec<Expr>,
+}
+
+impl FuncCall {
+    pub fn get_ident(&self) -> StdResult<String> {
+        unwrap_ident(None, *self.ident, |expr| {
+            format!("Function call expected ident, got {}", expr.to_string())
+        })
+    }
 }
 
 // TODO: Func recursion detection on expand
