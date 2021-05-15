@@ -1,5 +1,5 @@
 use crate::ast::control::Control;
-use crate::ast::node::Node;
+use crate::ast::expr::Expr;
 use crate::eval::comp::ComparisonExec;
 use crate::eval::exec::Exec;
 use crate::eval::types::{ChangeSet, Variables};
@@ -47,9 +47,9 @@ impl WhileExec {
         value
     }
 
-    pub fn new(node: Node) -> Self {
+    pub fn new(node: Expr) -> Self {
         match node {
-            Node::Control(Control::While { comp, terms, lno }) => WhileExec {
+            Expr::Control(Control::While { comp, terms, lno }) => WhileExec {
                 lno,
                 comp: ComparisonExec::new(*comp),
                 terms: Box::new(Exec::new(*terms)),

@@ -1,16 +1,16 @@
 mod comp;
-mod expand;
+mod lower;
 
 use crate::ast::context::CompileContext;
 
-use crate::ast::node::Node;
-use crate::ast::polluted::PollutedNode;
+use crate::ast::expr::Expr;
+use crate::ast::hir::Hir;
 use crate::ast::verbs::OperatorVerb;
 
-use crate::ast::macros::comp::expand_cond;
-use crate::ast::macros::expand::{
-    expand_assign_to_ident, expand_assign_to_ident_binop_ident,
-    expand_assign_to_ident_extbinop_value, expand_assign_to_value, expand_assign_to_zero,
+use crate::ast::macros::comp::lower_cond;
+use crate::ast::macros::lower::{
+    lower_assign_to_ident, lower_assign_to_ident_binop_ident, lower_assign_to_ident_extbinop_value,
+    lower_assign_to_value, lower_assign_to_zero,
 };
 use crate::errors::Error;
 use crate::types::LineNo;
@@ -24,9 +24,9 @@ use schemars::JsonSchema;
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct MacroAssign {
-    pub lhs: Box<Node>,
+    pub lhs: Box<Expr>,
     pub verb: OperatorVerb,
-    pub rhs: Box<Node>,
+    pub rhs: Box<Expr>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
@@ -34,58 +34,58 @@ pub struct MacroAssign {
 pub enum Macro {
     AssignToIdent {
         lno: LineNo,
-        lhs: Box<Node>,
-        rhs: Box<Node>,
+        lhs: Box<Expr>,
+        rhs: Box<Expr>,
     },
     AssignToZero {
         lno: LineNo,
-        lhs: Box<Node>,
+        lhs: Box<Expr>,
     },
     AssignToValue {
         lno: LineNo,
-        lhs: Box<Node>,
-        rhs: Box<Node>,
+        lhs: Box<Expr>,
+        rhs: Box<Expr>,
     },
     AssignToIdentBinOpIdent {
         lno: LineNo,
-        lhs: Box<Node>,
+        lhs: Box<Expr>,
         rhs: MacroAssign,
     },
     AssignToIdentExtBinOpValue {
         lno: LineNo,
-        lhs: Box<Node>,
+        lhs: Box<Expr>,
         rhs: MacroAssign,
     },
     Conditional {
         lno: LineNo,
-        comp: Box<Node>,
-        if_terms: Box<PollutedNode>,
-        else_terms: Box<Option<PollutedNode>>,
+        comp: Box<Expr>,
+        if_terms: Box<Hir>,
+        else_terms: Box<Option<Hir>>,
     },
 }
 
 impl Macro {
-    pub fn expand(&self, context: &mut CompileContext) -> Result<Node, Vec<Error>> {
+    pub fn lower(&self, context: &mut CompileContext) -> Result<Expr, Vec<Error>> {
         match self {
             Macro::AssignToIdent { lno, lhs, rhs } => {
-                expand_assign_to_ident(lno.clone(), context, lhs, rhs)
+                lower_assign_to_ident(*lno, context, lhs, rhs)
             }
-            Macro::AssignToZero { lno, lhs } => expand_assign_to_zero(lno.clone(), context, lhs),
+            Macro::AssignToZero { lno, lhs } => lower_assign_to_zero(*lno, context, lhs),
             Macro::AssignToValue { lno, lhs, rhs } => {
-                expand_assign_to_value(lno.clone(), context, lhs, rhs)
+                lower_assign_to_value(*lno, context, lhs, rhs)
             }
             Macro::AssignToIdentBinOpIdent { lno, lhs, rhs } => {
-                expand_assign_to_ident_binop_ident(lno.clone(), context, lhs, rhs)
+                lower_assign_to_ident_binop_ident(*lno, context, lhs, rhs)
             }
             Macro::AssignToIdentExtBinOpValue { lno, lhs, rhs } => {
-                expand_assign_to_ident_extbinop_value(lno.clone(), context, lhs, rhs)
+                lower_assign_to_ident_extbinop_value(*lno, context, lhs, rhs)
             }
             Macro::Conditional {
                 lno,
                 comp,
                 if_terms,
                 else_terms,
-            } => expand_cond(lno.clone(), context, comp, if_terms, else_terms),
+            } => lower_cond(*lno, context, comp, if_terms, else_terms),
         }
     }
 }

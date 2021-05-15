@@ -3,7 +3,7 @@ pub mod modctx;
 pub mod modmap;
 pub mod types;
 
-use crate::ast::node::Node;
+use crate::ast::expr::Expr;
 use crate::types::LineNo;
 #[cfg(feature = "cli")]
 use schemars::JsonSchema;
@@ -12,8 +12,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct FuncCall {
-    pub ident: Box<Node>,
-    pub args: Vec<Node>,
+    pub ident: Box<Expr>,
+    pub args: Vec<Expr>,
 }
 
 // TODO: Func recursion detection on expand
@@ -27,7 +27,7 @@ pub enum Func {
     Call {
         lno: LineNo,
 
-        lhs: Box<Node>,
+        lhs: Box<Expr>,
         rhs: FuncCall,
     },
 }

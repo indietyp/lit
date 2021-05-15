@@ -2,8 +2,8 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::ast::node::Node;
-use crate::ast::polluted::PollutedNode;
+use crate::ast::expr::Expr;
+use crate::ast::hir::Hir;
 use crate::types::LineNo;
 use either::Either;
 
@@ -12,11 +12,11 @@ use either::Either;
 pub struct FuncDecl {
     pub lno: LineNo,
 
-    pub ident: Box<Node>,
-    pub params: Vec<Node>,
-    pub ret: Box<Node>,
+    pub ident: Box<Expr>,
+    pub params: Vec<Expr>,
+    pub ret: Box<Expr>,
 
-    pub terms: Box<PollutedNode>,
+    pub terms: Box<Hir>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
@@ -26,8 +26,8 @@ pub struct ImpWildcard {}
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct ImpFunc {
-    pub ident: Box<Node>,
-    pub alias: Option<Box<Node>>,
+    pub ident: Box<Expr>,
+    pub alias: Option<Box<Expr>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
@@ -35,7 +35,7 @@ pub struct ImpFunc {
 pub struct Imp {
     pub lno: LineNo,
 
-    pub path: Vec<Node>,
+    pub path: Vec<Expr>,
     pub funcs: Either<Vec<ImpFunc>, ImpWildcard>,
 }
 
@@ -60,5 +60,5 @@ pub struct Module {
     pub decl: Vec<FuncDecl>,
 
     // actual code that is run on execution
-    pub code: PollutedNode,
+    pub code: Hir,
 }

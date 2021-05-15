@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
 
 // Control Structures have in their body potentially
-// polluted information, these need to changed/unpolluted via
+// hir information, these need to changed/unpolluted via
 // macro expansion
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]

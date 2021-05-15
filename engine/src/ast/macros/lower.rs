@@ -2,9 +2,9 @@ use indoc::indoc;
 use num_bigint::BigUint;
 
 use crate::ast::context::CompileContext;
+use crate::ast::expr::Expr;
+use crate::ast::hir::Hir;
 use crate::ast::macros::MacroAssign;
-use crate::ast::node::Node;
-use crate::ast::polluted::PollutedNode;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::OperatorVerb;
 use crate::build::Builder;
@@ -13,23 +13,23 @@ use crate::flags::CompilationFlags;
 use crate::types::LineNo;
 use crate::utils::private_identifier;
 
-pub(crate) fn box_ident(ident: String) -> Box<PollutedNode> {
-    Box::new(PollutedNode::Pure(Node::Ident(ident)))
+pub(crate) fn box_ident(ident: String) -> Box<Hir> {
+    Box::new(Hir::Expr(Expr::Ident(ident)))
 }
 
 // Macro expansion for x := y
-pub(crate) fn expand_assign_to_ident(
+pub(crate) fn lower_assign_to_ident(
     lno: LineNo,
     context: &CompileContext,
-    lhs: &Node,
-    rhs: &Node,
-) -> Result<Node, Vec<Error>> {
+    lhs: &Expr,
+    rhs: &Expr,
+) -> Result<Expr, Vec<Error>> {
     let lhs = match lhs.clone() {
-        Node::Ident(m) => m,
+        Expr::Ident(m) => m,
         _ => unreachable!(),
     };
     let rhs = match rhs.clone() {
-        Node::Ident(m) => m,
+        Expr::Ident(m) => m,
         _ => unreachable!(),
     };
 
@@ -41,13 +41,13 @@ pub(crate) fn expand_assign_to_ident(
 }
 
 // Macro expansion for x := 0
-pub(crate) fn expand_assign_to_zero(
+pub(crate) fn lower_assign_to_zero(
     lno: LineNo,
     context: &CompileContext,
-    lhs: &Node,
-) -> Result<Node, Vec<Error>> {
+    lhs: &Expr,
+) -> Result<Expr, Vec<Error>> {
     let lhs = match lhs.clone() {
-        Node::Ident(m) => m,
+        Expr::Ident(m) => m,
         _ => unreachable!(),
     };
 
@@ -73,19 +73,19 @@ pub(crate) fn expand_assign_to_zero(
 }
 
 // Macro expansion for x := n
-pub(crate) fn expand_assign_to_value(
+pub(crate) fn lower_assign_to_value(
     lno: LineNo,
     context: &CompileContext,
-    lhs: &Node,
-    rhs: &Node,
-) -> Result<Node, Vec<Error>> {
+    lhs: &Expr,
+    rhs: &Expr,
+) -> Result<Expr, Vec<Error>> {
     let lhs = match lhs.clone() {
-        Node::Ident(m) => m,
+        Expr::Ident(m) => m,
         _ => unreachable!(),
     };
 
     let rhs = match rhs.clone() {
-        Node::NaturalNumber(UInt(n)) => n,
+        Expr::NaturalNumber(UInt(n)) => n,
         _ => unreachable!(),
     };
 
@@ -119,7 +119,7 @@ fn expand_assign_to_ident_simple_ident(
     y: String,
     op: OperatorVerb,
     z: String,
-) -> Result<Node, Vec<Error>> {
+) -> Result<Expr, Vec<Error>> {
     let instruction = format!(
         indoc! {"
         {x} := {y}
@@ -143,7 +143,7 @@ fn expand_assign_to_ident_mul_ident(
     x: String,
     y: String,
     z: String,
-) -> Result<Node, Vec<Error>> {
+) -> Result<Expr, Vec<Error>> {
     let instruction = format!(
         indoc! {"
         {x} := 0
@@ -160,24 +160,24 @@ fn expand_assign_to_ident_mul_ident(
 }
 
 // Macro expansion for x := y (+|-|*) z
-pub(crate) fn expand_assign_to_ident_binop_ident(
+pub(crate) fn lower_assign_to_ident_binop_ident(
     lno: LineNo,
     context: &CompileContext,
-    lhs: &Node,
+    lhs: &Expr,
     rhs: &MacroAssign,
-) -> Result<Node, Vec<Error>> {
+) -> Result<Expr, Vec<Error>> {
     let lhs = match lhs.clone() {
-        Node::Ident(m) => m,
+        Expr::Ident(m) => m,
         _ => unreachable!(),
     };
 
     let binop_lhs = match *rhs.lhs.clone() {
-        Node::Ident(m) => m,
+        Expr::Ident(m) => m,
         _ => unreachable!(),
     };
 
     let binop_rhs = match *rhs.rhs.clone() {
-        Node::Ident(m) => m,
+        Expr::Ident(m) => m,
         _ => unreachable!(),
     };
 
@@ -200,7 +200,7 @@ fn expand_assign_to_ident_mul_value(
     x: String,
     y: String,
     n: BigUint,
-) -> Result<Node, Vec<Error>> {
+) -> Result<Expr, Vec<Error>> {
     let tmp = private_identifier(context);
 
     let instruction = format!(
@@ -218,24 +218,24 @@ fn expand_assign_to_ident_mul_value(
 }
 
 // Macro expansion for x := y (*|...) n
-pub(crate) fn expand_assign_to_ident_extbinop_value(
+pub(crate) fn lower_assign_to_ident_extbinop_value(
     lno: LineNo,
     context: &mut CompileContext,
-    lhs: &Node,
+    lhs: &Expr,
     rhs: &MacroAssign,
-) -> Result<Node, Vec<Error>> {
+) -> Result<Expr, Vec<Error>> {
     let lhs = match lhs.clone() {
-        Node::Ident(m) => m,
+        Expr::Ident(m) => m,
         _ => unreachable!(),
     };
 
     let binop_lhs = match *rhs.lhs.clone() {
-        Node::Ident(m) => m,
+        Expr::Ident(m) => m,
         _ => unreachable!(),
     };
 
     let binop_rhs = match *rhs.rhs.clone() {
-        Node::NaturalNumber(UInt(n)) => n,
+        Expr::NaturalNumber(UInt(n)) => n,
         _ => unreachable!(),
     };
 

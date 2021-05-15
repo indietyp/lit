@@ -6,11 +6,11 @@ use pest_consume::Error;
 use pest_consume::Parser;
 
 use crate::ast::control::Control;
+use crate::ast::expr::Expr;
 use crate::ast::func::{Func, FuncCall};
+use crate::ast::hir::Hir;
 use crate::ast::macros::{Macro, MacroAssign};
 use crate::ast::module::{FuncDecl, Imp, ImpFunc, ImpWildcard, Module};
-use crate::ast::node::Node;
-use crate::ast::polluted::PollutedNode;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::types::LineNo;
@@ -40,12 +40,12 @@ impl LoopParserHelpers {
             .unwrap_or((span.start_pos().line_col().0, span.end_pos().line_col().0))
     }
 
-    fn parse_comp(input: ParseNode) -> ParseResult<Node> {
+    fn parse_comp(input: ParseNode) -> ParseResult<Expr> {
         let (lhs, verb, rhs) = match_nodes!(<LoopParser>; input.into_children();
             [atom(lhs), verb, atom(rhs)] => (lhs, verb, rhs)
         );
 
-        Ok(Node::Comparison {
+        Ok(Expr::Comparison {
             lhs: Box::new(lhs),
             verb: ComparisonVerb::from(verb.as_str()),
             rhs: Box::new(rhs),
@@ -58,97 +58,97 @@ impl LoopParserHelpers {
 impl LoopParser {
     // Terminal Values
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn EOI(_input: ParseNode) -> ParseResult<PollutedNode> {
-        Ok(PollutedNode::NoOp)
+    fn EOI(_input: ParseNode) -> ParseResult<Hir> {
+        Ok(Hir::NoOp)
     }
 
     #[alias(expr)]
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn ELLIPSIS(_input: ParseNode) -> ParseResult<PollutedNode> {
-        Ok(PollutedNode::NoOp)
+    fn ELLIPSIS(_input: ParseNode) -> ParseResult<Hir> {
+        Ok(Hir::NoOp)
     }
 
     // Atoms (smallest unit)
     #[alias(atom)]
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn IDENT(input: ParseNode) -> ParseResult<Node> {
-        Ok(Node::Ident(input.as_str().to_string()))
+    fn IDENT(input: ParseNode) -> ParseResult<Expr> {
+        Ok(Expr::Ident(input.as_str().to_string()))
     }
 
     #[alias(atom)]
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn VALUE(input: ParseNode) -> ParseResult<Node> {
+    fn VALUE(input: ParseNode) -> ParseResult<Expr> {
         input
             .as_str()
             .parse::<BigUint>()
-            .map(|u| Node::NaturalNumber(UInt(u)))
+            .map(|u| Expr::NaturalNumber(UInt(u)))
             .map_err(|e| input.error(e))
     }
 
     #[alias(atom)]
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn ZERO(_input: ParseNode) -> ParseResult<Node> {
-        Ok(Node::NaturalNumber(UInt(BigUint::zero())))
+    fn ZERO(_input: ParseNode) -> ParseResult<Expr> {
+        Ok(Expr::NaturalNumber(UInt(BigUint::zero())))
     }
 
     // Comparisons
     #[alias(comp)]
     #[allow(non_snake_case)]
-    fn compEqual(input: ParseNode) -> ParseResult<Node> {
+    fn compEqual(input: ParseNode) -> ParseResult<Expr> {
         LoopParserHelpers::parse_comp(input)
     }
 
     #[alias(comp)]
     #[allow(non_snake_case)]
-    fn compNotEqual(input: ParseNode) -> ParseResult<Node> {
+    fn compNotEqual(input: ParseNode) -> ParseResult<Expr> {
         LoopParserHelpers::parse_comp(input)
     }
 
     #[alias(comp)]
     #[allow(non_snake_case)]
-    fn compNotEqual0(input: ParseNode) -> ParseResult<Node> {
+    fn compNotEqual0(input: ParseNode) -> ParseResult<Expr> {
         LoopParserHelpers::parse_comp(input)
     }
 
     #[alias(comp)]
     #[allow(non_snake_case)]
-    fn compIdentNotEqual0(input: ParseNode) -> ParseResult<Node> {
+    fn compIdentNotEqual0(input: ParseNode) -> ParseResult<Expr> {
         LoopParserHelpers::parse_comp(input)
     }
 
     #[alias(comp)]
     #[allow(non_snake_case)]
-    fn compGreaterThan(input: ParseNode) -> ParseResult<Node> {
+    fn compGreaterThan(input: ParseNode) -> ParseResult<Expr> {
         LoopParserHelpers::parse_comp(input)
     }
 
     #[alias(comp)]
     #[allow(non_snake_case)]
-    fn compGreaterEqual(input: ParseNode) -> ParseResult<Node> {
+    fn compGreaterEqual(input: ParseNode) -> ParseResult<Expr> {
         LoopParserHelpers::parse_comp(input)
     }
 
     #[alias(comp)]
     #[allow(non_snake_case)]
-    fn compLessThan(input: ParseNode) -> ParseResult<Node> {
+    fn compLessThan(input: ParseNode) -> ParseResult<Expr> {
         LoopParserHelpers::parse_comp(input)
     }
 
     #[alias(comp)]
     #[allow(non_snake_case)]
-    fn compLessEqual(input: ParseNode) -> ParseResult<Node> {
+    fn compLessEqual(input: ParseNode) -> ParseResult<Expr> {
         LoopParserHelpers::parse_comp(input)
     }
 
     // Operations
     #[alias(op)]
     #[allow(non_snake_case)]
-    fn binaryOp(input: ParseNode) -> ParseResult<Node> {
+    fn binaryOp(input: ParseNode) -> ParseResult<Expr> {
         let (lhs, verb, rhs) = match_nodes!(input.into_children();
             [atom(lhs), verb, atom(rhs)] => (lhs, verb, rhs),
         );
 
-        Ok(Node::BinaryOp {
+        Ok(Expr::BinaryOp {
             lhs: Box::new(lhs),
             verb: OperatorVerb::from(verb.as_str()),
             rhs: Box::new(rhs),
@@ -157,14 +157,14 @@ impl LoopParser {
 
     // Assignment
     #[alias(expr)]
-    fn assign(input: ParseNode) -> ParseResult<PollutedNode> {
+    fn assign(input: ParseNode) -> ParseResult<Hir> {
         let lno = LoopParserHelpers::lno(input.clone());
 
         let (ident, op) = match_nodes!(input.clone().into_children();
             [atom(i), op(o)] => (i, o)
         );
 
-        Ok(PollutedNode::Pure(Node::Assign {
+        Ok(Hir::Expr(Expr::Assign {
             lno,
             lhs: Box::new(ident),
             rhs: Box::new(op),
@@ -173,38 +173,38 @@ impl LoopParser {
 
     // Control Structures
     #[alias(expr)]
-    fn terms(input: ParseNode) -> ParseResult<PollutedNode> {
+    fn terms(input: ParseNode) -> ParseResult<Hir> {
         let terms = match_nodes!(input.into_children();
             [expr(expr)..] => expr
         );
 
-        Ok(PollutedNode::Control(Control::Terms(terms.collect())))
+        Ok(Hir::Control(Control::Terms(terms.collect())))
     }
 
     #[alias(expr)]
-    fn loop_(input: ParseNode) -> ParseResult<PollutedNode> {
+    fn loop_(input: ParseNode) -> ParseResult<Hir> {
         let lno = LoopParserHelpers::lno(input.clone());
         let (ident, terms) = match_nodes!(input.into_children();
             [atom(a), expr(t)] => (a, t)
         );
 
-        Ok(PollutedNode::Control(Control::Loop {
+        Ok(Hir::Control(Control::Loop {
             lno,
-            ident: Box::new(PollutedNode::Pure(ident)),
+            ident: Box::new(Hir::Expr(ident)),
             terms: Box::new(terms),
         }))
     }
 
     #[alias(expr)]
-    fn while_(input: ParseNode) -> ParseResult<PollutedNode> {
+    fn while_(input: ParseNode) -> ParseResult<Hir> {
         let lno = LoopParserHelpers::lno(input.clone());
         let (comp, terms) = match_nodes!(input.into_children();
             [comp(c), expr(t)] => (c, t)
         );
 
-        Ok(PollutedNode::Control(Control::While {
+        Ok(Hir::Control(Control::While {
             lno,
-            comp: Box::new(PollutedNode::Pure(comp)),
+            comp: Box::new(Hir::Expr(comp)),
             terms: Box::new(terms),
         }))
     }
@@ -212,14 +212,14 @@ impl LoopParser {
     // Macro collection (aliased as expr)
     #[alias(expr)]
     #[allow(non_snake_case)]
-    fn macroAssignToIdent(input: ParseNode) -> ParseResult<PollutedNode> {
+    fn macroAssignToIdent(input: ParseNode) -> ParseResult<Hir> {
         // x := y
         let lno = LoopParserHelpers::lno(input.clone());
         let (lhs, rhs) = match_nodes!(input.into_children();
             [atom(i), atom(j)] => (i, j)
         );
 
-        Ok(PollutedNode::Macro(Macro::AssignToIdent {
+        Ok(Hir::Macro(Macro::AssignToIdent {
             lno,
             lhs: Box::new(lhs),
             rhs: Box::new(rhs),
@@ -228,14 +228,14 @@ impl LoopParser {
 
     #[alias(expr)]
     #[allow(non_snake_case)]
-    fn macroAssignToZero(input: ParseNode) -> ParseResult<PollutedNode> {
+    fn macroAssignToZero(input: ParseNode) -> ParseResult<Hir> {
         // x := 0
         let lno = LoopParserHelpers::lno(input.clone());
         let lhs = match_nodes!(input.into_children();
             [atom(x)] => x
         );
 
-        Ok(PollutedNode::Macro(Macro::AssignToZero {
+        Ok(Hir::Macro(Macro::AssignToZero {
             lno,
             lhs: Box::new(lhs),
         }))
@@ -243,14 +243,14 @@ impl LoopParser {
 
     #[alias(expr)]
     #[allow(non_snake_case)]
-    fn macroAssignToValue(input: ParseNode) -> ParseResult<PollutedNode> {
+    fn macroAssignToValue(input: ParseNode) -> ParseResult<Hir> {
         // x := n
         let lno = LoopParserHelpers::lno(input.clone());
         let (lhs, rhs) = match_nodes!(input.into_children();
             [atom(x), atom(n)] => (x, n)
         );
 
-        Ok(PollutedNode::Macro(Macro::AssignToValue {
+        Ok(Hir::Macro(Macro::AssignToValue {
             lno,
             lhs: Box::new(lhs),
             rhs: Box::new(rhs),
@@ -259,14 +259,14 @@ impl LoopParser {
 
     #[alias(expr)]
     #[allow(non_snake_case)]
-    fn macroAssignToIdentOpIdent(input: ParseNode) -> ParseResult<PollutedNode> {
+    fn macroAssignToIdentOpIdent(input: ParseNode) -> ParseResult<Hir> {
         // x := y * z
         let lno = LoopParserHelpers::lno(input.clone());
         let (lhs, rhs_lhs, rhs_verb, rhs_rhs) = match_nodes!(input.into_children();
             [atom(x), atom(y), verb, atom(z)] => (x, y, verb, z)
         );
 
-        Ok(PollutedNode::Macro(Macro::AssignToIdentBinOpIdent {
+        Ok(Hir::Macro(Macro::AssignToIdentBinOpIdent {
             lno,
             lhs: Box::new(lhs),
             rhs: MacroAssign {
@@ -279,14 +279,14 @@ impl LoopParser {
 
     #[alias(expr)]
     #[allow(non_snake_case)]
-    fn macroAssignToIdentExtOpValue(input: ParseNode) -> ParseResult<PollutedNode> {
+    fn macroAssignToIdentExtOpValue(input: ParseNode) -> ParseResult<Hir> {
         // x := y * n
         let lno = LoopParserHelpers::lno(input.clone());
         let (lhs, rhs_lhs, rhs_verb, rhs_rhs) = match_nodes!(input.into_children();
             [atom(x), atom(y), verb, atom(n)] => (x, y, verb, n)
         );
 
-        Ok(PollutedNode::Macro(Macro::AssignToIdentExtBinOpValue {
+        Ok(Hir::Macro(Macro::AssignToIdentExtBinOpValue {
             lno,
             lhs: Box::new(lhs),
             rhs: MacroAssign {
@@ -299,7 +299,7 @@ impl LoopParser {
 
     // Conditionals
     #[allow(non_snake_case)]
-    fn macroElseStmt(input: ParseNode) -> ParseResult<PollutedNode> {
+    fn macroElseStmt(input: ParseNode) -> ParseResult<Hir> {
         Ok(match_nodes!(input.into_children();
             [expr(t)] => t
         ))
@@ -307,7 +307,7 @@ impl LoopParser {
 
     #[alias(expr)]
     #[allow(non_snake_case)]
-    fn macroConditional(input: ParseNode) -> ParseResult<PollutedNode> {
+    fn macroConditional(input: ParseNode) -> ParseResult<Hir> {
         // IF ... THEN ... ELSE
         let lno = LoopParserHelpers::lno(input.clone());
         let (comp, if_terms, else_terms) = match_nodes!(input.into_children();
@@ -315,7 +315,7 @@ impl LoopParser {
             [comp(c), expr(i), macroElseStmt(e)] => (c, i, Some(e))
         );
 
-        Ok(PollutedNode::Macro(Macro::Conditional {
+        Ok(Hir::Macro(Macro::Conditional {
             lno,
             comp: Box::new(comp),
             if_terms: Box::new(if_terms),
@@ -325,15 +325,15 @@ impl LoopParser {
 
     #[alias(expr)]
     #[allow(non_snake_case)]
-    fn macroFnCall(input: ParseNode) -> ParseResult<PollutedNode> {
+    fn macroFnCall(input: ParseNode) -> ParseResult<Hir> {
         // func(arg1, arg2, arg3)
         let lno = LoopParserHelpers::lno(input.clone());
 
-        let (lhs, func, args): (Node, Node, Vec<Node>) = match_nodes!(input.into_children();
+        let (lhs, func, args): (Expr, Expr, Vec<Expr>) = match_nodes!(input.into_children();
             [atom(lhs), atom(func), atom(args)..] => (lhs, func, args.collect())
         );
 
-        let node = PollutedNode::Function(Func::Call {
+        let node = Hir::Function(Func::Call {
             lno,
             lhs: Box::new(lhs),
             rhs: FuncCall {
@@ -349,7 +349,7 @@ impl LoopParser {
     #[allow(non_snake_case)]
     fn funcDef(input: ParseNode) -> ParseResult<FuncDecl> {
         let lno = LoopParserHelpers::lno(input.clone());
-        let (atoms, terms): (Vec<Node>, PollutedNode) = match_nodes!(input.clone().into_children();
+        let (atoms, terms): (Vec<Expr>, Hir) = match_nodes!(input.clone().into_children();
             [atom(atoms).., expr(terms)] => (atoms.collect(), terms)
         );
 
@@ -384,7 +384,7 @@ impl LoopParser {
 
     #[allow(non_snake_case)]
     fn importFunc(input: ParseNode) -> ParseResult<ImpFunc> {
-        let (ident, alias): (Node, Option<Node>) = match_nodes!(input.into_children();
+        let (ident, alias): (Expr, Option<Expr>) = match_nodes!(input.into_children();
             [atom(ident), atom(alias)] => (ident, Some(alias)),
             [atom(ident)] => (ident, None),
         );
@@ -410,7 +410,7 @@ impl LoopParser {
     fn import(input: ParseNode) -> ParseResult<Imp> {
         let lno = LoopParserHelpers::lno(input.clone());
 
-        let (path, stmt): (Vec<Node>, Either<Vec<ImpFunc>, ImpWildcard>) = match_nodes!(input.into_children();
+        let (path, stmt): (Vec<Expr>, Either<Vec<ImpFunc>, ImpWildcard>) = match_nodes!(input.into_children();
             [atom(path).., importStmt(stmt)] => (path.collect(), stmt)
         );
 
@@ -434,7 +434,7 @@ impl LoopParser {
 
     // Initialization Rule
     pub(crate) fn grammar(input: ParseNode) -> ParseResult<Module> {
-        let (imp, decl, code): (Option<Vec<Imp>>, Option<Vec<FuncDecl>>, PollutedNode) = match_nodes!(input.into_children();
+        let (imp, decl, code): (Option<Vec<Imp>>, Option<Vec<FuncDecl>>, Hir) = match_nodes!(input.into_children();
             // Full Module
             [imports(i), functions(f), expr(t), EOI(_)] => (Some(i), Some(f), t),
             // Mixed Module
@@ -456,39 +456,39 @@ impl LoopParser {
 
     // Make the parser happy, these always error out.
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn EQ(input: ParseNode) -> ParseResult<Node> {
+    fn EQ(input: ParseNode) -> ParseResult<Expr> {
         Err(input.error("Cannot directly parse EQ"))
     }
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn NE(input: ParseNode) -> ParseResult<Node> {
+    fn NE(input: ParseNode) -> ParseResult<Expr> {
         Err(input.error("Cannot directly parse NE"))
     }
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn GT(input: ParseNode) -> ParseResult<Node> {
+    fn GT(input: ParseNode) -> ParseResult<Expr> {
         Err(input.error("Cannot directly parse GT"))
     }
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn GE(input: ParseNode) -> ParseResult<Node> {
+    fn GE(input: ParseNode) -> ParseResult<Expr> {
         Err(input.error("Cannot directly parse GE"))
     }
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn LT(input: ParseNode) -> ParseResult<Node> {
+    fn LT(input: ParseNode) -> ParseResult<Expr> {
         Err(input.error("Cannot directly parse LT"))
     }
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn LE(input: ParseNode) -> ParseResult<Node> {
+    fn LE(input: ParseNode) -> ParseResult<Expr> {
         Err(input.error("Cannot directly parse LE"))
     }
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn OP_PLUS(input: ParseNode) -> ParseResult<Node> {
+    fn OP_PLUS(input: ParseNode) -> ParseResult<Expr> {
         Err(input.error("Cannot directly parse OP_PLUS"))
     }
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn OP_MINUS(input: ParseNode) -> ParseResult<Node> {
+    fn OP_MINUS(input: ParseNode) -> ParseResult<Expr> {
         Err(input.error("Cannot directly parse OP_MINUS"))
     }
     #[allow(non_snake_case, clippy::upper_case_acronyms)]
-    fn OP_MULTIPLY(input: ParseNode) -> ParseResult<Node> {
+    fn OP_MULTIPLY(input: ParseNode) -> ParseResult<Expr> {
         Err(input.error("Cannot directly parse OP_MULTIPLY"))
     }
     #[allow(non_snake_case, clippy::upper_case_acronyms)]

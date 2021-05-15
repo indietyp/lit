@@ -7,7 +7,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::ast::control::Control;
-use crate::ast::node::Node;
+use crate::ast::expr::Expr;
 use crate::ast::variant::UInt;
 use crate::eval::assign::AssignExec;
 use crate::eval::loop_::LoopExec;
@@ -35,18 +35,18 @@ impl Exec {
         }
     }
 
-    pub fn new(node: Node) -> Self {
+    pub fn new(node: Expr) -> Self {
         match node {
-            Node::Ident(_)
-            | Node::NaturalNumber(UInt(_))
-            | Node::Comparison { .. }
-            | Node::BinaryOp { .. } => panic!(
+            Expr::Ident(_)
+            | Expr::NaturalNumber(UInt(_))
+            | Expr::Comparison { .. }
+            | Expr::BinaryOp { .. } => panic!(
                 "Cannot create direct executable from Ident, NaturalNumber, BinaryOp or Comparison"
             ),
-            Node::Assign { .. } => Exec::Assign(AssignExec::new(node)),
-            Node::Control(Control::While { .. }) => Exec::While(WhileExec::new(node)),
-            Node::Control(Control::Terms(_)) => Exec::Terms(TermsExec::new(node)),
-            Node::Control(Control::Loop { .. }) => Exec::Loop(LoopExec::new(node)),
+            Expr::Assign { .. } => Exec::Assign(AssignExec::new(node)),
+            Expr::Control(Control::While { .. }) => Exec::While(WhileExec::new(node)),
+            Expr::Control(Control::Terms(_)) => Exec::Terms(TermsExec::new(node)),
+            Expr::Control(Control::Loop { .. }) => Exec::Loop(LoopExec::new(node)),
         }
     }
 

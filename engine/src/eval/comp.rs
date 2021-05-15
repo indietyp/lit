@@ -4,7 +4,7 @@ use num_traits::Zero;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::ast::node::Node;
+use crate::ast::expr::Expr;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::ComparisonVerb;
 use crate::eval::types::Variables;
@@ -25,18 +25,18 @@ pub struct ComparisonExec {
 }
 
 impl ComparisonExec {
-    pub fn new(node: Node) -> Self {
+    pub fn new(node: Expr) -> Self {
         match node {
-            Node::Comparison { lhs, verb, rhs } => ComparisonExec {
+            Expr::Comparison { lhs, verb, rhs } => ComparisonExec {
                 lhs: match *lhs {
-                    Node::Ident(m) => ComparisonSide::Ident(m),
-                    Node::NaturalNumber(m) => ComparisonSide::NaturalNumber(m),
+                    Expr::Ident(m) => ComparisonSide::Ident(m),
+                    Expr::NaturalNumber(m) => ComparisonSide::NaturalNumber(m),
                     _ => unreachable!(),
                 },
                 verb,
                 rhs: match *rhs {
-                    Node::Ident(m) => ComparisonSide::Ident(m),
-                    Node::NaturalNumber(m) => ComparisonSide::NaturalNumber(m),
+                    Expr::Ident(m) => ComparisonSide::Ident(m),
+                    Expr::NaturalNumber(m) => ComparisonSide::NaturalNumber(m),
                     _ => unreachable!(),
                 },
             },

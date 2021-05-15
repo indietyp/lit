@@ -4,9 +4,9 @@ use num_traits::{One, Zero};
 
 use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
+use crate::ast::expr::Expr;
+use crate::ast::hir::Hir;
 use crate::ast::macros::Macro;
-use crate::ast::node::Node;
-use crate::ast::polluted::PollutedNode;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::errors::{Error, ErrorVariant};
@@ -15,24 +15,21 @@ use crate::types::LineNo;
 use crate::utils;
 use crate::utils::private_identifier;
 
-pub(crate) fn expand_terms(
-    context: &mut CompileContext,
-    terms: &[PollutedNode],
-) -> Result<Node, Vec<Error>> {
-    let maybe: Vec<_> = terms.iter().map(|term| term.expand(context)).collect();
+pub(crate) fn lower_terms(context: &mut CompileContext, terms: &[Hir]) -> Result<Expr, Vec<Error>> {
+    let maybe: Vec<_> = terms.iter().map(|term| term.lower(context)).collect();
     let nodes = utils::check_errors(&maybe)?;
 
-    Ok(Node::Control(Control::Terms(nodes)))
+    Ok(Expr::Control(Control::Terms(nodes)))
 }
 
-pub(crate) fn expand_loop(
+pub(crate) fn lower_loop(
     context: &mut CompileContext,
     lno: LineNo,
-    ident: &PollutedNode,
-    terms: &PollutedNode,
-) -> Result<Node, Vec<Error>> {
-    let maybe_ident = ident.expand(context);
-    let maybe_terms = terms.expand(context);
+    ident: &Hir,
+    terms: &Hir,
+) -> Result<Expr, Vec<Error>> {
+    let maybe_ident = ident.lower(context);
+    let maybe_terms = terms.lower(context);
 
     let mut maybe = vec![maybe_ident, maybe_terms];
     if !context.flags.intersects(CompilationFlags::LOOP_AND_WHILE) {
@@ -52,7 +49,7 @@ pub(crate) fn expand_loop(
     };
 
     let node = if context.flags.contains(CompilationFlags::LOOP) {
-        Node::Control(Control::Loop {
+        Expr::Control(Control::Loop {
             lno,
             ident: Box::new(ident.clone()),
             terms: Box::new(terms.clone()),
@@ -69,31 +66,31 @@ pub(crate) fn expand_loop(
         //  _1 := _1 - 1
         // END
 
-        let tmp = Box::new(Node::Ident(private_identifier(context)));
+        let tmp = Box::new(Expr::Ident(private_identifier(context)));
 
-        Node::Control(Control::Terms(vec![
+        Expr::Control(Control::Terms(vec![
             Macro::AssignToIdent {
                 lno,
                 lhs: tmp.clone(),
                 rhs: Box::new(ident.clone()),
             }
-            .expand(context)?,
-            Node::Control(Control::While {
+            .lower(context)?,
+            Expr::Control(Control::While {
                 lno,
-                comp: Box::new(Node::Comparison {
+                comp: Box::new(Expr::Comparison {
                     lhs: tmp.clone(),
                     verb: ComparisonVerb::NotEqual,
-                    rhs: Box::new(Node::NaturalNumber(UInt::zero())),
+                    rhs: Box::new(Expr::NaturalNumber(UInt::zero())),
                 }),
-                terms: Box::new(Node::Control(Control::Terms(vec![
+                terms: Box::new(Expr::Control(Control::Terms(vec![
                     terms.clone(),
-                    Node::Assign {
+                    Expr::Assign {
                         lno,
                         lhs: tmp.clone(),
-                        rhs: Box::new(Node::BinaryOp {
+                        rhs: Box::new(Expr::BinaryOp {
                             lhs: tmp,
                             verb: OperatorVerb::Minus,
-                            rhs: Box::new(Node::NaturalNumber(UInt::one())),
+                            rhs: Box::new(Expr::NaturalNumber(UInt::one())),
                         }),
                     },
                 ]))),
@@ -106,14 +103,14 @@ pub(crate) fn expand_loop(
     Ok(node)
 }
 
-pub(crate) fn expand_while(
+pub(crate) fn lower_while(
     context: &mut CompileContext,
     lno: LineNo,
-    comp: &PollutedNode,
-    terms: &PollutedNode,
-) -> Result<Node, Vec<Error>> {
-    let maybe_comp = comp.expand(context);
-    let maybe_terms = terms.expand(context);
+    comp: &Hir,
+    terms: &Hir,
+) -> Result<Expr, Vec<Error>> {
+    let maybe_comp = comp.lower(context);
+    let maybe_terms = terms.lower(context);
 
     let mut maybe = vec![maybe_comp, maybe_terms];
     if !context.flags.contains(CompilationFlags::WHILE) {
@@ -131,7 +128,7 @@ pub(crate) fn expand_while(
         &_ => unreachable!(),
     };
 
-    let node = Node::Control(Control::While {
+    let node = Expr::Control(Control::While {
         lno,
         comp: Box::new(comp.clone()),
         terms: Box::new(terms.clone()),

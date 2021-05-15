@@ -3,10 +3,10 @@ use pest_consume::Parser;
 use serde::{Deserialize, Serialize};
 
 use crate::ast::context::CompileContext;
+use crate::ast::expr::Expr;
 use crate::ast::func;
+use crate::ast::hir::Hir;
 use crate::ast::module::Module;
-use crate::ast::node::Node;
-use crate::ast::polluted::PollutedNode;
 use crate::errors;
 use crate::eval::exec::Exec;
 use crate::eval::types::Variables;
@@ -29,19 +29,19 @@ impl Builder {
     }
 
     pub fn compile(
-        ast: &mut PollutedNode,
+        ast: &mut Hir,
         flags: Option<CompilationFlags>,
         // fs can be used to specify additional files that can be used
         // at compile time, HashMap for "name: contents"
         fs: Option<func::filesystem::Directory>,
-    ) -> Result<Node, Vec<errors::Error>> {
+    ) -> Result<Expr, Vec<errors::Error>> {
         Builder::ext_compile(ast, CompileContext::new(flags.unwrap_or_default(), fs))
     }
 
     pub(crate) fn ext_compile(
-        ast: &mut PollutedNode,
+        ast: &mut Hir,
         context: CompileContext,
-    ) -> Result<Node, Vec<errors::Error>> {
+    ) -> Result<Expr, Vec<errors::Error>> {
         todo!()
 
         // let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
@@ -55,18 +55,18 @@ impl Builder {
         // Ok(expanded)
     }
 
-    pub fn eval(ast: Node) -> Runtime {
+    pub fn eval(ast: Expr) -> Runtime {
         Builder::ext_eval(ast, None)
     }
 
-    fn ext_eval(ast: Node, locals: Option<Variables>) -> Runtime {
+    fn ext_eval(ast: Expr, locals: Option<Variables>) -> Runtime {
         Runtime::new(Exec::new(ast), locals)
     }
 
     pub fn parse_and_compile(
         source: &str,
         flags: Option<CompilationFlags>,
-    ) -> Result<Node, Vec<errors::Error>> {
+    ) -> Result<Expr, Vec<errors::Error>> {
         todo!()
         // Builder::compile(
         //     &mut Builder::parse(source, None)
@@ -80,7 +80,7 @@ impl Builder {
         source: &str,
         context: CompileContext,
         lno: Option<LineNo>,
-    ) -> Result<Node, Vec<errors::Error>> {
+    ) -> Result<Expr, Vec<errors::Error>> {
         todo!()
         // Builder::ext_compile(
         //     &mut Builder::parse(source, lno)

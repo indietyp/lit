@@ -1,7 +1,7 @@
 use crate::ast::func::modctx::{ModuleContext, ModuleContextHashMap};
 
+use crate::ast::expr::Expr;
 use crate::ast::module::{FuncDecl, Imp, ImpFunc, Module};
-use crate::ast::node::Node;
 
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord, Hash)]
 pub struct FunctionImport {
@@ -21,7 +21,7 @@ sum_type! {
 
         /// This means it is already inlined
         /// and can be used
-        Inline(Node),
+        Inline(Expr),
     }
 }
 

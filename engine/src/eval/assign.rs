@@ -1,4 +1,4 @@
-use crate::ast::node::Node;
+use crate::ast::expr::Expr;
 use crate::eval::op::BinaryOpExec;
 use crate::eval::types::{ChangeSet, Variables};
 use crate::types::LineNo;
@@ -29,11 +29,11 @@ impl AssignExec {
         Some((self.lno.0, vec![self.lhs.clone()]))
     }
 
-    pub fn new(node: Node) -> Self {
+    pub fn new(node: Expr) -> Self {
         match node {
-            Node::Assign { lhs, rhs, lno } => AssignExec {
+            Expr::Assign { lhs, rhs, lno } => AssignExec {
                 lhs: match *lhs {
-                    Node::Ident(m) => m,
+                    Expr::Ident(m) => m,
                     _ => unreachable!(),
                 },
                 rhs: BinaryOpExec::new(*rhs),

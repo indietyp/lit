@@ -6,7 +6,7 @@ use num_traits::{CheckedSub, Zero};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::ast::node::Node;
+use crate::ast::expr::Expr;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::OperatorVerb;
 use crate::eval::types::Variables;
@@ -20,17 +20,17 @@ pub struct BinaryOpExec {
 }
 
 impl BinaryOpExec {
-    pub fn new(node: Node) -> Self {
+    pub fn new(node: Expr) -> Self {
         // The type narrowing is done already elsewhere, not _super_ clean, but good enough
         match node {
-            Node::BinaryOp { lhs, verb, rhs } => BinaryOpExec {
+            Expr::BinaryOp { lhs, verb, rhs } => BinaryOpExec {
                 lhs: match *lhs {
-                    Node::Ident(m) => m,
+                    Expr::Ident(m) => m,
                     _ => unreachable!(),
                 },
                 verb,
                 rhs: match *rhs {
-                    Node::NaturalNumber(m) => m,
+                    Expr::NaturalNumber(m) => m,
                     _ => unreachable!(),
                 },
             },

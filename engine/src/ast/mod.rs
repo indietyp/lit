@@ -1,9 +1,9 @@
 pub mod context;
 pub mod control;
+pub mod expr;
 pub mod func;
+pub mod hir;
 pub mod macros;
 pub mod module;
-pub mod node;
-pub mod polluted;
 pub mod variant;
 pub mod verbs;

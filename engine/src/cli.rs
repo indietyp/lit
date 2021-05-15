@@ -4,8 +4,8 @@ use clap::arg_enum;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
-use crate::ast::node::Node;
-use crate::ast::polluted::PollutedNode;
+use crate::ast::expr::Expr;
+use crate::ast::hir::Hir;
 use crate::eval::exec::Exec;
 use schemars::gen::SchemaSettings;
 use schemars::JsonSchema;
@@ -23,8 +23,8 @@ arg_enum! {
 #[derive(JsonSchema, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct RootSchema {
-    node: Node,
-    polluted_node: PollutedNode,
+    node: Expr,
+    polluted_node: Hir,
     exec: Exec,
 }
 

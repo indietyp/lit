@@ -4,12 +4,12 @@ use std::fs::read_to_string;
 use either::Either;
 use itertools::Itertools;
 
+use crate::ast::expr::Expr;
 use crate::ast::func::filesystem::Directory;
 use crate::ast::func::modctx::{ModuleContext, ModuleContextHashMap};
 use crate::ast::func::types::{FunctionContext, FunctionImport, FunctionName, ModuleName};
+use crate::ast::hir::Hir;
 use crate::ast::module::{Imp, ImpFunc, Module};
-use crate::ast::node::Node;
-use crate::ast::polluted::PollutedNode;
 use crate::build::Builder;
 use crate::errors::{Error, ErrorCode, ErrorVariant};
 use crate::utils::check_errors;
@@ -60,7 +60,7 @@ impl ModuleMap {
             .map(|(k, v)| (k.clone(), v.unwrap()))
             .map(|(k, v)| {
                 let mut module = v;
-                module.code = PollutedNode::NoOp;
+                module.code = Hir::NoOp;
 
                 (k, module)
             })
@@ -79,7 +79,7 @@ impl ModuleMap {
             .path
             .iter()
             .map(|p| match p.clone() {
-                Node::Ident(m) => m,
+                Expr::Ident(m) => m,
                 _ => unreachable!(),
             })
             .collect();
@@ -109,7 +109,7 @@ impl ModuleMap {
                     let mut contents =
                         Builder::parse(contents.as_str(), None).map_err(Error::new_from_parse)?;
                     // erase all code
-                    contents.code = PollutedNode::NoOp;
+                    contents.code = Hir::NoOp;
 
                     modules.insert(module_name.clone(), contents.clone());
                     module = Some(contents);
@@ -213,7 +213,7 @@ impl ModuleMap {
         // add our functions declarations (if we have any)
         for func in &to.1.decl {
             let name: FunctionName = match *func.ident.clone() {
-                Node::Ident(m) => m,
+                Expr::Ident(m) => m,
                 _ => unreachable!(),
             }
             .into();
@@ -341,10 +341,10 @@ impl ModuleMap {
 
         // try if we have a function of that name
         let decl: Vec<_> = to.1.decl.iter().filter(|f| match *f.ident.clone() {
-            Node::Ident(m) => m,
+            Expr::Ident(m) => m,
             _ => unreachable!()
         } == match *target.ident.clone() {
-            Node::Ident(m) => m,
+            Expr::Ident(m) => m,
             _ => unreachable!()
         }).collect();
 
@@ -353,14 +353,14 @@ impl ModuleMap {
         if !decl.is_empty() {
             imports.insert(
                 match *target.clone().alias.unwrap_or(target.clone().ident) {
-                    Node::Ident(m) => m,
+                    Expr::Ident(m) => m,
                     _ => unreachable!(),
                 }
                 .into(),
                 FunctionContext::Import(FunctionImport {
                     module: to.0.clone().into(),
                     ident: match *target.clone().ident {
-                        Node::Ident(m) => m,
+                        Expr::Ident(m) => m,
                         _ => unreachable!(),
                     }
                     .into(),
@@ -384,10 +384,10 @@ impl ModuleMap {
                     imp.funcs.clone().unwrap_left().into_iter().map(|func| (imp.clone(), func)).collect()
                 })
                 .filter(|(_, func)| match *func.clone().alias.unwrap_or(func.clone().ident) {
-                    Node::Ident(m) => m,
+                    Expr::Ident(m) => m,
                     _ => unreachable!()
                 } == match *target.ident.clone() {
-                    Node::Ident(m) => m,
+                    Expr::Ident(m) => m,
                     _ => unreachable!()
                 })
                 .unique()
@@ -446,7 +446,7 @@ impl ModuleMap {
             new.extend(imported);
 
             let func_name: FunctionName = match *target.ident.clone() {
-                Node::Ident(m) => m,
+                Expr::Ident(m) => m,
                 _ => unreachable!(),
             }
             .into();
@@ -455,7 +455,7 @@ impl ModuleMap {
             if let Some(func) = func {
                 imports.insert(
                     match *target.clone().alias.unwrap_or(target.clone().ident) {
-                        Node::Ident(m) => m,
+                        Expr::Ident(m) => m,
                         _ => unreachable!(),
                     }
                     .into(),
@@ -476,7 +476,7 @@ impl ModuleMap {
             ErrorCode::CouldNotFindFunction {
                 module: to.0.join("::"),
                 func: match *target.ident.clone() {
-                    Node::Ident(m) => m,
+                    Expr::Ident(m) => m,
                     _ => unreachable!(),
                 },
             },
@@ -588,7 +588,7 @@ impl ModuleMap {
             let flat: HashMap<_, _> = decl
                 .into_iter()
                 .map(|d| match *d.ident {
-                    Node::Ident(m) => m,
+                    Expr::Ident(m) => m,
                     _ => unreachable!(),
                 })
                 .chain(
@@ -598,7 +598,7 @@ impl ModuleMap {
                         .flat_map(|i| i.clone().funcs.unwrap_left())
                         // first try to use the alias, if there is none use the real name
                         .map(|i| match *i.clone().alias.unwrap_or(i.ident) {
-                            Node::Ident(m) => m,
+                            Expr::Ident(m) => m,
                             _ => unreachable!(),
                         }),
                 )
@@ -649,7 +649,7 @@ impl ModuleMap {
 
             for func in &module.decl {
                 let function_name: FunctionName = match *func.clone().ident {
-                    Node::Ident(m) => m,
+                    Expr::Ident(m) => m,
                     _ => unreachable!(),
                 }
                 .into();
@@ -792,14 +792,14 @@ mod test {
     use indoc::indoc;
 
     use crate::ast::control::Control;
+    use crate::ast::expr::Expr;
     use crate::ast::func::filesystem::Directory;
     use crate::ast::func::modctx::ModuleContext;
     use crate::ast::func::modmap::ModuleMap;
     use crate::ast::func::types::FunctionContext::{Func, Import};
     use crate::ast::func::types::{FunctionContext, FunctionImport, ModuleName};
+    use crate::ast::hir::Hir;
     use crate::ast::module::FuncDecl;
-    use crate::ast::node::Node;
-    use crate::ast::polluted::PollutedNode;
     use crate::build::Builder;
     use crate::errors::{Error, ErrorCode, ErrorVariant};
 
@@ -841,13 +841,11 @@ mod test {
                 Func(FuncDecl {
                     lno: (1, 3),
 
-                    ident: Box::new(Node::Ident("b".into())),
-                    params: vec![Node::Ident("b".into())],
-                    ret: Box::new(Node::Ident("c".into())),
+                    ident: Box::new(Expr::Ident("b".into())),
+                    params: vec![Expr::Ident("b".into())],
+                    ret: Box::new(Expr::Ident("c".into())),
 
-                    terms: Box::new(PollutedNode::Control(Control::Terms(vec![
-                        PollutedNode::NoOp,
-                    ]))),
+                    terms: Box::new(Hir::Control(Control::Terms(vec![Hir::NoOp]))),
                 }),
             );
             ctx
@@ -914,13 +912,11 @@ mod test {
                 Func(FuncDecl {
                     lno: (1, 3),
 
-                    ident: Box::new(Node::Ident("c".into())),
-                    params: vec![Node::Ident("d".into())],
-                    ret: Box::new(Node::Ident("e".into())),
+                    ident: Box::new(Expr::Ident("c".into())),
+                    params: vec![Expr::Ident("d".into())],
+                    ret: Box::new(Expr::Ident("e".into())),
 
-                    terms: Box::new(PollutedNode::Control(Control::Terms(vec![
-                        PollutedNode::NoOp,
-                    ]))),
+                    terms: Box::new(Hir::Control(Control::Terms(vec![Hir::NoOp]))),
                 }),
             );
             ctx

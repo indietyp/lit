@@ -22,57 +22,57 @@ pub static CONST_IDENT: [&str; 1] = ["_zero"];
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
-pub enum Node {
+pub enum Expr {
     // Smallest Units
     Ident(String),
     NaturalNumber(UInt),
 
     // Assignment and Expressions
     Comparison {
-        lhs: Box<Node>,
+        lhs: Box<Expr>,
         verb: ComparisonVerb,
-        rhs: Box<Node>,
+        rhs: Box<Expr>,
     },
     BinaryOp {
-        lhs: Box<Node>,
+        lhs: Box<Expr>,
         verb: OperatorVerb,
-        rhs: Box<Node>,
+        rhs: Box<Expr>,
     },
     Assign {
         lno: LineNo,
-        lhs: Box<Node>,
-        rhs: Box<Node>,
+        lhs: Box<Expr>,
+        rhs: Box<Expr>,
     },
-    Control(Control<Node>),
+    Control(Control<Expr>),
 }
 
-impl Node {
-    pub fn flatten(&self) -> Node {
+impl Expr {
+    pub fn flatten(&self) -> Expr {
         match self {
-            Node::Control(Control::Terms(terms)) => Node::Control(Control::Terms(
+            Expr::Control(Control::Terms(terms)) => Expr::Control(Control::Terms(
                 terms
                     .iter()
                     .flat_map(|node| match node {
-                        Node::Control(Control::Terms(t)) => t
+                        Expr::Control(Control::Terms(t)) => t
                             .iter()
                             .flat_map(|term| {
                                 let flat = term.flatten();
 
                                 match flat {
-                                    Node::Control(Control::Terms(t)) => t,
+                                    Expr::Control(Control::Terms(t)) => t,
                                     _ => vec![flat],
                                 }
                             })
                             .collect(),
-                        Node::Control(Control::Loop { lno, ident, terms }) => {
-                            vec![Node::Control(Control::Loop {
+                        Expr::Control(Control::Loop { lno, ident, terms }) => {
+                            vec![Expr::Control(Control::Loop {
                                 lno: *lno,
                                 ident: ident.clone(),
                                 terms: Box::new(terms.flatten()),
                             })]
                         }
-                        Node::Control(Control::While { lno, comp, terms }) => {
-                            vec![Node::Control(Control::While {
+                        Expr::Control(Control::While { lno, comp, terms }) => {
+                            vec![Expr::Control(Control::While {
                                 lno: *lno,
                                 comp: comp.clone(),
                                 terms: Box::new(terms.flatten()),
@@ -82,12 +82,12 @@ impl Node {
                     })
                     .collect(),
             )),
-            Node::Control(Control::Loop { lno, ident, terms }) => Node::Control(Control::Loop {
+            Expr::Control(Control::Loop { lno, ident, terms }) => Expr::Control(Control::Loop {
                 lno: *lno,
                 ident: ident.clone(),
                 terms: Box::new(terms.flatten()),
             }),
-            Node::Control(Control::While { lno, comp, terms }) => Node::Control(Control::While {
+            Expr::Control(Control::While { lno, comp, terms }) => Expr::Control(Control::While {
                 lno: *lno,
                 comp: comp.clone(),
                 terms: Box::new(terms.flatten()),
@@ -102,32 +102,32 @@ impl Node {
         let spacing = " ".repeat((indent * level.unwrap()) as usize);
 
         match self {
-            Node::Ident(s) => s.clone(),
-            Node::NaturalNumber(n) => n.to_string(),
-            Node::Comparison { lhs, verb, rhs } => format!(
+            Expr::Ident(s) => s.clone(),
+            Expr::NaturalNumber(n) => n.to_string(),
+            Expr::Comparison { lhs, verb, rhs } => format!(
                 "{} {} {}",
                 lhs.display(indent, level),
                 verb,
                 rhs.display(indent, level)
             ),
-            Node::BinaryOp { lhs, verb, rhs } => format!(
+            Expr::BinaryOp { lhs, verb, rhs } => format!(
                 "{} {} {}",
                 lhs.display(indent, level),
                 verb,
                 rhs.display(indent, level)
             ),
-            Node::Assign { lno: _, lhs, rhs } => format!(
+            Expr::Assign { lno: _, lhs, rhs } => format!(
                 "{s}{lhs} := {rhs}",
                 lhs = lhs.display(indent, level),
                 rhs = rhs.display(indent, level),
                 s = spacing,
             ),
-            Node::Control(Control::Terms(terms)) => terms
+            Expr::Control(Control::Terms(terms)) => terms
                 .iter()
                 .map(|term| term.display(indent, level))
                 .collect::<Vec<String>>()
                 .join("\n"),
-            Node::Control(Control::Loop {
+            Expr::Control(Control::Loop {
                 lno: _,
                 ident,
                 terms,
@@ -142,7 +142,7 @@ impl Node {
                 terms = terms.display(indent, level.map(|c| c + 1)),
                 s = spacing
             ),
-            Node::Control(Control::While {
+            Expr::Control(Control::While {
                 lno: _,
                 comp,
                 terms,
@@ -162,9 +162,9 @@ impl Node {
 
     pub fn verify(self, context: &mut CompileContext) -> Result<Self, Vec<Error>> {
         match &self {
-            Node::Assign { lhs, rhs: _, lno } => {
+            Expr::Assign { lhs, rhs: _, lno } => {
                 let ident = match *lhs.clone() {
-                    Node::Ident(m) => m,
+                    Expr::Ident(m) => m,
                     _ => unreachable!(),
                 };
 
@@ -183,13 +183,13 @@ impl Node {
 
                 Ok(self)
             }
-            Node::Control(Control::Terms(t)) => {
+            Expr::Control(Control::Terms(t)) => {
                 let verify: Vec<_> = t.iter().map(|term| term.clone().verify(context)).collect();
                 check_errors(&verify)?;
 
                 Ok(self)
             }
-            Node::Control(Control::While {
+            Expr::Control(Control::While {
                 comp,
                 terms,
                 lno: _,
@@ -199,7 +199,7 @@ impl Node {
 
                 Ok(self)
             }
-            Node::Control(Control::Loop {
+            Expr::Control(Control::Loop {
                 ident,
                 terms,
                 lno: _,
@@ -214,7 +214,7 @@ impl Node {
     }
 }
 
-impl Display for Node {
+impl Display for Expr {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.display(4, None))
     }

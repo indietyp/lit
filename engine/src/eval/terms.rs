@@ -1,5 +1,5 @@
 use crate::ast::control::Control;
-use crate::ast::node::Node;
+use crate::ast::expr::Expr;
 use crate::eval::exec::Exec;
 use crate::eval::types::{ChangeSet, Variables};
 #[cfg(feature = "cli")]
@@ -32,9 +32,9 @@ impl TermsExec {
         result
     }
 
-    pub fn new(node: Node) -> Self {
+    pub fn new(node: Expr) -> Self {
         match node {
-            Node::Control(Control::Terms(terms)) => TermsExec {
+            Expr::Control(Control::Terms(terms)) => TermsExec {
                 terms: terms.iter().map(|term| Exec::new(term.clone())).collect(),
                 ptr: 0,
             },

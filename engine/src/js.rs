@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 
-use crate::ast::node::Node;
+use crate::ast::expr::Expr;
 use crate::build::Builder;
 use crate::eval::exec::Exec;
 use crate::flags::CompilationFlags;
@@ -139,7 +139,7 @@ impl JavaScriptBuilder {
     }
 
     pub fn eval(ast: &INode) -> Result<IExec, JsValue> {
-        let ast: Node = ast
+        let ast: Expr = ast
             .into_serde()
             .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))?;
 
@@ -149,7 +149,7 @@ impl JavaScriptBuilder {
     }
 
     pub fn display(ast: &INode, indent: u8) -> Result<String, JsValue> {
-        let ast: Node = ast
+        let ast: Expr = ast
             .into_serde()
             .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))?;
 

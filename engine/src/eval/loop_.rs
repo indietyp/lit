@@ -1,7 +1,7 @@
 use num_bigint::BigUint;
 
 use crate::ast::control::Control;
-use crate::ast::node::Node;
+use crate::ast::expr::Expr;
 use crate::ast::variant::UInt;
 use crate::eval::exec::Exec;
 use crate::eval::types::{ChangeSet, Variables};
@@ -57,11 +57,11 @@ impl LoopExec {
         result
     }
 
-    pub fn new(node: Node) -> Self {
+    pub fn new(node: Expr) -> Self {
         match node {
-            Node::Control(Control::Loop { lno, ident, terms }) => LoopExec {
+            Expr::Control(Control::Loop { lno, ident, terms }) => LoopExec {
                 ident: match *ident {
-                    Node::Ident(m) => m,
+                    Expr::Ident(m) => m,
                     _ => unreachable!(),
                 },
                 terms: Box::new(Exec::new(*terms)),
