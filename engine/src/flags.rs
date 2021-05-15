@@ -2,7 +2,7 @@ use wasm_bindgen::prelude::*;
 
 bitflags! {
     #[wasm_bindgen]
-    pub struct CompilationFlags: u16 {
+    pub struct CompileFlags: u16 {
         //-- Language Features --//
         const LOOP       = 0b0000_0001;
         const WHILE      = 0b0000_0010;
@@ -25,14 +25,14 @@ bitflags! {
     }
 }
 
-impl CompilationFlags {
+impl CompileFlags {
     pub fn clear(&mut self) {
         self.bits = 0;
     }
 }
 
-impl Default for CompilationFlags {
+impl Default for CompileFlags {
     fn default() -> Self {
-        CompilationFlags::LOOP | CompilationFlags::WHILE
+        CompileFlags::LOOP | CompileFlags::WHILE
     }
 }

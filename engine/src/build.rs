@@ -10,7 +10,7 @@ use crate::ast::module::Module;
 use crate::errors;
 use crate::eval::exec::Exec;
 use crate::eval::types::Variables;
-use crate::flags::CompilationFlags;
+use crate::flags::CompileFlags;
 use crate::parser::Rule;
 use crate::parser::{LoopParser, ParseSettings};
 use crate::runtime::Runtime;
@@ -30,7 +30,7 @@ impl Builder {
 
     pub fn compile(
         ast: &mut Hir,
-        flags: Option<CompilationFlags>,
+        flags: Option<CompileFlags>,
         // fs can be used to specify additional files that can be used
         // at compile time, HashMap for "name: contents"
         fs: Option<func::fs::Directory>,
@@ -65,7 +65,7 @@ impl Builder {
 
     pub fn parse_and_compile(
         source: &str,
-        flags: Option<CompilationFlags>,
+        flags: Option<CompileFlags>,
     ) -> Result<Expr, Vec<errors::Error>> {
         todo!()
         // Builder::compile(
@@ -89,17 +89,14 @@ impl Builder {
         // )
     }
 
-    pub fn all(
-        source: &str,
-        flags: Option<CompilationFlags>,
-    ) -> Result<Runtime, Vec<errors::Error>> {
+    pub fn all(source: &str, flags: Option<CompileFlags>) -> Result<Runtime, Vec<errors::Error>> {
         Ok(Builder::eval(Builder::parse_and_compile(source, flags)?))
     }
 
     // all2 has more options than all (used mostly for tests)
     pub fn ext_all(
         source: &str,
-        flags: Option<CompilationFlags>,
+        flags: Option<CompileFlags>,
         locals: Option<Variables>,
     ) -> Result<Runtime, Vec<errors::Error>> {
         Ok(Builder::ext_eval(

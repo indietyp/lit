@@ -9,7 +9,7 @@ use crate::ast::control::Control;
 use crate::ast::expr::Expr;
 use crate::ast::func::Func;
 use crate::ast::hir::lower::{lower_loop, lower_terms, lower_while};
-use crate::errors::Error;
+use crate::errors::StdResult;
 
 pub mod lower;
 pub mod macros;
@@ -29,7 +29,7 @@ pub enum Hir {
 }
 
 impl Hir {
-    pub fn lower(&self, context: &mut CompileContext) -> Result<Expr, Vec<Error>> {
+    pub fn lower(&self, context: &mut CompileContext) -> StdResult<Expr> {
         let result = match self {
             Hir::Control(Control::Terms(t)) => lower_terms(context, t)?,
             Hir::Control(Control::Loop { lno, ident, terms }) => {

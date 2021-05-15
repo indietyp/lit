@@ -4,7 +4,7 @@ use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 use crate::ast::expr::Expr;
 use crate::build::Builder;
 use crate::eval::exec::Exec;
-use crate::flags::CompilationFlags;
+use crate::flags::CompileFlags;
 use crate::runtime::Runtime;
 use crate::utils::set_panic_hook;
 
@@ -125,7 +125,7 @@ impl JavaScriptBuilder {
             .map_err(|err| JsValue::from_str(format!("{}", err).as_str()))
     }
 
-    pub fn compile(ast: &IPollutedNode, flags: Option<CompilationFlags>) -> Result<INode, JsValue> {
+    pub fn compile(ast: &IPollutedNode, flags: Option<CompileFlags>) -> Result<INode, JsValue> {
         todo!()
         // let mut ast: Vec<PollutedNode> = ast.into_serde().unwrap();
         // let result =

@@ -1,6 +1,6 @@
 use crate::build::Builder;
 use crate::eval::types::Variables;
-use crate::flags::CompilationFlags;
+use crate::flags::CompileFlags;
 
 use indoc::indoc;
 use num_bigint::BigUint;
@@ -18,7 +18,7 @@ fn run(
     snip: &str,
     limit: Option<usize>,
     locals: Option<Variables>,
-    flags: Option<CompilationFlags>,
+    flags: Option<CompileFlags>,
 ) -> Result<Variables, ErrorCode> {
     let maybe_exec = Builder::ext_all(snip, flags, locals);
     assert!(
@@ -191,7 +191,7 @@ fn test_decompile() {
 
     let ast = Builder::parse_and_compile(
         snip,
-        Some(CompilationFlags::WHILE | CompilationFlags::CNF_RETAIN_LNO),
+        Some(CompileFlags::WHILE | CompileFlags::CNF_RETAIN_LNO),
     )
     .unwrap();
 
@@ -614,7 +614,7 @@ fn test_const() {
     todo!()
     // let result = Builder::compile(
     //     &mut result,
-    //     Some(CompilationFlags::CNF_CONST | CompilationFlags::LOOP | CompilationFlags::WHILE),
+    //     Some(CompileFlags::CNF_CONST | CompileFlags::LOOP | CompileFlags::WHILE),
     // );
     // assert!(result.is_err());
 }

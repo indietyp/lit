@@ -1,5 +1,3 @@
-use either::Either;
-use itertools::Itertools;
 use num_traits::{One, Zero};
 
 use crate::ast::context::CompileContext;
@@ -9,13 +7,13 @@ use crate::ast::hir::macros::Macro;
 use crate::ast::hir::Hir;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
-use crate::errors::{Error, ErrorVariant};
-use crate::flags::CompilationFlags;
+use crate::errors::{Error, ErrorVariant, StdResult};
+use crate::flags::CompileFlags;
 use crate::types::LineNo;
 use crate::utils;
 use crate::utils::private_identifier;
 
-pub(crate) fn lower_terms(context: &mut CompileContext, terms: &[Hir]) -> Result<Expr, Vec<Error>> {
+pub(crate) fn lower_terms(context: &mut CompileContext, terms: &[Hir]) -> StdResult<Expr> {
     let maybe: Vec<_> = terms.iter().map(|term| term.lower(context)).collect();
     let nodes = utils::check_errors(&maybe)?;
 
@@ -27,12 +25,12 @@ pub(crate) fn lower_loop(
     lno: LineNo,
     ident: &Hir,
     terms: &Hir,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let maybe_ident = ident.lower(context);
     let maybe_terms = terms.lower(context);
 
     let mut maybe = vec![maybe_ident, maybe_terms];
-    if !context.flags.intersects(CompilationFlags::LOOP_AND_WHILE) {
+    if !context.flags.intersects(CompileFlags::LOOP_AND_WHILE) {
         maybe.push(Err(vec![Error::new(
             lno,
             ErrorVariant::Message(String::from(
@@ -48,13 +46,13 @@ pub(crate) fn lower_loop(
         &_ => unreachable!(),
     };
 
-    let node = if context.flags.contains(CompilationFlags::LOOP) {
+    let node = if context.flags.contains(CompileFlags::LOOP) {
         Expr::Control(Control::Loop {
             lno,
             ident: Box::new(ident.clone()),
             terms: Box::new(terms.clone()),
         })
-    } else if context.flags.contains(CompilationFlags::WHILE) {
+    } else if context.flags.contains(CompileFlags::WHILE) {
         // This rewrites the LOOP into WHILE
         // LOOP x DO
         //  ...
@@ -108,12 +106,12 @@ pub(crate) fn lower_while(
     lno: LineNo,
     comp: &Hir,
     terms: &Hir,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let maybe_comp = comp.lower(context);
     let maybe_terms = terms.lower(context);
 
     let mut maybe = vec![maybe_comp, maybe_terms];
-    if !context.flags.contains(CompilationFlags::WHILE) {
+    if !context.flags.contains(CompileFlags::WHILE) {
         maybe.push(Err(vec![Error::new(
             lno,
             ErrorVariant::Message(String::from("Cannot replicate WHILE in LOOP mode!")),

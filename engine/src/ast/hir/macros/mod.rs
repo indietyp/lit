@@ -12,7 +12,7 @@ use crate::ast::hir::macros::lower::{
     lower_assign_to_ident, lower_assign_to_ident_binop_ident, lower_assign_to_ident_extbinop_value,
     lower_assign_to_value, lower_assign_to_zero,
 };
-use crate::errors::Error;
+use crate::errors::StdResult;
 use crate::types::LineNo;
 use serde::{Deserialize, Serialize};
 
@@ -65,7 +65,7 @@ pub enum Macro {
 }
 
 impl Macro {
-    pub fn lower(&self, context: &mut CompileContext) -> Result<Expr, Vec<Error>> {
+    pub fn lower(&self, context: &mut CompileContext) -> StdResult<Expr> {
         match self {
             Macro::AssignToIdent { lno, lhs, rhs } => {
                 lower_assign_to_ident(*lno, context, lhs, rhs)

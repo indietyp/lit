@@ -4,13 +4,13 @@ use crate::ast::func;
 use crate::ast::func::modmap::ModuleMap;
 use crate::ast::func::types::FunctionQualName;
 use crate::ast::module::Module;
-use crate::errors::{Error, StdResult};
-use crate::flags::CompilationFlags;
+use crate::errors::StdResult;
+use crate::flags::CompileFlags;
 
 #[derive(Debug, Clone)]
 pub struct CompileContext {
     counter: usize,
-    pub flags: CompilationFlags,
+    pub flags: CompileFlags,
     pub fs: func::fs::Directory,
     pub modules: ModuleMap,
     pub inline_counter: HashMap<FunctionQualName, usize>,
@@ -19,7 +19,7 @@ pub struct CompileContext {
 impl CompileContext {
     pub fn new(
         main: Module,
-        flags: CompilationFlags,
+        flags: CompileFlags,
         fs: Option<func::fs::Directory>,
     ) -> StdResult<Self> {
         let ctx = CompileContext {

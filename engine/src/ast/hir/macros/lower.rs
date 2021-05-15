@@ -8,8 +8,8 @@ use crate::ast::hir::Hir;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::OperatorVerb;
 use crate::build::Builder;
-use crate::errors::Error;
-use crate::flags::CompilationFlags;
+use crate::errors::StdResult;
+use crate::flags::CompileFlags;
 use crate::types::LineNo;
 use crate::utils::private_identifier;
 
@@ -23,7 +23,7 @@ pub(crate) fn lower_assign_to_ident(
     context: &CompileContext,
     lhs: &Expr,
     rhs: &Expr,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let lhs = match lhs.clone() {
         Expr::Ident(m) => m,
         _ => unreachable!(),
@@ -45,13 +45,13 @@ pub(crate) fn lower_assign_to_zero(
     lno: LineNo,
     context: &CompileContext,
     lhs: &Expr,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let lhs = match lhs.clone() {
         Expr::Ident(m) => m,
         _ => unreachable!(),
     };
 
-    let instruction = if context.flags.contains(CompilationFlags::OPT_ZERO) {
+    let instruction = if context.flags.contains(CompileFlags::OPT_ZERO) {
         format!(
             indoc! {"
             {lhs} := _zero + 0;
@@ -78,7 +78,7 @@ pub(crate) fn lower_assign_to_value(
     context: &CompileContext,
     lhs: &Expr,
     rhs: &Expr,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let lhs = match lhs.clone() {
         Expr::Ident(m) => m,
         _ => unreachable!(),
@@ -89,7 +89,7 @@ pub(crate) fn lower_assign_to_value(
         _ => unreachable!(),
     };
 
-    let instruction = if context.flags.contains(CompilationFlags::OPT_ZERO) {
+    let instruction = if context.flags.contains(CompileFlags::OPT_ZERO) {
         format!(
             indoc! {"
             {lhs} := _zero + {rhs}
@@ -119,7 +119,7 @@ fn expand_assign_to_ident_simple_ident(
     y: String,
     op: OperatorVerb,
     z: String,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let instruction = format!(
         indoc! {"
         {x} := {y}
@@ -143,7 +143,7 @@ fn expand_assign_to_ident_mul_ident(
     x: String,
     y: String,
     z: String,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let instruction = format!(
         indoc! {"
         {x} := 0
@@ -165,7 +165,7 @@ pub(crate) fn lower_assign_to_ident_binop_ident(
     context: &CompileContext,
     lhs: &Expr,
     rhs: &MacroAssign,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let lhs = match lhs.clone() {
         Expr::Ident(m) => m,
         _ => unreachable!(),
@@ -200,7 +200,7 @@ fn expand_assign_to_ident_mul_value(
     x: String,
     y: String,
     n: BigUint,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let tmp = private_identifier(context);
 
     let instruction = format!(
@@ -223,7 +223,7 @@ pub(crate) fn lower_assign_to_ident_extbinop_value(
     context: &mut CompileContext,
     lhs: &Expr,
     rhs: &MacroAssign,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let lhs = match lhs.clone() {
         Expr::Ident(m) => m,
         _ => unreachable!(),

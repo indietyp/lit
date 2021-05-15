@@ -16,11 +16,11 @@ use crate::ast::hir::Hir;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::ComparisonVerb;
 use crate::build::Builder;
-use crate::errors::Error;
+use crate::errors::StdResult;
 use crate::types::LineNo;
 use crate::utils::private_identifier;
 
-fn terms_are_ok(terms: Vec<Result<Expr, Vec<Error>>>) -> Result<Vec<Expr>, Vec<Error>> {
+fn terms_are_ok(terms: Vec<StdResult<Expr>>) -> StdResult<Vec<Expr>> {
     let iter = terms.iter().clone();
 
     let erroneous = iter.clone().filter(|res| res.is_err());
@@ -38,7 +38,7 @@ fn terms_are_ok(terms: Vec<Result<Expr, Vec<Error>>>) -> Result<Vec<Expr>, Vec<E
 fn if_else_body(
     lno: LineNo,
     context: &mut CompileContext,
-    terms: &mut Vec<Result<Expr, Vec<Error>>>,
+    terms: &mut Vec<StdResult<Expr>>,
     if_ident: String,
     if_terms: &Hir,
     else_ident: String,
@@ -80,7 +80,7 @@ fn lower_comp_not_zero(
     comp: Comparison,
     if_terms: &Hir,
     else_terms: &Option<Hir>,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let mut instructions = initial.unwrap_or_default();
 
     let ident = {
@@ -138,7 +138,7 @@ fn lower_comp_gt(
     comp: Comparison,
     if_terms: &Hir,
     else_terms: &Option<Hir>,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let mut instructions: Vec<String> = initial.unwrap_or_default();
 
     // if the value of y is a number, implicity convert it to a variable when expanding
@@ -219,7 +219,7 @@ fn lower_comp_gte(
     comp: Comparison,
     if_terms: &Hir,
     else_terms: &Option<Hir>,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let mut instructions = initial.unwrap_or_default();
     let mut comp = comp;
 
@@ -251,7 +251,7 @@ fn lower_comp_lt(
     comp: Comparison,
     if_terms: &Hir,
     else_terms: &Option<Hir>,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     lower_comp_gt(
         lno,
         context,
@@ -271,7 +271,7 @@ fn lower_comp_lte(
     comp: Comparison,
     if_terms: &Hir,
     else_terms: &Option<Hir>,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     lower_comp_gte(
         lno,
         context,
@@ -289,7 +289,7 @@ fn lower_comp_eq(
     comp: Comparison,
     if_terms: &Hir,
     else_terms: &Option<Hir>,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     // This one is a bit more complicated. Constructs equal through:
     // IF x >= y THEN
     //     IF x <= y THEN
@@ -345,7 +345,7 @@ fn lower_comp_neq(
     comp: Comparison,
     if_terms: &Hir,
     else_terms: &Option<Hir>,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let if_terms = Some(if_terms.clone());
     let else_terms = else_terms
         .clone()
@@ -362,7 +362,7 @@ pub(crate) fn lower_cond(
     comp: &Expr,
     if_terms: &Hir,
     else_terms: &Option<Hir>,
-) -> Result<Expr, Vec<Error>> {
+) -> StdResult<Expr> {
     let zero = BigUint::zero();
     let (comp_lhs, comp_verb, comp_rhs) = match comp {
         Expr::Comparison { lhs, verb, rhs } => (

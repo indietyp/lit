@@ -11,8 +11,8 @@ use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
-use crate::errors::{Error, ErrorVariant};
-use crate::flags::CompilationFlags;
+use crate::errors::{Error, ErrorVariant, StdResult};
+use crate::flags::CompileFlags;
 use crate::types::LineNo;
 use crate::utils::check_errors;
 
@@ -160,7 +160,7 @@ impl Expr {
         }
     }
 
-    pub fn verify(self, context: &mut CompileContext) -> Result<Self, Vec<Error>> {
+    pub fn verify(self, context: &mut CompileContext) -> StdResult<Self> {
         match &self {
             Expr::Assign { lhs, rhs: _, lno } => {
                 let ident = match *lhs.clone() {
@@ -168,7 +168,7 @@ impl Expr {
                     _ => unreachable!(),
                 };
 
-                if context.flags.contains(CompilationFlags::CNF_CONST)
+                if context.flags.contains(CompileFlags::CNF_CONST)
                     && CONST_IDENT.contains(&ident.as_str())
                 {
                     return Err(vec![Error::new(
