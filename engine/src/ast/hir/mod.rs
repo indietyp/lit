@@ -41,6 +41,7 @@ impl Hir {
             Hir::NoOp => Expr::Control(Control::Terms(vec![])),
             Hir::Expr(n) => n.clone(),
             Hir::Macro(m) => m.lower(context)?,
+            Hir::Function(f) => f.lower(context)?,
             _ => panic!("Not implemented yet!"),
         };
 

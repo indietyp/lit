@@ -1,12 +1,23 @@
-use crate::ast::func::modctx::{ModuleContext, ModuleContextHashMap};
-
 use crate::ast::expr::Expr;
-use crate::ast::module::{FuncDecl, Imp, ImpFunc, Module};
+use crate::ast::module::FuncDecl;
+use crate::types::LineNo;
 
-#[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FunctionImport {
     pub module: ModuleName,
     pub ident: FunctionName,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct FunctionInline {
+    pub lno: LineNo,
+
+    pub ident: String,
+    // these are already the inline names
+    pub params: Vec<String>,
+    pub ret: String,
+
+    pub terms: Expr,
 }
 
 sum_type! {
@@ -21,7 +32,7 @@ sum_type! {
 
         /// This means it is already inlined
         /// and can be used
-        Inline(Expr),
+        Inline(FunctionInline),
     }
 }
 

@@ -31,6 +31,11 @@ pub enum ErrorCode {
         module: String,
         count: usize,
     },
+    UnexpectedExprType {
+        message: String,
+        expected: String,
+        got: String,
+    },
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
@@ -78,6 +83,15 @@ impl Error {
         Error {
             lno: (0, 0),
             variant: ErrorVariant::Rust(RustError::Io(format!("{:?}", error.kind()))),
+        }
+    }
+
+    pub fn new_from_msg(lno: Option<LineNo>, msg: &str) -> Self {
+        let lno = lno.unwrap_or((0, 0));
+
+        Error {
+            lno,
+            variant: ErrorVariant::Message(msg.to_string()),
         }
     }
 }

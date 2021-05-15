@@ -15,11 +15,12 @@ use crate::errors::{Error, ErrorVariant, StdResult};
 use crate::flags::CompileFlags;
 use crate::types::LineNo;
 use crate::utils::check_errors;
+use std::string::ToString;
 
 pub static CONST_IDENT: [&str; 1] = ["_zero"];
 
 // Note(bmahmoud): in the future we could also support unary expressions?
-#[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq, strum_macros::ToString)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub enum Expr {
@@ -211,11 +212,5 @@ impl Expr {
             }
             _ => Ok(self),
         }
-    }
-}
-
-impl Display for Expr {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.display(4, None))
     }
 }

@@ -4,7 +4,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::ast::expr::Expr;
 use crate::ast::hir::Hir;
+use crate::errors::{Error, ErrorCode, StdResult};
 use crate::types::LineNo;
+use crate::utils::check_errors;
 use either::Either;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
@@ -17,6 +19,56 @@ pub struct FuncDecl {
     pub ret: Box<Expr>,
 
     pub terms: Box<Hir>,
+}
+
+impl FuncDecl {
+    fn unwrap_ident(&self, val: Expr, fmt_err: impl Fn(&Expr) -> String) -> StdResult<String> {
+        match val {
+            Expr::Ident(m) => Ok(m),
+            _ => Err(vec![Error::new_from_code(
+                Some(self.lno),
+                ErrorCode::UnexpectedExprType {
+                    message: fmt_err(&val),
+                    expected: String::from("Ident"),
+                    got: val.to_string(),
+                },
+            )]),
+        }
+    }
+
+    pub fn get_ident(&self) -> StdResult<String> {
+        self.unwrap_ident(*self.ident, |expr| {
+            format!("Expected ident to be Expr::Ident, got {}", expr.to_string())
+        })
+    }
+
+    pub fn get_ret(&self) -> StdResult<String> {
+        self.unwrap_ident(*self.ret, |expr| {
+            format!(
+                "Expected ret to be Expr::Ident, got {}",
+                self.ident.to_string()
+            )
+        })
+    }
+
+    pub fn get_params(&self) -> StdResult<Vec<String>> {
+        let params: Vec<_> = self
+            .params
+            .into_iter()
+            .enumerate()
+            .map(|(idx, expr)| {
+                self.unwrap_ident(expr, |expr| {
+                    format!(
+                        "Expected param {} to be Expr::Ident, got {}",
+                        idx,
+                        expr.to_string()
+                    )
+                })
+            })
+            .collect();
+
+        check_errors(&params)
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]

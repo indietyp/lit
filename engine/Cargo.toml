@@ -26,6 +26,8 @@ either = { version = "1.6.1", features = ["serde"] }
 newtype_derive = "0.1.6"
 itertools = "0.10.0"
 sum_type = "0.2.0"
+strum = "0.20"
+strum_macros = "0.20"
 
 # CLI
 clap = { version = "2.33.3", optional = true }

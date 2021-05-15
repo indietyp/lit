@@ -3,7 +3,9 @@ pub mod modctx;
 pub mod modmap;
 pub mod types;
 
+use crate::ast::context::CompileContext;
 use crate::ast::expr::Expr;
+use crate::errors::StdResult;
 use crate::types::LineNo;
 #[cfg(feature = "cli")]
 use schemars::JsonSchema;
@@ -30,4 +32,10 @@ pub enum Func {
         lhs: Box<Expr>,
         rhs: FuncCall,
     },
+}
+
+impl Func {
+    pub fn lower(&self, context: &mut CompileContext) -> StdResult<Expr> {
+        todo!()
+    }
 }
