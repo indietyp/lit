@@ -36,6 +36,11 @@ pub enum ErrorCode {
         expected: String,
         got: String,
     },
+    FunctionRecursionDetected {
+        module: String,
+        func: String,
+        count: Option<usize>,
+    },
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]

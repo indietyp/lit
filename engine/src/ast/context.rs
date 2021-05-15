@@ -12,14 +12,28 @@ use crate::errors::{Error, StdResult};
 use crate::flags::CompileFlags;
 
 #[derive(Debug, Clone)]
+pub struct CompileLocalContext {}
+
+impl Default for CompileLocalContext {
+    fn default() -> Self {
+        Self {}
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct CompileContext {
     counter: usize,
     inline_counter: HashMap<FunctionQualName, usize>,
 
-    // pub module: ModuleName,
+    // implement a call stack of some sorts when lowering
+    // .call() which also gives you a new CompileContext?
+    // remove the locals stuff as soon as we're out of the callstack
     pub fs: Directory,
     pub flags: CompileFlags,
     pub modules: ModuleMap,
+
+    stack: CallStack,
+    stack_ctx: Option<CompileLocalContext>,
 }
 
 impl CompileContext {
@@ -32,9 +46,35 @@ impl CompileContext {
             flags,
 
             modules: ModuleMap::from(main, fs.unwrap_or_default())?,
+            stack: vec![],
+            stack_ctx: None,
         };
 
         Ok(ctx)
+    }
+}
+
+type CallStack = Vec<FunctionQualName>;
+impl CompileContext {
+    pub fn call<T>(
+        &mut self,
+        qual: FunctionQualName,
+        func: impl Fn(&mut CompileContext, &CallStack, &mut CompileLocalContext) -> StdResult<T>,
+    ) -> StdResult<T> {
+        if self.stack_ctx.is_none() {
+            self.stack_ctx = Some(CompileLocalContext::default())
+        }
+
+        self.stack.push(qual);
+        let ret = func(self, &self.stack, &mut self.stack_ctx.unwrap_or_default());
+        self.stack.pop();
+
+        // clear the stack_ctx if we're empty
+        if self.stack.is_empty() {
+            self.stack_ctx = None
+        }
+
+        ret
     }
 }
 

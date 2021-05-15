@@ -14,9 +14,7 @@ pub fn lower_call(
     lno: LineNo,
     lhs: Expr,
     rhs: FuncCall,
-    history: Option<HashSet<FunctionQualName>>,
 ) -> StdResult<Expr> {
-    let mut history = history.unwrap_or_default();
     let module_ctx = context.modules.get(&module).map_or(
         Err(utils::could_not_find_module(Some(lno), &module)),
         |ctx| Ok(ctx),
@@ -32,7 +30,7 @@ pub fn lower_call(
         |f| Ok(f),
     )?;
 
-    let expr = func_ctx.inline(context, &module, &mut history)?;
+    let expr = func_ctx.inline(context, &module)?;
 
     todo!()
 }
