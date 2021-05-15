@@ -2,15 +2,16 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use func::Func;
 use macros::Macro;
 
 use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::expr::Expr;
-use crate::ast::func::Func;
 use crate::ast::hir::lower::{lower_loop, lower_terms, lower_while};
 use crate::errors::StdResult;
 
+pub mod func;
 pub mod lower;
 pub mod macros;
 

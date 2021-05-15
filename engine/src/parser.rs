@@ -7,7 +7,7 @@ use pest_consume::Parser;
 
 use crate::ast::control::Control;
 use crate::ast::expr::Expr;
-use crate::ast::func::{Func, FuncCall};
+use crate::ast::hir::func::{Func, FuncCall};
 use crate::ast::hir::macros::{Macro, MacroAssign};
 use crate::ast::hir::Hir;
 use crate::ast::module::{FuncDecl, Imp, ImpFunc, ImpWildcard, Module};

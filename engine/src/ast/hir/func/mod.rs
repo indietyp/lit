@@ -1,10 +1,12 @@
 pub mod fs;
+pub mod lower;
 pub mod modctx;
 pub mod modmap;
 pub mod types;
 
 use crate::ast::context::CompileContext;
 use crate::ast::expr::Expr;
+use crate::ast::hir::func::types::ModuleName;
 use crate::errors::StdResult;
 use crate::types::LineNo;
 #[cfg(feature = "cli")]
@@ -35,7 +37,11 @@ pub enum Func {
 }
 
 impl Func {
-    pub fn lower(&self, context: &mut CompileContext) -> StdResult<Expr> {
+    pub fn lower(
+        &self,
+        context: &mut CompileContext,
+        module: Option<ModuleName>,
+    ) -> StdResult<Expr> {
         todo!()
     }
 }

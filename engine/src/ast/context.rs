@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 
 use crate::ast::expr::Expr;
-use crate::ast::func;
-use crate::ast::func::fs::Directory;
-use crate::ast::func::modmap::ModuleMap;
-use crate::ast::func::types::FunctionQualName;
+use crate::ast::hir::func::fs::Directory;
+use crate::ast::hir::func::modmap::ModuleMap;
+use crate::ast::hir::func::types::{FunctionQualName, ModuleName};
 use crate::ast::module::{FuncDecl, Module};
 use crate::errors::{Error, StdResult};
 use crate::flags::CompileFlags;
@@ -15,8 +14,7 @@ pub struct CompileContext {
     counter: usize,
     inline_counter: HashMap<FunctionQualName, usize>,
 
-    pub module: Vec<String>,
-
+    // pub module: ModuleName,
     pub fs: Directory,
     pub flags: CompileFlags,
     pub modules: ModuleMap,
@@ -26,24 +24,27 @@ impl CompileContext {
     pub fn new(main: Module, flags: CompileFlags, fs: Option<Directory>) -> StdResult<Self> {
         let ctx = CompileContext {
             counter: 0,
-            flags,
-            fs: fs.unwrap_or_default(),
-            modules: ModuleMap::from(main, fs.unwrap_or_default())?,
             inline_counter: HashMap::new(),
-            module: vec!["fs".to_string(), "main".to_string()],
+
+            fs: fs.unwrap_or_default(),
+            flags,
+
+            modules: ModuleMap::from(main, fs.unwrap_or_default())?,
         };
 
         Ok(ctx)
     }
+}
 
-    pub fn incr(&mut self) -> usize {
+impl CompileContext {
+    fn incr(&mut self) -> usize {
         let cur = self.counter;
         self.counter += 1;
 
         cur
     }
 
-    pub fn incr_inline(&mut self, func: FunctionQualName) -> usize {
+    fn incr_inline(&mut self, func: FunctionQualName) -> usize {
         let mut cur = self.inline_counter.get(&func).cloned().unwrap_or(0);
         cur += 1;
         self.inline_counter.insert(func, cur);
@@ -51,7 +52,14 @@ impl CompileContext {
         cur.clone()
     }
 
-    pub fn prefix(&self, func: FuncDecl, ident: Either<String, Expr>) -> StdResult<String> {
+    fn prefix(
+        &mut self,
+        module: Option<ModuleName>,
+        func: FuncDecl,
+        ident: Either<String, Expr>,
+    ) -> StdResult<String> {
+        let module = module.unwrap_or(ModuleName::main());
+
         let ident = ident.either(
             |f| Ok(f),
             |g| match g {
@@ -63,12 +71,17 @@ impl CompileContext {
             },
         )?;
 
-        let ident = func.get_ident()?;
+        let func_name = func.get_ident()?;
+        let qual_name: FunctionQualName = (module.clone(), func_name.into()).into();
 
-        todo!()
-    }
+        let name = format!(
+            "_{}_{}_{}__{}",
+            module.join("_"),
+            func_name,
+            self.incr_inline(qual_name),
+            ident
+        );
 
-    pub fn change(&self) -> Self {
-        todo!()
+        Ok(name)
     }
 }

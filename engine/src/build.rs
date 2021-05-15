@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::ast::context::CompileContext;
 use crate::ast::expr::Expr;
-use crate::ast::func;
+use crate::ast::hir::func;
 use crate::ast::hir::Hir;
 use crate::ast::module::Module;
 use crate::errors;

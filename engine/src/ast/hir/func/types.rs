@@ -1,6 +1,7 @@
 use crate::ast::expr::Expr;
 use crate::ast::module::FuncDecl;
 use crate::types::LineNo;
+use itertools::Itertools;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct FunctionImport {
@@ -41,6 +42,12 @@ pub struct ModuleName(pub Vec<String>);
 NewtypeDeref! {() pub struct ModuleName(pub Vec<String>); }
 NewtypeDerefMut! {() pub struct ModuleName(pub Vec<String>); }
 
+impl ModuleName {
+    pub fn main() -> Self {
+        ModuleName(vec!["fs".to_string(), "main".to_string()])
+    }
+}
+
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord, Hash)]
 pub struct FunctionName(pub String);
 NewtypeDeref! {() pub struct FunctionName(pub String); }
@@ -74,5 +81,27 @@ impl From<String> for FunctionName {
 impl From<&str> for FunctionName {
     fn from(val: &str) -> Self {
         Self(val.into())
+    }
+}
+impl From<String> for FunctionQualName {
+    fn from(val: String) -> Self {
+        Self(val)
+    }
+}
+impl From<&str> for FunctionQualName {
+    fn from(val: &str) -> Self {
+        Self(val.into())
+    }
+}
+impl From<(ModuleName, FunctionName)> for FunctionQualName {
+    fn from((module, func): (ModuleName, FunctionName)) -> Self {
+        Self(
+            module
+                .0
+                .into_iter()
+                .chain(std::iter::once(func.0))
+                .collect_vec()
+                .join("::"),
+        )
     }
 }
