@@ -5,6 +5,8 @@ use pest::error::{InputLocation, LineColLocation};
 use serde::{Deserialize, Serialize};
 use std::io;
 
+pub type StdResult<R> = std::result::Result<R, Vec<Error>>;
+
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 pub enum ErrorCode {
     CouldNotFindModule {

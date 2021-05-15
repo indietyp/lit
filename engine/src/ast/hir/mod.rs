@@ -1,17 +1,18 @@
-pub mod lower;
-
 #[cfg(feature = "cli")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use macros::Macro;
 
 use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::expr::Expr;
 use crate::ast::func::Func;
 use crate::ast::hir::lower::{lower_loop, lower_terms, lower_while};
-use crate::ast::macros::Macro;
-
 use crate::errors::Error;
+
+pub mod lower;
+pub mod macros;
 
 /// HIR = High-Level Intermediate Representation
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]

@@ -33,7 +33,7 @@ impl Builder {
         flags: Option<CompilationFlags>,
         // fs can be used to specify additional files that can be used
         // at compile time, HashMap for "name: contents"
-        fs: Option<func::filesystem::Directory>,
+        fs: Option<func::fs::Directory>,
     ) -> Result<Expr, Vec<errors::Error>> {
         Builder::ext_compile(ast, CompileContext::new(flags.unwrap_or_default(), fs))
     }

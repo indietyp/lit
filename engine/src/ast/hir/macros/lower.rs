@@ -3,8 +3,8 @@ use num_bigint::BigUint;
 
 use crate::ast::context::CompileContext;
 use crate::ast::expr::Expr;
+use crate::ast::hir::macros::MacroAssign;
 use crate::ast::hir::Hir;
-use crate::ast::macros::MacroAssign;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::OperatorVerb;
 use crate::build::Builder;

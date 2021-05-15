@@ -7,8 +7,8 @@ use crate::ast::expr::Expr;
 use crate::ast::hir::Hir;
 use crate::ast::verbs::OperatorVerb;
 
-use crate::ast::macros::comp::lower_cond;
-use crate::ast::macros::lower::{
+use crate::ast::hir::macros::comp::lower_cond;
+use crate::ast::hir::macros::lower::{
     lower_assign_to_ident, lower_assign_to_ident_binop_ident, lower_assign_to_ident_extbinop_value,
     lower_assign_to_value, lower_assign_to_zero,
 };

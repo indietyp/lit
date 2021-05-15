@@ -134,7 +134,7 @@ impl Into<Path> for Directory {
 
 #[cfg(test)]
 mod tests {
-    use crate::ast::func::filesystem::{Directory, FileContents};
+    use crate::ast::func::fs::{Directory, FileContents};
     use std::collections::HashMap;
 
     fn create() -> Directory {

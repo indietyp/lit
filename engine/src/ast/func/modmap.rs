@@ -5,7 +5,7 @@ use either::Either;
 use itertools::Itertools;
 
 use crate::ast::expr::Expr;
-use crate::ast::func::filesystem::Directory;
+use crate::ast::func::fs::Directory;
 use crate::ast::func::modctx::{ModuleContext, ModuleContextHashMap};
 use crate::ast::func::types::{FunctionContext, FunctionImport, FunctionName, ModuleName};
 use crate::ast::hir::Hir;
@@ -793,7 +793,7 @@ mod test {
 
     use crate::ast::control::Control;
     use crate::ast::expr::Expr;
-    use crate::ast::func::filesystem::Directory;
+    use crate::ast::func::fs::Directory;
     use crate::ast::func::modctx::ModuleContext;
     use crate::ast::func::modmap::ModuleMap;
     use crate::ast::func::types::FunctionContext::{Func, Import};

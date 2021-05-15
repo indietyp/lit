@@ -1,4 +1,4 @@
-pub mod filesystem;
+pub mod fs;
 pub mod modctx;
 pub mod modmap;
 pub mod types;

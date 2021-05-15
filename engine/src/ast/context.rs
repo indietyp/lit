@@ -1,29 +1,36 @@
 use std::collections::HashMap;
 
 use crate::ast::func;
-use crate::ast::func::modctx::ModuleContext;
 use crate::ast::func::modmap::ModuleMap;
-use crate::ast::func::types::{FunctionQualName, ModuleName};
+use crate::ast::func::types::FunctionQualName;
+use crate::ast::module::Module;
+use crate::errors::{Error, StdResult};
 use crate::flags::CompilationFlags;
 
 #[derive(Debug, Clone)]
 pub struct CompileContext {
     counter: usize,
     pub flags: CompilationFlags,
-    pub fs: func::filesystem::Directory,
+    pub fs: func::fs::Directory,
     pub modules: ModuleMap,
     pub inline_counter: HashMap<FunctionQualName, usize>,
 }
 
 impl CompileContext {
-    pub fn new(flags: CompilationFlags, fs: Option<func::filesystem::Directory>) -> Self {
-        CompileContext {
+    pub fn new(
+        main: Module,
+        flags: CompilationFlags,
+        fs: Option<func::fs::Directory>,
+    ) -> StdResult<Self> {
+        let ctx = CompileContext {
             counter: 0,
             flags,
             fs: fs.unwrap_or_default(),
-            modules: ModuleMap::new(),
+            modules: ModuleMap::from(main, fs.unwrap_or_default())?,
             inline_counter: HashMap::new(),
-        }
+        };
+
+        Ok(ctx)
     }
 
     pub fn incr(&mut self) -> usize {
