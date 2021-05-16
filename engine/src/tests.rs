@@ -707,6 +707,42 @@ fn test_inline_nested() {
     assert_is_int(y, 7);
 }
 
+#[test]
+fn test_inline_across_fs() {
+    let module_a = indoc! {"
+    from std::prelude import max
+
+    fn maxSubN(x, y, n) -> z decl
+        maxVal := max(x, y)
+        z := maxVal - n
+    end         
+    "};
+
+    let snip = indoc! {"
+    from fs::a import *
+
+    z := max(x, y)
+    y := maxSubN(x, y, 3)
+    "};
+
+    let mut locals = HashMap::new();
+    locals.insert("x".to_string(), BigUint::from(2u8));
+    locals.insert("y".to_string(), BigUint::from(4u8));
+
+    let mut dir = Directory::new();
+    dir.insert("a".into(), module_a.into());
+
+    let result = run(snip, Some(150), Some(locals), None, Some(dir));
+    assert_result_ok(&result);
+
+    let locals = result.ok().unwrap();
+    let y = locals.get("y");
+    let z = locals.get("z");
+
+    assert_is_int(y, 1);
+    assert_is_int(z, 4);
+}
+
 // This is a special tests, that looks what the LIPS count is.
 #[test]
 #[ignore]

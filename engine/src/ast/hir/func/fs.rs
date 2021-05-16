@@ -120,6 +120,11 @@ impl Directory {
     }
 }
 
+impl From<&str> for Path {
+    fn from(val: &str) -> Self {
+        Path(Either::Left(val.to_string()))
+    }
+}
 impl From<String> for Path {
     fn from(val: String) -> Self {
         Path(Either::Left(val))
