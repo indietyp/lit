@@ -1,3 +1,4 @@
+use crate::ast::hir::func::structs::qualname::FuncQualName;
 use crate::parser::Rule;
 use crate::types::LineNo;
 use either::Either;
@@ -37,6 +38,7 @@ pub enum ErrorCode {
         got: String,
     },
     FunctionRecursionDetected {
+        stack: Vec<String>,
         module: String,
         func: String,
         count: Option<usize>,
@@ -54,7 +56,7 @@ pub enum RustError {
     Io(String),
 }
 
-#[derive(new, Debug, Serialize, Deserialize, Clone)]
+#[derive(new, Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 pub struct Error {
     pub lno: LineNo,
     pub variant: ErrorVariant,

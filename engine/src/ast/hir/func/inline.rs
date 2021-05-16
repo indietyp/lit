@@ -101,6 +101,17 @@ impl Inline for FuncDecl {
                         Error::new_from_code(
                             Some(self.lno),
                             ErrorCode::FunctionRecursionDetected {
+                                stack: context
+                                    .get_stack()
+                                    .iter()
+                                    .map(|frame| {
+                                        frame
+                                            .clone()
+                                            .caller
+                                            .map(|m| m.to_string())
+                                            .unwrap_or(frame.clone().module.to_string())
+                                    })
+                                    .collect(),
                                 module: module.join("::"),
                                 func: func_name.clone(),
                                 count: Some(v),

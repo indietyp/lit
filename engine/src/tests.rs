@@ -3,6 +3,8 @@ use crate::eval::types::Variables;
 use crate::flags::CompileFlags;
 
 use crate::ast::hir::func::fs::Directory;
+use crate::errors::ErrorCode::FunctionUnexpectedNumberOfArguments;
+use crate::errors::{Error, ErrorVariant};
 use indoc::indoc;
 use num_bigint::BigUint;
 use num_traits::{One, Zero};
@@ -634,18 +636,44 @@ fn test_call_param_error() {
     a := a(1, 2, 3)
     "};
 
-    todo!()
+    let maybe_runtime = Builder::ext_all(snip, None, None, None);
+    let errors = maybe_runtime.err().expect("Expected Error");
+    assert_eq!(errors.len(), 2);
+
+    let expected = vec![
+        crate::errors::Error {
+            lno: (6, 6),
+            variant: crate::errors::ErrorVariant::ErrorCode(FunctionUnexpectedNumberOfArguments {
+                module: "fs::main".to_string(),
+                func: "a".to_string(),
+                expected: 2,
+                got: 1,
+            }),
+        },
+        crate::errors::Error {
+            lno: (7, 7),
+            variant: crate::errors::ErrorVariant::ErrorCode(FunctionUnexpectedNumberOfArguments {
+                module: "fs::main".to_string(),
+                func: "a".to_string(),
+                expected: 2,
+                got: 3,
+            }),
+        },
+    ];
+
+    assert!(errors.eq(&expected));
 }
 
 #[test]
-fn test_simple_recursion() {
+fn test_lazy_eval() {
     let snip = indoc! {"
     FN a(b) -> c DECL
         _ := a(b)
     END
     "};
 
-    todo!()
+    let maybe_runtime = Builder::ext_all(snip, None, None, None);
+    assert!(maybe_runtime.is_ok());
 }
 
 #[test]
@@ -664,10 +692,33 @@ fn test_nested_recursion() {
     x := a(2)
     "};
 
-    let result = run(snip, Some(50), None, None, None);
-    // assert_result_ok(&result);
+    let maybe_runtime = Builder::ext_all(snip, None, None, None);
+    let errors = maybe_runtime.err().expect("Expected Error");
+    assert_eq!(errors.len(), 1);
+    let error = errors
+        .first()
+        .expect("Expected at least one error, got none?");
 
-    println!("{:#?}", result);
+    let (stack, module, func, count) = match error.clone().variant {
+        crate::errors::ErrorVariant::ErrorCode(
+            crate::errors::ErrorCode::FunctionRecursionDetected {
+                stack,
+                module,
+                func,
+                count,
+            },
+        ) => (stack, module, func, count),
+        _ => panic!("Error war supossed to be Recursion Error!"),
+    };
+
+    assert_eq!(stack.len(), 4);
+    assert_eq!(
+        stack,
+        vec!["fs::main::a", "fs::main::b", "fs::main::c", "fs::main::a"]
+    );
+    assert_eq!(module, "fs::main");
+    assert_eq!(func, "a");
+    assert_eq!(count, Some(2));
 }
 
 #[test]
