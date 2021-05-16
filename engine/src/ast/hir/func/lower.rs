@@ -2,9 +2,7 @@ use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::expr::Expr;
 use crate::ast::hir::func::inline::Inline;
-use crate::ast::hir::func::module::ctx::ModuleContext;
 use crate::ast::hir::func::structs::funcname::FuncName;
-use crate::ast::hir::func::structs::modname::ModuleName;
 use crate::ast::hir::func::structs::FuncContext;
 use crate::ast::hir::func::{utils, FuncCall};
 use crate::build::Builder;
@@ -24,10 +22,7 @@ pub fn lower_call(
         let module_ctx = context
             .modules
             .get(&module)
-            .map_or(
-                Err(utils::could_not_find_module(Some(lno), &module)),
-                |ctx| Ok(ctx),
-            )?
+            .map_or(Err(utils::could_not_find_module(Some(lno), &module)), Ok)?
             .clone();
 
         let func_name: FuncName = rhs.get_ident()?.into();
@@ -40,7 +35,7 @@ pub fn lower_call(
                     &module,
                     &func_name,
                 )),
-                |f| Ok(f),
+                Ok,
             )?
             .clone();
 
@@ -50,10 +45,10 @@ pub fn lower_call(
     let inline = func_ctx.inline(context, &module)?;
 
     {
-        let module_ctx = context.modules.get_mut(&module).map_or(
-            Err(utils::could_not_find_module(Some(lno), &module)),
-            |ctx| Ok(ctx),
-        )?;
+        let module_ctx = context
+            .modules
+            .get_mut(&module)
+            .map_or(Err(utils::could_not_find_module(Some(lno), &module)), Ok)?;
 
         // cache the inline result for further use
         module_ctx.insert(func_name.clone(), FuncContext::Inline(inline.clone()));

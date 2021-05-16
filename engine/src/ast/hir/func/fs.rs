@@ -77,11 +77,11 @@ impl Directory {
         self.0.insert(key, Box::new(value))
     }
 
-    pub fn remove(&mut self, key: &String) -> Option<Box<Path>> {
+    pub fn remove(&mut self, key: &str) -> Option<Box<Path>> {
         self.0.remove(key)
     }
 
-    pub fn get(&mut self, key: &String) -> Option<&Box<Path>> {
+    pub fn get(&mut self, key: &str) -> Option<&Box<Path>> {
         self.0.get(key)
     }
 
@@ -120,15 +120,14 @@ impl Directory {
     }
 }
 
-impl Into<Path> for String {
-    fn into(self) -> Path {
-        Path(Either::Left(self))
+impl From<String> for Path {
+    fn from(val: String) -> Self {
+        Path(Either::Left(val))
     }
 }
-
-impl Into<Path> for Directory {
-    fn into(self) -> Path {
-        Path(Either::Right(Box::new(self)))
+impl From<Directory> for Path {
+    fn from(val: Directory) -> Self {
+        Path(Either::Right(Box::new(val)))
     }
 }
 

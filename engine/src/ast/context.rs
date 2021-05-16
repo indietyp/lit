@@ -8,8 +8,6 @@ use crate::ast::hir::func::structs::qualname::FuncQualName;
 use crate::ast::module::Module;
 use crate::errors::StdResult;
 use crate::flags::CompileFlags;
-use std::borrow::Borrow;
-use std::cell::{Ref, RefCell};
 
 #[derive(Debug, Clone)]
 pub struct CompileLocalContext {}
@@ -66,7 +64,7 @@ impl CompileContext {
             fs: fs.clone().unwrap_or_default(),
             flags,
 
-            modules: ModuleMap::from(main, fs.clone().unwrap_or_default())?,
+            modules: ModuleMap::from(main, fs.unwrap_or_default())?,
             stack: vec![],
             mainframe,
         };
@@ -102,10 +100,6 @@ impl CompileContext {
 
     pub fn get_current_frame(&self) -> &Frame {
         self.stack.last().unwrap_or(&self.mainframe)
-    }
-
-    fn get_current_frame_mut(&mut self) -> &mut Frame {
-        self.stack.last_mut().unwrap_or(&mut self.mainframe)
     }
 
     // function is because the stack should not be mutable.

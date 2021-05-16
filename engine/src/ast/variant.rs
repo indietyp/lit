@@ -10,7 +10,6 @@ use schemars::schema::{InstanceType, Schema, SchemaObject};
 use schemars::JsonSchema;
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
-use std::ops::{Add, Mul};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UInt(pub BigUint);

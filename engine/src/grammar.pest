@@ -140,12 +140,12 @@ macroWhile = {
 
 macro_ = _{
     macroAssignToIdentExtOpValue
+    | macroFnCall
     | macroAssignToIdentOpIdent
     | macroAssignToIdent
     | macroAssignToZero
     | macroAssignToValue
     | macroConditional
-    | macroFnCall
 }
 
 // Function Definitions

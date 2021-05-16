@@ -27,7 +27,7 @@ impl Builder {
         let pairs = LoopParser::parse_with_userdata(Rule::grammar, source, &settings)?;
 
         let pair = pairs.single()?;
-        Ok(LoopParser::grammar(pair)?)
+        LoopParser::grammar(pair)
     }
 
     pub fn compile(

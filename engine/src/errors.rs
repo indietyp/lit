@@ -45,8 +45,8 @@ pub enum ErrorCode {
         module: String,
         func: String,
         expected: usize,
-        got: usize
-    }
+        got: usize,
+    },
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
@@ -153,9 +153,9 @@ impl ExtractInformation for pest::error::ErrorVariant<Rule> {
 impl ExtractInformation for pest::error::LineColLocation {
     fn extract(&self) -> PestErrorInfo {
         match self {
-            LineColLocation::Pos(pos) => PestErrorInfo::LineColLocation(Either::Left(pos.clone())),
+            LineColLocation::Pos(pos) => PestErrorInfo::LineColLocation(Either::Left(*pos)),
             LineColLocation::Span(start, end) => {
-                PestErrorInfo::LineColLocation(Either::Right((start.clone(), end.clone())))
+                PestErrorInfo::LineColLocation(Either::Right((start.clone(), *end)))
             }
         }
     }
@@ -164,8 +164,8 @@ impl ExtractInformation for pest::error::LineColLocation {
 impl ExtractInformation for pest::error::InputLocation {
     fn extract(&self) -> PestErrorInfo {
         match self {
-            InputLocation::Pos(pos) => PestErrorInfo::InputLocation(Either::Left(pos.clone())),
-            InputLocation::Span(pos) => PestErrorInfo::InputLocation(Either::Right(pos.clone())),
+            InputLocation::Pos(pos) => PestErrorInfo::InputLocation(Either::Left(*pos)),
+            InputLocation::Span(pos) => PestErrorInfo::InputLocation(Either::Right(*pos)),
         }
     }
 }

@@ -13,7 +13,6 @@ use js_sys::Math::ceil;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::str::FromStr;
 
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"

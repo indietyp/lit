@@ -241,7 +241,7 @@ impl Expr {
             }),
             Expr::Control(Control::Terms(terms)) => Expr::Control(Control::Terms(
                 terms
-                    .into_iter()
+                    .iter()
                     .map(|t| t.prefix(context, qual, count))
                     .collect(),
             )),

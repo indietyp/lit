@@ -623,52 +623,6 @@ fn test_const() {
 }
 
 #[test]
-fn test_imports_fs() {
-    let snip = indoc! {"
-    FROM fs::example IMPORT a
-    FROM fs::.::example IMPORT b
-    FROM fs::.::.::.::example IMPORT c
-    FROM fs::dir::child IMPORT d
-    "};
-
-    let example = indoc! {"
-    FN a(_) -> c DECL
-        ...
-    END
-
-    FN b(_) -> c DECL
-        ...
-    END
-
-    FN c(_) -> c DECL
-        ...
-    END
-    "};
-
-    let child = indoc! {"
-    FROM fs::..::example IMPORT a
-    FROM fs::..::.::example IMPORT b
-
-    FN d(_) -> c DECL
-        ...
-    END
-    "};
-}
-
-#[test]
-fn test_imports_alias() {
-    let snip = indoc! {"
-    FROM fs::example IMPORT (a, a AS b, a AS c)
-    "};
-
-    let example = indoc! {"
-    FN a(_) -> c DECL
-        ...
-    END
-    "};
-}
-
-#[test]
 fn test_call_param_error() {
     let snip = indoc! {"
     FN a(b, c) -> d DECL
@@ -678,26 +632,6 @@ fn test_call_param_error() {
     a := a(1, 2)
     a := a(1)
     a := a(1, 2, 3)
-    "};
-}
-
-#[test]
-fn test_imports_collision() {
-    let snip = indoc! {"
-    FROM fs::example1 IMPORT a
-    FROM fs::example2 IMPORT a
-    "};
-
-    let example1 = indoc! {"
-    FN a(_) -> c DECL
-        ...
-    END
-    "};
-
-    let example2 = indoc! {"
-    FN a(_) -> c DECL
-        ...
-    END
     "};
 }
 
@@ -728,30 +662,50 @@ fn test_nested_recursion() {
 }
 
 #[test]
-fn test_nested_import() {
+fn test_inline_simple() {
     let snip = indoc! {"
-    FROM fs::prelude IMPORT (a, b)
+    from std::prelude import max
+
+    y := max(x, 3)
     "};
 
-    let prelude = indoc! {"
-    FROM fs::.::funcs IMPORT *
-    "};
+    let mut locals = HashMap::new();
+    locals.insert("x".to_string(), BigUint::from(2u8));
 
-    let funcs = indoc! {"
-    FN a(_) -> c DECL
-        ...
-    END
-    FN b(_) -> c DECL
-        ...
-    END
-    "};
+    let result = run(snip, Some(50), Some(locals), None, None);
+    assert_result_ok(&result);
+
+    let locals = result.ok().unwrap();
+    let y = locals.get("y");
+
+    assert_is_int(y, 3);
 }
 
 #[test]
-fn test_inline_simple() {}
+fn test_inline_nested() {
+    let snip = indoc! {"
+    from std::prelude import max
 
-#[test]
-fn test_inline_nested() {}
+    fn maxAddN(x, y, n) -> z decl
+        maxVal := max(x, y)
+        z := maxVal + n
+    end
+
+    y := maxAddN(x, y, 3)
+    "};
+
+    let mut locals = HashMap::new();
+    locals.insert("x".to_string(), BigUint::from(2u8));
+    locals.insert("y".to_string(), BigUint::from(4u8));
+
+    let result = run(snip, Some(50), Some(locals), None, None);
+    assert_result_ok(&result);
+
+    let locals = result.ok().unwrap();
+    let y = locals.get("y");
+
+    assert_is_int(y, 7);
+}
 
 // This is a special tests, that looks what the LIPS count is.
 #[test]

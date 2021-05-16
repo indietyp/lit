@@ -30,13 +30,13 @@ impl Inline for FuncImport {
             let module_ctx = context
                 .modules
                 .get_mut(&self.module)
-                .map_or(Err(could_not_find_module(None, &self.module)), |f| Ok(f))?;
+                .map_or(Err(could_not_find_module(None, &self.module)), Ok)?;
 
             module_ctx
                 .get(&self.ident)
                 .map_or(
                     Err(could_not_find_function(None, &self.module, &self.ident)),
-                    |f| Ok(f),
+                    Ok,
                 )?
                 .clone()
         };
@@ -76,9 +76,9 @@ impl Inline for FuncDecl {
         if !errors.is_empty() {
             return Err(errors);
         }
-        let func_name = func_name.clone().unwrap();
-        let params = params.clone().unwrap();
-        let ret = ret.clone().unwrap();
+        let func_name = func_name.unwrap();
+        let params = params.unwrap();
+        let ret = ret.unwrap();
 
         let qual: FuncQualName = (module.clone(), func_name.clone().into()).into();
         context.dive(qual.clone(), module.clone(), |context| {

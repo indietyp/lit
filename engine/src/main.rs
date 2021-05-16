@@ -10,11 +10,6 @@ extern crate newtype_derive;
 #[macro_use]
 extern crate sum_type;
 
-use std::fs::read_to_string;
-
-use crate::build::Builder;
-use crate::flags::CompileFlags;
-
 mod ast;
 mod build;
 mod errors;
