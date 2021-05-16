@@ -440,12 +440,12 @@ impl LoopParser {
             // Full Module
             [imports(i), functions(f), expr(t), EOI(_)] => (Some(i), Some(f), t),
             // Mixed Module
-            [imports(i), functions(f), EOI(_)] => (Some(i), Some(f), PollutedNode::NoOp),
+            [imports(i), functions(f), EOI(_)] => (Some(i), Some(f), Hir::NoOp),
             [functions(f), expr(t), EOI(_)] => (None, Some(f), t),
             [imports(i), expr(t), EOI(_)] => (Some(i), None, t),
             // Single Purpose Module
-            [functions(f), EOI(_)] => (None, Some(f), PollutedNode::NoOp),
-            [imports(i), EOI(_)] => (Some(i), None, PollutedNode::NoOp),
+            [functions(f), EOI(_)] => (None, Some(f), Hir::NoOp),
+            [imports(i), EOI(_)] => (Some(i), None, Hir::NoOp),
             [expr(t), EOI(_)] => (None, None, t)
         );
 

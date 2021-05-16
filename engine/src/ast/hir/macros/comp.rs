@@ -117,11 +117,8 @@ fn lower_comp_not_zero(
     instructions.push(stmt);
 
     let mut terms = vec![];
-    let is_not_zero = Builder::ext_parse_and_compile(
-        instructions.join("\n").as_str(),
-        context.clone(),
-        Some(lno),
-    );
+    let is_not_zero =
+        Builder::ext_parse_and_compile(instructions.join("\n").as_str(), context, Some(lno));
     terms.push(is_not_zero);
 
     if_else_body(lno, context, &mut terms, tmp1, if_terms, tmp2, else_terms);
@@ -197,11 +194,8 @@ fn lower_comp_gt(
     // assemble the different terms
     let mut terms = vec![];
 
-    let is_greater_than = Builder::ext_parse_and_compile(
-        instructions.join("\n").as_str(),
-        context.clone(),
-        Some(lno),
-    );
+    let is_greater_than =
+        Builder::ext_parse_and_compile(instructions.join("\n").as_str(), context, Some(lno));
     terms.push(is_greater_than);
 
     if_else_body(lno, context, &mut terms, tmp2, if_terms, tmp3, else_terms);

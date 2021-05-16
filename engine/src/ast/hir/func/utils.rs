@@ -47,5 +47,5 @@ pub fn could_not_find_function(
 }
 
 pub fn prefix_ident(qual: &FuncQualName, count: &usize, ident: &String) -> String {
-    format!("_{}_{}_{}", qual.func_smol(), count, m)
+    format!("_{}_{}_{}", qual.func_smol(), count, ident)
 }

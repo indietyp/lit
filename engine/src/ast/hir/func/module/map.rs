@@ -805,9 +805,9 @@ mod test {
     use crate::ast::hir::func::fs::Directory;
     use crate::ast::hir::func::module::ctx::ModuleContext;
     use crate::ast::hir::func::module::map::ModuleMap;
-    use crate::ast::hir::func::structs::modname::ModuleName;
+
     use crate::ast::hir::func::structs::FuncContext::{Func, Import};
-    use crate::ast::hir::func::structs::{FuncContext, FuncImport};
+    use crate::ast::hir::func::structs::FuncImport;
     use crate::ast::hir::Hir;
     use crate::build::Builder;
     use crate::errors::{Error, ErrorCode, ErrorVariant};

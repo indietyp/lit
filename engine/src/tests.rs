@@ -2,6 +2,7 @@ use crate::build::Builder;
 use crate::eval::types::Variables;
 use crate::flags::CompileFlags;
 
+use crate::ast::hir::func::fs::Directory;
 use indoc::indoc;
 use num_bigint::BigUint;
 use num_traits::{One, Zero};
@@ -19,8 +20,9 @@ fn run(
     limit: Option<usize>,
     locals: Option<Variables>,
     flags: Option<CompileFlags>,
+    fs: Option<Directory>,
 ) -> Result<Variables, ErrorCode> {
-    let maybe_exec = Builder::ext_all(snip, flags, locals);
+    let maybe_exec = Builder::ext_all(snip, flags, locals, fs);
     assert!(
         maybe_exec.is_ok(),
         "While creating the parser errors occurred: {:?}",
@@ -73,7 +75,7 @@ fn test_simple_assign() {
     x := x + 1
     "};
 
-    let result = run(snip, Some(50), None, None);
+    let result = run(snip, Some(50), None, None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -88,7 +90,7 @@ fn test_macro_assign() {
     x := 5
     "};
 
-    let result = run(snip, Some(50), None, None);
+    let result = run(snip, Some(50), None, None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -105,7 +107,7 @@ fn test_initial_values() {
     let mut locals: Variables = HashMap::new();
     locals.insert("x".to_string(), BigUint::from(5u8));
 
-    let result = run(snip, Some(50), Some(locals), None);
+    let result = run(snip, Some(50), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -125,7 +127,7 @@ fn test_while() {
     let mut locals: Variables = HashMap::new();
     locals.insert("x".to_string(), BigUint::from(5u8));
 
-    let result = run(snip, Some(50), Some(locals), None);
+    let result = run(snip, Some(50), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -145,7 +147,7 @@ fn test_loop() {
     let mut locals: Variables = HashMap::new();
     locals.insert("y".to_string(), BigUint::from(5u8));
 
-    let result = run(snip, Some(50), Some(locals), None);
+    let result = run(snip, Some(50), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -161,7 +163,7 @@ fn test_compressed_compressed() {
     let mut locals: Variables = HashMap::new();
     locals.insert("y".to_string(), BigUint::from(5u8));
 
-    let result = run(snip, Some(50), Some(locals), None);
+    let result = run(snip, Some(50), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -181,7 +183,7 @@ fn test_decompile() {
     let mut locals: Variables = HashMap::new();
     locals.insert("x".to_string(), BigUint::from(5u8));
 
-    let result = run(snip, Some(50), Some(locals), None);
+    let result = run(snip, Some(50), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -192,6 +194,7 @@ fn test_decompile() {
     let ast = Builder::parse_and_compile(
         snip,
         Some(CompileFlags::WHILE | CompileFlags::CNF_RETAIN_LNO),
+        None,
     )
     .unwrap();
 
@@ -216,7 +219,7 @@ fn test_cond_not_zero_skip() {
     END
     "};
 
-    let result = run(snip, Some(50), None, None);
+    let result = run(snip, Some(50), None, None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -236,7 +239,7 @@ fn test_cond_not_zero() {
     let mut locals = HashMap::new();
     locals.insert("x".to_string(), BigUint::from(8u8));
 
-    let result = run(snip, Some(50), Some(locals), None);
+    let result = run(snip, Some(50), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -255,7 +258,7 @@ fn test_cond_not_zero_else() {
     END
     "};
 
-    let result = run(snip, Some(50), None, None);
+    let result = run(snip, Some(50), None, None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -272,7 +275,7 @@ fn test_cond_not_zero_val() {
     END
     "};
 
-    let result = run(snip, Some(50), None, None);
+    let result = run(snip, Some(50), None, None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -295,7 +298,7 @@ fn test_cond_gt_if() {
     locals.insert("x".to_string(), BigUint::from(32u8));
     locals.insert("y".to_string(), BigUint::from(16u8));
 
-    let result = run(snip, Some(150), Some(locals), None);
+    let result = run(snip, Some(150), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -319,7 +322,7 @@ fn test_cond_gt_else() {
     locals.insert("x".to_string(), BigUint::from(16u8));
     locals.insert("y".to_string(), BigUint::from(32u8));
 
-    let result = run(snip, Some(150), Some(locals), None);
+    let result = run(snip, Some(150), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -352,7 +355,7 @@ fn test_cond_gte_val() {
     let mut locals = HashMap::new();
     locals.insert("x".to_string(), BigUint::from(3u8));
 
-    let result = run(snip, Some(150), Some(locals), None);
+    let result = run(snip, Some(150), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -387,7 +390,7 @@ fn test_cond_gte_if() {
     locals.insert("y".to_string(), BigUint::from(2u8));
     locals.insert("z".to_string(), BigUint::from(1u8));
 
-    let result = run(snip, Some(150), Some(locals), None);
+    let result = run(snip, Some(150), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -413,7 +416,7 @@ fn test_conf_lt_if() {
     locals.insert("x".to_string(), BigUint::from(1u8));
     locals.insert("y".to_string(), BigUint::from(2u8));
 
-    let result = run(snip, Some(150), Some(locals), None);
+    let result = run(snip, Some(150), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -441,7 +444,7 @@ fn test_conf_lte_if() {
     locals.insert("y".to_string(), BigUint::from(2u8));
     locals.insert("z".to_string(), BigUint::from(1u8));
 
-    let result = run(snip, Some(150), Some(locals), None);
+    let result = run(snip, Some(150), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -466,7 +469,7 @@ fn test_cond_simulated_eq() {
     locals.insert("x".to_string(), BigUint::from(1u8));
     locals.insert("y".to_string(), BigUint::from(1u8));
 
-    let result = run(snip, Some(150), Some(locals), None);
+    let result = run(snip, Some(150), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -489,7 +492,7 @@ fn test_cond_eq() {
     locals.insert("x".to_string(), BigUint::from(1u8));
     locals.insert("y".to_string(), BigUint::from(1u8));
 
-    let result = run(snip, Some(150), Some(locals), None);
+    let result = run(snip, Some(150), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -501,7 +504,7 @@ fn test_cond_eq() {
     locals.insert("x".to_string(), BigUint::from(2u8));
     locals.insert("y".to_string(), BigUint::from(1u8));
 
-    let result = run(snip, Some(150), Some(locals), None);
+    let result = run(snip, Some(150), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -524,7 +527,7 @@ fn test_cond_neq() {
     locals.insert("x".to_string(), BigUint::from(1u8));
     locals.insert("y".to_string(), BigUint::from(1u8));
 
-    let result = run(snip, Some(150), Some(locals), None);
+    let result = run(snip, Some(150), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -536,7 +539,7 @@ fn test_cond_neq() {
     locals.insert("x".to_string(), BigUint::from(2u8));
     locals.insert("y".to_string(), BigUint::from(1u8));
 
-    let result = run(snip, Some(150), Some(locals), None);
+    let result = run(snip, Some(150), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -555,7 +558,7 @@ fn test_macro_ident_mul_ident() {
     locals.insert("y".to_string(), BigUint::from(2u8));
     locals.insert("z".to_string(), BigUint::from(3u8));
 
-    let result = run(snip, Some(50), Some(locals), None);
+    let result = run(snip, Some(50), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -574,7 +577,7 @@ fn test_macro_ident_add_ident() {
     locals.insert("y".to_string(), BigUint::from(2u8));
     locals.insert("z".to_string(), BigUint::from(3u8));
 
-    let result = run(snip, Some(50), Some(locals), None);
+    let result = run(snip, Some(50), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -592,7 +595,7 @@ fn test_macro_ident_mul_val() {
     let mut locals = HashMap::new();
     locals.insert("y".to_string(), BigUint::from(2u8));
 
-    let result = run(snip, Some(50), Some(locals), None);
+    let result = run(snip, Some(50), Some(locals), None, None);
     assert_result_ok(&result);
 
     let locals = result.ok().unwrap();
@@ -611,12 +614,12 @@ fn test_const() {
     assert!(result.is_ok());
     let mut result = result.ok().unwrap();
 
-    todo!()
-    // let result = Builder::compile(
-    //     &mut result,
-    //     Some(CompileFlags::CNF_CONST | CompileFlags::LOOP | CompileFlags::WHILE),
-    // );
-    // assert!(result.is_err());
+    let result = Builder::compile(
+        &mut result,
+        Some(CompileFlags::CNF_CONST | CompileFlags::LOOP | CompileFlags::WHILE),
+        None,
+    );
+    assert!(result.is_err());
 }
 
 #[test]
@@ -762,7 +765,7 @@ fn test_speed() {
     let mut locals = HashMap::new();
     locals.insert("x".to_string(), BigUint::one());
 
-    let mut exec = Builder::ext_all(snip, None, Some(locals)).unwrap();
+    let mut exec = Builder::ext_all(snip, None, Some(locals), None).unwrap();
     let start = SystemTime::now();
     let limit = start + Duration::new(5, 0);
 

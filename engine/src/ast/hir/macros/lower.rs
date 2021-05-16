@@ -20,7 +20,7 @@ pub(crate) fn box_ident(ident: String) -> Box<Hir> {
 // Macro expansion for x := y
 pub(crate) fn lower_assign_to_ident(
     lno: LineNo,
-    context: &CompileContext,
+    context: &mut CompileContext,
     lhs: &Expr,
     rhs: &Expr,
 ) -> StdResult<Expr> {
@@ -37,13 +37,13 @@ pub(crate) fn lower_assign_to_ident(
         {} := {} + 0
         "}, lhs, rhs};
 
-    Builder::ext_parse_and_compile(instruction.as_str(), context.clone(), Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), context, Some(lno))
 }
 
 // Macro expansion for x := 0
 pub(crate) fn lower_assign_to_zero(
     lno: LineNo,
-    context: &CompileContext,
+    context: &mut CompileContext,
     lhs: &Expr,
 ) -> StdResult<Expr> {
     let lhs = match lhs.clone() {
@@ -69,13 +69,13 @@ pub(crate) fn lower_assign_to_zero(
         )
     };
 
-    Builder::ext_parse_and_compile(instruction.as_str(), context.clone(), Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), context, Some(lno))
 }
 
 // Macro expansion for x := n
 pub(crate) fn lower_assign_to_value(
     lno: LineNo,
-    context: &CompileContext,
+    context: &mut CompileContext,
     lhs: &Expr,
     rhs: &Expr,
 ) -> StdResult<Expr> {
@@ -108,13 +108,13 @@ pub(crate) fn lower_assign_to_value(
         )
     };
 
-    Builder::ext_parse_and_compile(instruction.as_str(), context.clone(), Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), context, Some(lno))
 }
 
 // Macro expansion for x := y +/- z
 fn expand_assign_to_ident_simple_ident(
     lno: LineNo,
-    context: &CompileContext,
+    context: &mut CompileContext,
     x: String,
     y: String,
     op: OperatorVerb,
@@ -133,13 +133,13 @@ fn expand_assign_to_ident_simple_ident(
         b = z
     );
 
-    Builder::ext_parse_and_compile(instruction.as_str(), context.clone(), Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), context, Some(lno))
 }
 
 // Macro expansion for x := y * z
 fn expand_assign_to_ident_mul_ident(
     lno: LineNo,
-    context: &CompileContext,
+    context: &mut CompileContext,
     x: String,
     y: String,
     z: String,
@@ -156,13 +156,13 @@ fn expand_assign_to_ident_mul_ident(
         z = z
     );
 
-    Builder::ext_parse_and_compile(instruction.as_str(), context.clone(), Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), context, Some(lno))
 }
 
 // Macro expansion for x := y (+|-|*) z
 pub(crate) fn lower_assign_to_ident_binop_ident(
     lno: LineNo,
-    context: &CompileContext,
+    context: &mut CompileContext,
     lhs: &Expr,
     rhs: &MacroAssign,
 ) -> StdResult<Expr> {
@@ -214,7 +214,7 @@ fn expand_assign_to_ident_mul_value(
         tmp = tmp
     );
 
-    Builder::ext_parse_and_compile(instruction.as_str(), context.clone(), Some(lno))
+    Builder::ext_parse_and_compile(instruction.as_str(), context, Some(lno))
 }
 
 // Macro expansion for x := y (*|...) n

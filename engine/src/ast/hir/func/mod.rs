@@ -8,7 +8,6 @@ use crate::ast::hir::func::lower::lower_call;
 use crate::ast::hir::func::utils::unwrap_ident;
 use crate::errors::StdResult;
 use crate::types::LineNo;
-use structs::modname::ModuleName;
 
 pub mod decl;
 pub mod fs;
@@ -28,15 +27,12 @@ pub struct FuncCall {
 
 impl FuncCall {
     pub fn get_ident(&self) -> StdResult<String> {
-        unwrap_ident(None, *self.ident, |expr| {
+        unwrap_ident(None, *self.ident.clone(), |expr| {
             format!("Function call expected ident, got {}", expr.to_string())
         })
     }
 }
 
-// TODO: Func recursion detection on expand
-// TODO: on inline check if argument count is correct
-// TODO: outline, import and inline and name collision detection.
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum Func {
@@ -51,19 +47,9 @@ pub enum Func {
 }
 
 impl Func {
-    pub fn lower(
-        &self,
-        context: &mut CompileContext,
-        module: Option<ModuleName>,
-    ) -> StdResult<Expr> {
+    pub fn lower(&self, context: &mut CompileContext) -> StdResult<Expr> {
         match self {
-            Func::Call { lno, lhs, rhs } => lower_call(
-                context,
-                module.unwrap_or(ModuleName::main()),
-                *lno,
-                *lhs.clone(),
-                rhs.clone(),
-            ),
+            Func::Call { lno, lhs, rhs } => lower_call(context, *lno, *lhs.clone(), rhs.clone()),
         }
     }
 }

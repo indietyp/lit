@@ -23,13 +23,13 @@ pub struct FuncDecl {
 
 impl FuncDecl {
     pub fn get_ident(&self) -> StdResult<String> {
-        unwrap_ident(Some(self.lno), *self.ident, |expr| {
+        unwrap_ident(Some(self.lno), *self.ident.clone(), |expr| {
             format!("Expected ident to be Expr::Ident, got {}", expr.to_string())
         })
     }
 
     pub fn get_ret(&self) -> StdResult<String> {
-        unwrap_ident(Some(self.lno), *self.ret, |expr| {
+        unwrap_ident(Some(self.lno), *self.ret.clone(), |_| {
             format!(
                 "Expected ret to be Expr::Ident, got {}",
                 self.ident.to_string()
@@ -40,6 +40,7 @@ impl FuncDecl {
     pub fn get_params(&self) -> StdResult<Vec<String>> {
         let params: Vec<_> = self
             .params
+            .clone()
             .into_iter()
             .enumerate()
             .map(|(idx, expr)| {

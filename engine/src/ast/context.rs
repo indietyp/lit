@@ -6,8 +6,10 @@ use crate::ast::hir::func::module::map::ModuleMap;
 use crate::ast::hir::func::structs::modname::ModuleName;
 use crate::ast::hir::func::structs::qualname::FuncQualName;
 use crate::ast::module::Module;
-use crate::errors::{Error, StdResult};
+use crate::errors::StdResult;
 use crate::flags::CompileFlags;
+use std::borrow::Borrow;
+use std::cell::{Ref, RefCell};
 
 #[derive(Debug, Clone)]
 pub struct CompileLocalContext {}
@@ -51,19 +53,22 @@ pub struct CompileContext {
     pub modules: ModuleMap,
 
     stack: CallStack,
+    mainframe: Frame,
 }
 
 impl CompileContext {
     pub fn new(main: Module, flags: CompileFlags, fs: Option<Directory>) -> StdResult<Self> {
+        let mainframe = Frame::default();
         let ctx = CompileContext {
             counter: 0,
             inline_counter: HashMap::new(),
 
-            fs: fs.unwrap_or_default(),
+            fs: fs.clone().unwrap_or_default(),
             flags,
 
-            modules: ModuleMap::from(main, fs.unwrap_or_default())?,
+            modules: ModuleMap::from(main, fs.clone().unwrap_or_default())?,
             stack: vec![],
+            mainframe,
         };
 
         Ok(ctx)
@@ -76,25 +81,31 @@ impl CompileContext {
         &mut self,
         caller: FuncQualName,
         module: ModuleName,
-        func: impl Fn(&mut CompileContext, &CallStack, &mut CompileLocalContext) -> StdResult<T>,
+        func: impl Fn(&mut Self) -> StdResult<T>,
     ) -> StdResult<T> {
-        let mut frame = Frame {
+        let frame = Frame {
             caller: Some(caller),
             module,
             context: CompileLocalContext::default(),
         };
 
         self.stack.push(frame);
-        let ret = func(self, &self.stack, &mut frame.context);
+
+        // Note(bmahmoud) optimization would be using RefCell or something to borrow,
+        //      currently we need to clone ;-;
+        let ret = func(self);
+
         self.stack.pop();
 
         ret
     }
 
     pub fn get_current_frame(&self) -> &Frame {
-        let default = Frame::default();
+        self.stack.last().unwrap_or(&self.mainframe)
+    }
 
-        self.stack.last().unwrap_or(&default)
+    fn get_current_frame_mut(&mut self) -> &mut Frame {
+        self.stack.last_mut().unwrap_or(&mut self.mainframe)
     }
 
     // function is because the stack should not be mutable.

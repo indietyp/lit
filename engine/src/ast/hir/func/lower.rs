@@ -2,7 +2,9 @@ use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::expr::Expr;
 use crate::ast::hir::func::inline::Inline;
+use crate::ast::hir::func::module::ctx::ModuleContext;
 use crate::ast::hir::func::structs::funcname::FuncName;
+use crate::ast::hir::func::structs::modname::ModuleName;
 use crate::ast::hir::func::structs::FuncContext;
 use crate::ast::hir::func::{utils, FuncCall};
 use crate::build::Builder;
@@ -18,24 +20,44 @@ pub fn lower_call(
 ) -> StdResult<Expr> {
     let module = context.get_current_frame().clone().module;
 
-    let mut module_ctx = context.modules.get_mut(&module).map_or(
-        Err(utils::could_not_find_module(Some(lno), &module)),
-        |ctx| Ok(ctx),
-    )?;
+    let (func_name, func_ctx) = {
+        let module_ctx = context
+            .modules
+            .get(&module)
+            .map_or(
+                Err(utils::could_not_find_module(Some(lno), &module)),
+                |ctx| Ok(ctx),
+            )?
+            .clone();
 
-    let func_name: FuncName = rhs.get_ident()?.into();
-    let func_ctx = module_ctx.get(&func_name).map_or(
-        Err(utils::could_not_find_function(
-            Some(lno),
-            &module,
-            &func_name,
-        )),
-        |f| Ok(f),
-    )?;
+        let func_name: FuncName = rhs.get_ident()?.into();
+
+        let func_ctx = module_ctx
+            .get(&func_name)
+            .map_or(
+                Err(utils::could_not_find_function(
+                    Some(lno),
+                    &module,
+                    &func_name,
+                )),
+                |f| Ok(f),
+            )?
+            .clone();
+
+        (func_name, func_ctx)
+    };
 
     let inline = func_ctx.inline(context, &module)?;
-    // cache the inline result for further use
-    module_ctx.insert(func_name, FuncContext::Inline(inline.clone()));
+
+    {
+        let module_ctx = context.modules.get_mut(&module).map_or(
+            Err(utils::could_not_find_module(Some(lno), &module)),
+            |ctx| Ok(ctx),
+        )?;
+
+        // cache the inline result for further use
+        module_ctx.insert(func_name.clone(), FuncContext::Inline(inline.clone()));
+    }
 
     // check param length
     if rhs.args.len() != inline.params.len() {
@@ -61,7 +83,7 @@ pub fn lower_call(
             param,
             match arg {
                 Expr::Ident(m) => m,
-                Expr::NaturalNumber(n) => n,
+                Expr::NaturalNumber(n) => n.0.to_string(),
                 _ => unreachable!(),
             }
         );

@@ -1,6 +1,3 @@
-use core::fmt;
-use std::fmt::{Display, Formatter};
-
 use indoc::indoc;
 
 #[cfg(feature = "cli")]

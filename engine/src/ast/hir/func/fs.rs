@@ -165,7 +165,7 @@ mod tests {
         let keys: HashMap<_, _> = dir
             .iter()
             .enumerate()
-            .map(|(idx, (a, b))| (a, idx))
+            .map(|(idx, (a, _))| (a, idx))
             .collect();
 
         assert!(keys.contains_key(&key));
