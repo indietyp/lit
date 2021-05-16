@@ -22,7 +22,7 @@ impl FuncQualName {
     }
 
     pub fn func_smol(&self) -> String {
-        self.1[..3].to_string()
+        self.1.chars().into_iter().take(3).collect()
     }
 }
 

@@ -633,6 +633,8 @@ fn test_call_param_error() {
     a := a(1)
     a := a(1, 2, 3)
     "};
+
+    todo!()
 }
 
 #[test]
@@ -642,6 +644,8 @@ fn test_simple_recursion() {
         _ := a(b)
     END
     "};
+
+    todo!()
 }
 
 #[test]
@@ -659,6 +663,11 @@ fn test_nested_recursion() {
 
     x := a(2)
     "};
+
+    let result = run(snip, Some(50), None, None, None);
+    // assert_result_ok(&result);
+
+    println!("{:#?}", result);
 }
 
 #[test]
