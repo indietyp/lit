@@ -78,7 +78,7 @@ impl Inline for FuncDecl {
         let ret = ret.unwrap();
 
         let qual = (module.clone(), func_name.into()).into();
-        context.call(qual, |context, stack, locals| {
+        context.dive(qual, |context, stack, locals| {
             let counts = stack.into_iter().counts();
             let counts: HashMap<_, _> = counts.into_iter().filter(|(k, v)| *v > 1).collect();
 

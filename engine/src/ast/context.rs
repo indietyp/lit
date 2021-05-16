@@ -1,11 +1,8 @@
 use std::collections::HashMap;
 
-use either::Either;
-
-use crate::ast::expr::Expr;
-use crate::ast::hir::func::decl::FuncDecl;
 use crate::ast::hir::func::fs::Directory;
 use crate::ast::hir::func::module::map::ModuleMap;
+
 use crate::ast::hir::func::structs::modname::ModuleName;
 use crate::ast::hir::func::structs::qualname::FuncQualName;
 use crate::ast::module::Module;
@@ -18,6 +15,26 @@ pub struct CompileLocalContext {}
 impl Default for CompileLocalContext {
     fn default() -> Self {
         Self {}
+    }
+}
+
+type CallStack = Vec<Frame>;
+
+#[derive(Debug, Clone)]
+pub struct Frame {
+    pub caller: Option<FuncQualName>,
+    pub module: ModuleName,
+
+    pub context: CompileLocalContext,
+}
+
+impl Default for Frame {
+    fn default() -> Self {
+        Self {
+            caller: None,
+            module: ModuleName::main(),
+            context: CompileLocalContext::default(),
+        }
     }
 }
 
@@ -34,7 +51,6 @@ pub struct CompileContext {
     pub modules: ModuleMap,
 
     stack: CallStack,
-    stack_ctx: Option<CompileLocalContext>,
 }
 
 impl CompileContext {
@@ -48,38 +64,42 @@ impl CompileContext {
 
             modules: ModuleMap::from(main, fs.unwrap_or_default())?,
             stack: vec![],
-            stack_ctx: None,
         };
 
         Ok(ctx)
     }
 }
 
-type CallStack = Vec<FuncQualName>;
 impl CompileContext {
-    pub fn call<T>(
+    // "dive" into the callstack, by creating a new frame for the function provided
+    pub fn dive<T>(
         &mut self,
-        qual: FuncQualName,
+        caller: FuncQualName,
+        module: ModuleName,
         func: impl Fn(&mut CompileContext, &CallStack, &mut CompileLocalContext) -> StdResult<T>,
     ) -> StdResult<T> {
-        if self.stack_ctx.is_none() {
-            self.stack_ctx = Some(CompileLocalContext::default())
-        }
+        let mut frame = Frame {
+            caller: Some(caller),
+            module,
+            context: CompileLocalContext::default(),
+        };
 
-        self.stack.push(qual);
-        let ret = func(self, &self.stack, &mut self.stack_ctx.unwrap_or_default());
+        self.stack.push(frame);
+        let ret = func(self, &self.stack, &mut frame.context);
         self.stack.pop();
-
-        // clear the stack_ctx if we're empty
-        if self.stack.is_empty() {
-            self.stack_ctx = None
-        }
 
         ret
     }
 
-    pub fn get_current_frame(&self) {
-        // self.stack.last()
+    pub fn get_current_frame(&self) -> &Frame {
+        let default = Frame::default();
+
+        self.stack.last().unwrap_or(&default)
+    }
+
+    // function is because the stack should not be mutable.
+    pub fn get_stack(&self) -> &CallStack {
+        &self.stack
     }
 }
 
@@ -99,36 +119,36 @@ impl CompileContext {
         cur.clone()
     }
 
-    fn prefix(
-        &mut self,
-        module: Option<ModuleName>,
-        func: FuncDecl,
-        ident: Either<String, Expr>,
-    ) -> StdResult<String> {
-        let module = module.unwrap_or(ModuleName::main());
-
-        let ident = ident.either(
-            |f| Ok(f),
-            |g| match g {
-                Expr::Ident(m) => Ok(m),
-                _ => Err(vec![Error::new_from_msg(
-                    None,
-                    format!("CompileContext::prefix expected Ident, got {:?}", g).as_str(),
-                )]),
-            },
-        )?;
-
-        let func_name = func.get_ident()?;
-        let qual_name: FuncQualName = (module.clone(), func_name.into()).into();
-
-        let name = format!(
-            "_{}_{}_{}__{}",
-            module.join("_"),
-            func_name,
-            self.incr_inline(qual_name),
-            ident
-        );
-
-        Ok(name)
-    }
+    // fn prefix(
+    //     &mut self,
+    //     module: Option<ModuleName>,
+    //     func: FuncDecl,
+    //     ident: Either<String, Expr>,
+    // ) -> StdResult<String> {
+    //     let module = module.unwrap_or(ModuleName::main());
+    //
+    //     let ident = ident.either(
+    //         |f| Ok(f),
+    //         |g| match g {
+    //             Expr::Ident(m) => Ok(m),
+    //             _ => Err(vec![Error::new_from_msg(
+    //                 None,
+    //                 format!("CompileContext::prefix expected Ident, got {:?}", g).as_str(),
+    //             )]),
+    //         },
+    //     )?;
+    //
+    //     let func_name = func.get_ident()?;
+    //     let qual_name: FuncQualName = (module.clone(), func_name.into()).into();
+    //
+    //     let name = format!(
+    //         "_{}_{}_{}__{}",
+    //         module.join("_"),
+    //         func_name,
+    //         self.incr_inline(qual_name),
+    //         ident
+    //     );
+    //
+    //     Ok(name)
+    // }
 }

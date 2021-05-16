@@ -1,7 +1,3 @@
-use std::ops::{Deref, DerefMut};
-
-use itertools::Itertools;
-
 use funcname::FuncName;
 use modname::ModuleName;
 
@@ -48,6 +44,6 @@ sum_type! {
 }
 
 #[derive(Debug, Clone, PartialOrd, PartialEq, Eq, Ord, Hash)]
-pub struct FuncAlias(pub String);
-NewtypeDeref! {() pub struct FuncAlias(pub String); }
-NewtypeDerefMut! {() pub struct FuncAlias(pub String); }
+pub struct FuncAlias(String);
+NewtypeDeref! {() pub struct FuncAlias(String); }
+NewtypeDerefMut! {() pub struct FuncAlias(String); }
