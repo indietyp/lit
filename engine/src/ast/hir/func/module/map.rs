@@ -295,7 +295,7 @@ impl ModuleMap {
                             Some(imp.lno),
                             ErrorCode::FunctionNameCollision {
                                 module: to.0.clone().join("::"),
-                                func: name.0,
+                                func: name.to_string(),
                                 count: None,
                             },
                         ));
@@ -560,7 +560,7 @@ impl ModuleMap {
                         Some(imp.lno),
                         ErrorCode::FunctionNameCollision {
                             module: from.0.join("::"),
-                            func: collision.clone().0,
+                            func: collision.clone().to_string(),
                             count: None,
                         },
                     ))
@@ -644,7 +644,7 @@ impl ModuleMap {
         let mut errors = vec![];
 
         for (name, module) in modules {
-            let module_name = ModuleName(name.clone());
+            let module_name = name.clone().into();
             // create or get a new context, there could be instances where a function is loaded
             // but has no actual other import
             let mut ctx = context
@@ -667,7 +667,7 @@ impl ModuleMap {
                         Some(func.lno),
                         ErrorCode::FunctionNameCollision {
                             module: name.join("::"),
-                            func: function_name.0,
+                            func: function_name.to_string(),
                             count: None,
                         },
                     ));
@@ -695,6 +695,9 @@ impl ModuleMap {
     ///     this means A -> B -> C is resolved to A -> C
     /// 4) insert all functions to all modules (includes another collision check)
     /// 5) return the result or return all errors where we could recover from
+    ///
+    /// Note(bmahmoud): currently we clone a lot, think about maybe using references to make
+    ///                 memory footprint lower
     pub fn from(main: Module, directory: Directory) -> Result<ModuleMap, Vec<Error>> {
         // The directory is always prefixed with fs::,
         // while all others are looking into the /lib/ folder

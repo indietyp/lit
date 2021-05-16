@@ -21,3 +21,9 @@ impl From<Vec<&str>> for ModuleName {
         Self(val.iter().map(|v| v.to_string()).collect())
     }
 }
+
+impl ToString for ModuleName {
+    fn to_string(&self) -> String {
+        self.0.join("::")
+    }
+}

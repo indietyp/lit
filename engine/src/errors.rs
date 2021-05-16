@@ -41,6 +41,12 @@ pub enum ErrorCode {
         func: String,
         count: Option<usize>,
     },
+    FunctionUnexpectedNumberOfArguments {
+        module: String,
+        func: String,
+        expected: usize,
+        got: usize
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]

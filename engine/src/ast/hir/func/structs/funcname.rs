@@ -15,3 +15,9 @@ impl From<&str> for FuncName {
         Self(val.into())
     }
 }
+
+impl ToString for FuncName {
+    fn to_string(&self) -> String {
+        self.0.clone()
+    }
+}

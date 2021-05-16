@@ -37,3 +37,9 @@ impl From<(Vec<String>, String)> for FuncQualName {
         Self(module.into(), func.into())
     }
 }
+
+impl ToString for FuncQualName {
+    fn to_string(&self) -> String {
+        vec![self.0.to_string(), self.1.to_string()].join("::")
+    }
+}

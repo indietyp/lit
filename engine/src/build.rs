@@ -3,11 +3,13 @@ use pest_consume::Parser;
 use serde::{Deserialize, Serialize};
 
 use crate::ast::context::CompileContext;
+
 use crate::ast::expr::Expr;
 use crate::ast::hir::func;
-use crate::ast::hir::Hir;
+
 use crate::ast::module::Module;
 use crate::errors;
+use crate::errors::StdResult;
 use crate::eval::exec::Exec;
 use crate::eval::types::Variables;
 use crate::flags::CompileFlags;
@@ -29,30 +31,23 @@ impl Builder {
     }
 
     pub fn compile(
-        ast: &mut Hir,
+        module: &mut Module,
         flags: Option<CompileFlags>,
-        // fs can be used to specify additional files that can be used
-        // at compile time, HashMap for "name: contents"
         fs: Option<func::fs::Directory>,
-    ) -> Result<Expr, Vec<errors::Error>> {
-        Builder::ext_compile(ast, CompileContext::new(flags.unwrap_or_default(), fs))
+    ) -> StdResult<Expr> {
+        let mut context = CompileContext::new(module.clone(), flags.unwrap_or_default(), fs)?;
+
+        Builder::ext_compile(module, &mut context)
     }
 
     pub(crate) fn ext_compile(
-        ast: &mut Hir,
-        context: CompileContext,
+        module: &mut Module,
+        context: &mut CompileContext,
     ) -> Result<Expr, Vec<errors::Error>> {
-        todo!()
+        let hir = module.code.clone();
+        let expanded = hir.lower(context)?.verify(context)?.flatten();
 
-        // let wrapped = PollutedNode::Control(Control::Terms(ast.clone()));
-        // let mut context = context;
-        //
-        // let expanded = wrapped
-        //     .expand(&mut context)?
-        //     .verify(&mut context)?
-        //     .flatten();
-        //
-        // Ok(expanded)
+        Ok(expanded)
     }
 
     pub fn eval(ast: Expr) -> Runtime {
@@ -66,41 +61,48 @@ impl Builder {
     pub fn parse_and_compile(
         source: &str,
         flags: Option<CompileFlags>,
-    ) -> Result<Expr, Vec<errors::Error>> {
-        todo!()
-        // Builder::compile(
-        //     &mut Builder::parse(source, None)
-        //         .map_err(|err| vec![errors::Error::new_from_parse(err)])?,
-        //     flags,
-        // )
+        fs: Option<func::fs::Directory>,
+    ) -> StdResult<Expr> {
+        Builder::compile(
+            &mut Builder::parse(source, None)
+                .map_err(|err| vec![errors::Error::new_from_parse(err)])?,
+            flags,
+            fs,
+        )
     }
 
     // parse_and_compile2 is an internal compile that also uses CompileContext
     pub(crate) fn ext_parse_and_compile(
         source: &str,
-        context: CompileContext,
+        context: &mut CompileContext,
         lno: Option<LineNo>,
-    ) -> Result<Expr, Vec<errors::Error>> {
-        todo!()
-        // Builder::ext_compile(
-        //     &mut Builder::parse(source, lno)
-        //         .map_err(|err| vec![errors::Error::new_from_parse(err)])?,
-        //     context,
-        // )
+    ) -> StdResult<Expr> {
+        Builder::ext_compile(
+            &mut Builder::parse(source, lno)
+                .map_err(|err| vec![errors::Error::new_from_parse(err)])?,
+            context,
+        )
     }
 
-    pub fn all(source: &str, flags: Option<CompileFlags>) -> Result<Runtime, Vec<errors::Error>> {
-        Ok(Builder::eval(Builder::parse_and_compile(source, flags)?))
+    pub fn all(
+        source: &str,
+        flags: Option<CompileFlags>,
+        fs: Option<func::fs::Directory>,
+    ) -> Result<Runtime, Vec<errors::Error>> {
+        Ok(Builder::eval(Builder::parse_and_compile(
+            source, flags, fs,
+        )?))
     }
 
-    // all2 has more options than all (used mostly for tests)
+    // ext_all is mostly used for tests only
     pub fn ext_all(
         source: &str,
         flags: Option<CompileFlags>,
         locals: Option<Variables>,
+        fs: Option<func::fs::Directory>,
     ) -> Result<Runtime, Vec<errors::Error>> {
         Ok(Builder::ext_eval(
-            Builder::parse_and_compile(source, flags)?,
+            Builder::parse_and_compile(source, flags, fs)?,
             locals,
         ))
     }
