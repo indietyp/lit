@@ -41,7 +41,7 @@ impl Default for Frame {
 #[derive(Debug, Clone)]
 pub struct CompileContext {
     counter: usize,
-    inline_counter: HashMap<FuncQualName, usize>,
+    inline_counter: HashMap<String, usize>,
 
     // implement a call stack of some sorts when lowering
     // .call() which also gives you a new CompileContext?
@@ -104,51 +104,20 @@ impl CompileContext {
 }
 
 impl CompileContext {
-    fn incr(&mut self) -> usize {
+    pub fn incr(&mut self) -> usize {
         let cur = self.counter;
         self.counter += 1;
 
         cur
     }
 
-    fn incr_inline(&mut self, func: FuncQualName) -> usize {
-        let mut cur = self.inline_counter.get(&func).cloned().unwrap_or(0);
+    pub fn incr_inline(&mut self, qual: FuncQualName) -> usize {
+        // instead of using the qual name, we just use the short version
+        let name = qual.func_smol();
+        let mut cur = self.inline_counter.get(&name).cloned().unwrap_or(0);
         cur += 1;
-        self.inline_counter.insert(func, cur);
+        self.inline_counter.insert(name, cur);
 
-        cur.clone()
+        cur
     }
-
-    // fn prefix(
-    //     &mut self,
-    //     module: Option<ModuleName>,
-    //     func: FuncDecl,
-    //     ident: Either<String, Expr>,
-    // ) -> StdResult<String> {
-    //     let module = module.unwrap_or(ModuleName::main());
-    //
-    //     let ident = ident.either(
-    //         |f| Ok(f),
-    //         |g| match g {
-    //             Expr::Ident(m) => Ok(m),
-    //             _ => Err(vec![Error::new_from_msg(
-    //                 None,
-    //                 format!("CompileContext::prefix expected Ident, got {:?}", g).as_str(),
-    //             )]),
-    //         },
-    //     )?;
-    //
-    //     let func_name = func.get_ident()?;
-    //     let qual_name: FuncQualName = (module.clone(), func_name.into()).into();
-    //
-    //     let name = format!(
-    //         "_{}_{}_{}__{}",
-    //         module.join("_"),
-    //         func_name,
-    //         self.incr_inline(qual_name),
-    //         ident
-    //     );
-    //
-    //     Ok(name)
-    // }
 }

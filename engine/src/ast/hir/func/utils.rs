@@ -1,6 +1,7 @@
 use crate::ast::expr::Expr;
 use crate::ast::hir::func::structs::funcname::FuncName;
 use crate::ast::hir::func::structs::modname::ModuleName;
+use crate::ast::hir::func::structs::qualname::FuncQualName;
 use crate::errors::{Error, ErrorCode, StdResult};
 use crate::types::LineNo;
 
@@ -43,4 +44,8 @@ pub fn could_not_find_function(
             func: function.to_string(),
         },
     )]
+}
+
+pub fn prefix_ident(qual: &FuncQualName, count: &usize, ident: &String) -> String {
+    format!("_{}_{}_{}", qual.func_smol(), count, m)
 }

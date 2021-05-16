@@ -7,7 +7,7 @@ use crate::ast::hir::func::decl::FuncDecl;
 use crate::ast::hir::func::structs::modname::ModuleName;
 use crate::ast::hir::func::structs::qualname::FuncQualName;
 use crate::ast::hir::func::structs::{FuncContext, FuncImport, FuncInline};
-use crate::ast::hir::func::utils::{could_not_find_function, could_not_find_module};
+use crate::ast::hir::func::utils::{could_not_find_function, could_not_find_module, prefix_ident};
 use crate::errors::{Error, ErrorCode, StdResult};
 
 pub trait Inline {
@@ -26,8 +26,6 @@ impl Inline for FuncContext {
 
 impl Inline for FuncImport {
     fn inline(&self, context: &mut CompileContext, module: &ModuleName) -> StdResult<FuncInline> {
-        let qual: FuncQualName = (self.module.clone(), self.ident.clone()).into();
-
         let module_ctx = context
             .modules
             .get(&self.module)
@@ -77,9 +75,15 @@ impl Inline for FuncDecl {
         let params = params.unwrap();
         let ret = ret.unwrap();
 
-        let qual = (module.clone(), func_name.into()).into();
-        context.dive(qual, |context, stack, locals| {
-            let counts = stack.into_iter().counts();
+        let qual: FuncQualName = (module.clone(), func_name.into()).into();
+        context.dive(qual.clone(), module.clone(), |context, stack, locals| {
+            let counts = stack
+                .into_iter()
+                .map(|s| s.caller)
+                .filter(|s| s.is_some())
+                .map(|s| s.unwrap())
+                .counts();
+
             let counts: HashMap<_, _> = counts.into_iter().filter(|(k, v)| *v > 1).collect();
 
             // recursion detection, if something is more than twice on the callstack just error out.
@@ -99,16 +103,20 @@ impl Inline for FuncDecl {
                     .collect());
             }
 
+            let count = context.incr_inline(qual);
+
+            // Note(bmahmoud) this means that inner calls will be double prefixed!
             let terms = self.terms.lower(context)?;
-            // TODO: do we really need to prefix everything?
-            //  this means that calls() get potentially double prefixed
-            terms.prefix(context);
+            let terms = terms.prefix(context, &qual, &count);
 
             let inline = FuncInline {
                 lno: self.lno,
                 ident: func_name,
-                params,
-                ret,
+                params: params
+                    .into_iter()
+                    .map(|param| prefix_ident(&qual, &count, &param))
+                    .collect(),
+                ret: prefix_ident(&qual, &count, &ret),
                 terms,
             };
 

@@ -20,6 +20,10 @@ impl FuncQualName {
     pub fn func_mut(&mut self) -> &mut FuncName {
         &mut self.1
     }
+
+    pub fn func_smol(&self) -> String {
+        self.1[..3].to_string()
+    }
 }
 
 impl From<(ModuleName, FuncName)> for FuncQualName {

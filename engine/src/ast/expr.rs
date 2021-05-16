@@ -9,6 +9,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
+use crate::ast::hir::func::structs::qualname::FuncQualName;
+use crate::ast::hir::func::utils::prefix_ident;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
 use crate::errors::{Error, ErrorVariant, StdResult};
@@ -211,6 +213,46 @@ impl Expr {
                 Ok(self)
             }
             _ => Ok(self),
+        }
+    }
+}
+
+impl Expr {
+    pub fn prefix(&self, context: &mut CompileContext, qual: &FuncQualName, count: &usize) -> Self {
+        match self {
+            Expr::Ident(m) => Expr::Ident(prefix_ident(qual, count, m)),
+            Expr::NaturalNumber(_) => self.clone(),
+            Expr::Comparison { lhs, verb, rhs } => Expr::Comparison {
+                lhs: Box::new(lhs.prefix(context, qual, count)),
+                verb: verb.clone(),
+                rhs: Box::new(rhs.prefix(context, qual, count)),
+            },
+            Expr::BinaryOp { lhs, verb, rhs } => Expr::BinaryOp {
+                lhs: Box::new(lhs.prefix(context, qual, count)),
+                verb: verb.clone(),
+                rhs: Box::new(rhs.prefix(context, qual, count)),
+            },
+            Expr::Assign { lno, lhs, rhs } => Expr::Assign {
+                lno: *lno,
+                lhs: Box::new(lhs.prefix(context, qual, count)),
+                rhs: Box::new(rhs.prefix(context, qual, count)),
+            },
+            Expr::Control(Control::Loop { lno, ident, terms }) => Expr::Control(Control::Loop {
+                lno: *lno,
+                ident: Box::new(ident.prefix(context, qual, count)),
+                terms: Box::new(terms.prefix(context, qual, count)),
+            }),
+            Expr::Control(Control::Terms(terms)) => Expr::Control(Control::Terms(
+                terms
+                    .into_iter()
+                    .map(|t| t.prefix(context, qual, count))
+                    .collect(),
+            )),
+            Expr::Control(Control::While { lno, comp, terms }) => Expr::Control(Control::While {
+                lno: *lno,
+                comp: Box::new(comp.prefix(context, qual, count)),
+                terms: Box::new(terms.prefix(context, qual, count)),
+            }),
         }
     }
 }
