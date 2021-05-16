@@ -1,10 +1,14 @@
+use std::collections::HashMap;
+
+use itertools::Itertools;
+
 use crate::ast::context::CompileContext;
 use crate::ast::hir::func::decl::FuncDecl;
-use crate::ast::hir::func::types::{FuncContext, FuncImport, FuncInline, FuncQualName, ModuleName};
+use crate::ast::hir::func::structs::modname::ModuleName;
+use crate::ast::hir::func::structs::qualname::FuncQualName;
+use crate::ast::hir::func::structs::{FuncContext, FuncImport, FuncInline};
 use crate::ast::hir::func::utils::{could_not_find_function, could_not_find_module};
 use crate::errors::{Error, ErrorCode, StdResult};
-use itertools::Itertools;
-use std::collections::HashMap;
 
 pub trait Inline {
     fn inline(&self, context: &mut CompileContext, module: &ModuleName) -> StdResult<FuncInline>;

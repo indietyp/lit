@@ -5,10 +5,10 @@ use serde::{Deserialize, Serialize};
 use crate::ast::context::CompileContext;
 use crate::ast::expr::Expr;
 use crate::ast::hir::func::lower::lower_call;
-use crate::ast::hir::func::types::ModuleName;
 use crate::ast::hir::func::utils::unwrap_ident;
 use crate::errors::StdResult;
 use crate::types::LineNo;
+use structs::modname::ModuleName;
 
 pub mod decl;
 pub mod fs;
@@ -16,7 +16,7 @@ pub mod imp;
 pub mod inline;
 pub mod lower;
 pub mod module;
-pub mod types;
+pub mod structs;
 pub mod utils;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Hash, Eq, PartialEq)]

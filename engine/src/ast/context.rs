@@ -6,7 +6,8 @@ use crate::ast::expr::Expr;
 use crate::ast::hir::func::decl::FuncDecl;
 use crate::ast::hir::func::fs::Directory;
 use crate::ast::hir::func::module::map::ModuleMap;
-use crate::ast::hir::func::types::{FuncQualName, ModuleName};
+use crate::ast::hir::func::structs::modname::ModuleName;
+use crate::ast::hir::func::structs::qualname::FuncQualName;
 use crate::ast::module::Module;
 use crate::errors::{Error, StdResult};
 use crate::flags::CompileFlags;
@@ -75,6 +76,10 @@ impl CompileContext {
         }
 
         ret
+    }
+
+    pub fn get_current_frame(&self) {
+        // self.stack.last()
     }
 }
 

@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use crate::ast::hir::func::types::{FuncContext, FuncName};
+use crate::ast::hir::func::structs::funcname::FuncName;
+use crate::ast::hir::func::structs::FuncContext;
 
 pub type ModuleContextHashMap = HashMap<FuncName, FuncContext>;
 #[derive(Debug, Clone, PartialEq, Eq)]

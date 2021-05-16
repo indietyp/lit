@@ -1,5 +1,6 @@
 use crate::ast::expr::Expr;
-use crate::ast::hir::func::types::{FuncName, ModuleName};
+use crate::ast::hir::func::structs::funcname::FuncName;
+use crate::ast::hir::func::structs::modname::ModuleName;
 use crate::errors::{Error, ErrorCode, StdResult};
 use crate::types::LineNo;
 
