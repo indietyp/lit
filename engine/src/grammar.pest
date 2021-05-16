@@ -15,7 +15,7 @@ IDENT = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 VALUE = @{ ASCII_DIGIT+ }
 ZERO = @{ "0" }
 WILDCARD = @{ "*" }
-SEP = _{ (";" | (";"? ~ NEWLINE+)) }
+SEP = _{ (";"? ~ NEWLINE+) | ";" }
 ELLIPSIS = @{ "..." }
 IDENT_OR_VALUE = _{ IDENT | VALUE }
 
