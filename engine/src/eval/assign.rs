@@ -1,6 +1,6 @@
 use crate::ast::expr::Expr;
 use crate::eval::op::BinaryOpExec;
-use crate::eval::types::{ChangeSet, Variables};
+use crate::eval::types::{ChangeLog, ExecutionResult, Variables};
 use crate::types::LineNo;
 #[cfg(feature = "cli")]
 use schemars::JsonSchema;
@@ -17,7 +17,7 @@ pub struct AssignExec {
 }
 
 impl AssignExec {
-    pub fn step(&mut self, locals: &mut Variables) -> Option<(usize, ChangeSet)> {
+    pub fn step(&mut self, locals: &mut Variables) -> Option<ExecutionResult> {
         if self.exhausted {
             return None;
         }
@@ -26,7 +26,10 @@ impl AssignExec {
         locals.insert(self.lhs.clone(), value);
         self.exhausted = true;
 
-        Some((self.lno.0, vec![self.lhs.clone()]))
+        Some(ExecutionResult(
+            self.lno.0,
+            vec![ChangeLog::Ident(self.lhs.clone())],
+        ))
     }
 
     pub fn new(node: Expr) -> Self {

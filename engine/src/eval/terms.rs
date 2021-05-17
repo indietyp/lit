@@ -1,7 +1,7 @@
 use crate::ast::control::Control;
 use crate::ast::expr::Expr;
 use crate::eval::exec::Exec;
-use crate::eval::types::{ChangeSet, Variables};
+use crate::eval::types::{ExecutionResult, Variables};
 #[cfg(feature = "cli")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -15,7 +15,7 @@ pub struct TermsExec {
 }
 
 impl TermsExec {
-    pub fn step(&mut self, locals: &mut Variables) -> Option<(usize, ChangeSet)> {
+    pub fn step(&mut self, locals: &mut Variables) -> Option<ExecutionResult> {
         // try single one, until exhausted, then increment ptr and just re-call ourselves
         if self.ptr >= self.terms.len() {
             return None;

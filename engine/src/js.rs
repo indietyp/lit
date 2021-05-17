@@ -18,7 +18,7 @@ use std::collections::HashMap;
 
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
-import {Expr, Hir, Exec, Module, Path} from "./schema";
+import {Expr, Hir, Exec, Module, Path, ExecutionResult} from "./schema";
 
 // sadly we need to do this one manually
 type Directory = { [key: string]: Path };
@@ -51,6 +51,9 @@ extern "C" {
 
     #[wasm_bindgen(typescript_type = "Directory")]
     pub type IDirectory;
+
+    #[wasm_bindgen(typescript_type = "ExecutionResult")]
+    pub type IExecutionResult;
 }
 
 #[wasm_bindgen(js_name = Runtime)]
@@ -101,12 +104,16 @@ impl JavaScriptRuntime {
         })
     }
 
-    pub fn step(&mut self) -> JsValue {
+    pub fn step(&mut self) -> IExecutionResult {
         let value = self.runtime.step();
 
         value
-            .map(|v| JsValue::from_serde(&v).unwrap())
-            .unwrap_or(JsValue::UNDEFINED)
+            .map(|v| {
+                JsValue::from_serde(&v)
+                    .unwrap()
+                    .unchecked_into::<IExecutionResult>()
+            })
+            .unwrap_or_else(|| JsValue::UNDEFINED.unchecked_into())
     }
 
     pub fn reset(&mut self) {

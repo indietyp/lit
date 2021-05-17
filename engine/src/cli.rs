@@ -10,6 +10,7 @@ use crate::ast::hir::Hir;
 use crate::ast::module::Module;
 use crate::errors::Error;
 use crate::eval::exec::Exec;
+use crate::eval::types::ExecutionResult;
 use schemars::gen::SchemaSettings;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -32,6 +33,7 @@ struct RootSchema {
     error: Error,
     directory: Directory,
     module: Module,
+    execution_result: ExecutionResult,
 }
 
 #[derive(Debug, StructOpt)]

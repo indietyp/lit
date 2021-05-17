@@ -2,7 +2,7 @@ use crate::ast::control::Control;
 use crate::ast::expr::Expr;
 use crate::eval::comp::ComparisonExec;
 use crate::eval::exec::Exec;
-use crate::eval::types::{ChangeSet, Variables};
+use crate::eval::types::{ChangeLog, ExecutionResult, InternalAction, Variables};
 use crate::types::LineNo;
 #[cfg(feature = "cli")]
 use schemars::JsonSchema;
@@ -20,7 +20,7 @@ pub struct WhileExec {
 }
 
 impl WhileExec {
-    pub fn step(&mut self, locals: &mut Variables) -> Option<(usize, ChangeSet)> {
+    pub fn step(&mut self, locals: &mut Variables) -> Option<ExecutionResult> {
         // A) check if true or false if check is true, set check to false
         // A.1) set exhausted if check is false and return None
         // B) exhaust current terms
@@ -29,7 +29,10 @@ impl WhileExec {
             self.exhausted = !self.comp.exec(locals);
             self.check = false;
 
-            return Some((self.lno.0, vec![String::from("<Internal Variable>")]));
+            return Some(ExecutionResult(
+                self.lno.0,
+                vec![ChangeLog::Internal(InternalAction::WhileComparison)],
+            ));
         }
 
         if self.exhausted {

@@ -4,7 +4,7 @@ use crate::ast::control::Control;
 use crate::ast::expr::Expr;
 use crate::ast::variant::UInt;
 use crate::eval::exec::Exec;
-use crate::eval::types::{ChangeSet, Variables};
+use crate::eval::types::{ChangeLog, ExecutionResult, InternalAction, Variables};
 use crate::types::LineNo;
 use num_traits::Zero;
 #[cfg(feature = "cli")]
@@ -26,7 +26,7 @@ pub struct LoopExec {
 }
 
 impl LoopExec {
-    pub fn step(&mut self, locals: &mut Variables) -> Option<(usize, ChangeSet)> {
+    pub fn step(&mut self, locals: &mut Variables) -> Option<ExecutionResult> {
         // if not init copy the iteration count into our state
         if !self.init {
             // count setting our own value as a step -> for introspection;
@@ -38,7 +38,10 @@ impl LoopExec {
             );
             self.init = true;
 
-            return Some((self.lno.0, vec![String::from("<internal variable>")]));
+            return Some(ExecutionResult(
+                self.lno.0,
+                vec![ChangeLog::Internal(InternalAction::LoopIteration)],
+            ));
         }
 
         // means we have run our course
