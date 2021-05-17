@@ -109,7 +109,7 @@ impl Inline for FuncDecl {
                                             .clone()
                                             .caller
                                             .map(|m| m.to_string())
-                                            .unwrap_or(frame.clone().module.to_string())
+                                            .unwrap_or_else(|| frame.clone().module.to_string())
                                     })
                                     .collect(),
                                 module: module.join("::"),

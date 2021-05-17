@@ -1,3 +1,5 @@
+#[cfg(feature = "cli")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -8,8 +10,12 @@ use std::collections::hash_map::Iter;
 pub type FileContents = String;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Directory(HashMap<String, Box<Path>>);
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub struct Path(Either<FileContents, Box<Directory>>);
 
 type FlatDirectory = Vec<(Vec<String>, FileContents)>;

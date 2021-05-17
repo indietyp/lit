@@ -32,6 +32,7 @@ bitflags! {
     }
 }
 
+#[wasm_bindgen]
 impl CompileFlags {
     pub fn clear(&mut self) {
         self.bits = 0;

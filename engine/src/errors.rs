@@ -1,14 +1,16 @@
-use crate::ast::hir::func::structs::qualname::FuncQualName;
 use crate::parser::Rule;
 use crate::types::LineNo;
 use either::Either;
 use pest::error::{InputLocation, LineColLocation};
+#[cfg(feature = "cli")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::io;
 
 pub type StdResult<R> = std::result::Result<R, Vec<Error>>;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum ErrorCode {
     CouldNotFindModule {
         module: String,
@@ -52,17 +54,21 @@ pub enum ErrorCode {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum RustError {
     Io(String),
 }
 
 #[derive(new, Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct Error {
     pub lno: LineNo,
     pub variant: ErrorVariant,
 }
 
 #[derive(new, Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum ErrorVariant {
     Message(String),
     ErrorCode(ErrorCode),
@@ -116,6 +122,7 @@ this isn't perfect nor good, but the only way I could come up with
 */
 type LineCol = (usize, usize);
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum PestErrorInfo {
     Error {
         variant: Box<PestErrorInfo>,
@@ -157,7 +164,7 @@ impl ExtractInformation for pest::error::LineColLocation {
         match self {
             LineColLocation::Pos(pos) => PestErrorInfo::LineColLocation(Either::Left(*pos)),
             LineColLocation::Span(start, end) => {
-                PestErrorInfo::LineColLocation(Either::Right((start.clone(), *end)))
+                PestErrorInfo::LineColLocation(Either::Right((*start, *end)))
             }
         }
     }

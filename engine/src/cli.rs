@@ -5,12 +5,15 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 
 use crate::ast::expr::Expr;
+use crate::ast::hir::func::fs::Directory;
 use crate::ast::hir::Hir;
+use crate::ast::module::Module;
+use crate::errors::Error;
 use crate::eval::exec::Exec;
 use schemars::gen::SchemaSettings;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::fs::{create_dir, remove_dir_all, write, File};
+use std::fs::{create_dir, remove_dir_all, write};
 
 arg_enum! {
     #[derive(Debug)]
@@ -23,9 +26,12 @@ arg_enum! {
 #[derive(JsonSchema, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct RootSchema {
-    node: Expr,
-    polluted_node: Hir,
+    expr: Expr,
+    hir: Hir,
     exec: Exec,
+    error: Error,
+    directory: Directory,
+    module: Module,
 }
 
 #[derive(Debug, StructOpt)]
@@ -61,11 +67,11 @@ fn schema(args: Application) -> std::io::Result<()> {
     }
 
     let settings = SchemaSettings::default();
-    let mut generator = settings.into_generator();
+    let generator = settings.into_generator();
 
-    let root = generator.clone().into_root_schema_for::<RootSchema>();
+    let root = generator.into_root_schema_for::<RootSchema>();
 
-    let mut path = output.clone();
+    let mut path = output;
     path.push("root.json");
     write(path, serde_json::to_string_pretty(&root).unwrap())?;
 

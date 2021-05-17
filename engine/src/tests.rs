@@ -1,10 +1,9 @@
+use crate::ast::hir::func::fs::Directory;
 use crate::build::Builder;
+use crate::errors::ErrorCode::FunctionUnexpectedNumberOfArguments;
 use crate::eval::types::Variables;
 use crate::flags::CompileFlags;
 
-use crate::ast::hir::func::fs::Directory;
-use crate::errors::ErrorCode::FunctionUnexpectedNumberOfArguments;
-use crate::errors::{Error, ErrorVariant};
 use indoc::indoc;
 use num_bigint::BigUint;
 use num_traits::{One, Zero};

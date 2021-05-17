@@ -4,6 +4,8 @@ description = "LOOP Just In Time Interpreter"
 version = "0.1.0"
 authors = ["Bilal Mahmoud <bilalmahmoud@posteo.de>"]
 edition = "2018"
+repository = "https://github.com/indietyp/lit"
+license = "MIT"
 
 [dependencies]
 # PEG-Grammar Definitions
