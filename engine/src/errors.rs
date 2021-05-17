@@ -11,6 +11,14 @@ pub type StdResult<R> = std::result::Result<R, Vec<Error>>;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "cli", derive(JsonSchema))]
+pub enum StrictModeViolation {
+    LoopToWhileForbidden,
+    MacroForbidden,
+    FuncForbidden,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
+#[cfg_attr(feature = "cli", derive(JsonSchema))]
 pub enum ErrorCode {
     CouldNotFindModule {
         module: String,
@@ -50,6 +58,9 @@ pub enum ErrorCode {
         func: String,
         expected: usize,
         got: usize,
+    },
+    StrictModeViolation {
+        violation: StrictModeViolation,
     },
 }
 

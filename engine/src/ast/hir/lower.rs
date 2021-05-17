@@ -7,11 +7,11 @@ use crate::ast::hir::macros::Macro;
 use crate::ast::hir::Hir;
 use crate::ast::variant::UInt;
 use crate::ast::verbs::{ComparisonVerb, OperatorVerb};
-use crate::errors::{Error, ErrorVariant, StdResult};
+use crate::errors::{Error, ErrorCode, ErrorVariant, StdResult, StrictModeViolation};
 use crate::flags::CompileFlags;
 use crate::types::LineNo;
 use crate::utils;
-use crate::utils::private_identifier;
+use crate::utils::{box_expr_ident, box_hir_ident, check_strict_flag, priv_ident};
 
 pub(crate) fn lower_terms(context: &mut CompileContext, terms: &[Hir]) -> StdResult<Expr> {
     let maybe: Vec<_> = terms.iter().map(|term| term.lower(context)).collect();
@@ -52,6 +52,13 @@ pub(crate) fn lower_loop(
             ident: Box::new(ident.clone()),
             terms: Box::new(terms.clone()),
         })
+    } else if let Err(err) = check_strict_flag(
+        Some(lno),
+        context,
+        CompileFlags::STRCT_NO_LPLWR,
+        StrictModeViolation::LoopToWhileForbidden,
+    ) {
+        return Err(err);
     } else if context.flags.contains(CompileFlags::WHILE) {
         // This rewrites the LOOP into WHILE
         // LOOP x DO
@@ -63,8 +70,7 @@ pub(crate) fn lower_loop(
         //  ...
         //  _1 := _1 - 1
         // END
-
-        let tmp = Box::new(Expr::Ident(private_identifier(context)));
+        let tmp = box_expr_ident(priv_ident(context));
 
         Expr::Control(Control::Terms(vec![
             Macro::AssignToIdent {

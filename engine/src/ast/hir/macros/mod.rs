@@ -12,10 +12,12 @@ use crate::ast::hir::macros::lower::{
     lower_assign_to_ident, lower_assign_to_ident_binop_ident, lower_assign_to_ident_extbinop_value,
     lower_assign_to_value, lower_assign_to_zero,
 };
-use crate::errors::StdResult;
+use crate::errors::{Error, ErrorCode, StdResult, StrictModeViolation};
 use crate::types::LineNo;
 use serde::{Deserialize, Serialize};
 
+use crate::flags::CompileFlags;
+use crate::utils::check_strict_flag;
 #[cfg(feature = "cli")]
 use schemars::JsonSchema;
 
@@ -66,6 +68,13 @@ pub enum Macro {
 
 impl Macro {
     pub fn lower(&self, context: &mut CompileContext) -> StdResult<Expr> {
+        check_strict_flag(
+            self.lno(),
+            context,
+            CompileFlags::STRCT_NO_MACRO,
+            StrictModeViolation::MacroForbidden,
+        )?;
+
         match self {
             Macro::AssignToIdent { lno, lhs, rhs } => {
                 lower_assign_to_ident(*lno, context, lhs, rhs)
@@ -86,6 +95,17 @@ impl Macro {
                 if_terms,
                 else_terms,
             } => lower_cond(*lno, context, comp, if_terms, else_terms),
+        }
+    }
+
+    fn lno(&self) -> Option<LineNo> {
+        match self {
+            Macro::AssignToIdent { lno, .. } => Some(*lno),
+            Macro::AssignToZero { lno, .. } => Some(*lno),
+            Macro::AssignToValue { lno, .. } => Some(*lno),
+            Macro::AssignToIdentBinOpIdent { lno, .. } => Some(*lno),
+            Macro::AssignToIdentExtBinOpValue { lno, .. } => Some(*lno),
+            Macro::Conditional { lno, .. } => Some(*lno),
         }
     }
 }

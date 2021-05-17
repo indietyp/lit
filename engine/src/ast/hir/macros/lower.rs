@@ -11,11 +11,7 @@ use crate::build::Builder;
 use crate::errors::StdResult;
 use crate::flags::CompileFlags;
 use crate::types::LineNo;
-use crate::utils::private_identifier;
-
-pub(crate) fn box_ident(ident: String) -> Box<Hir> {
-    Box::new(Hir::Expr(Expr::Ident(ident)))
-}
+use crate::utils::priv_ident;
 
 // Macro expansion for x := y
 pub(crate) fn lower_assign_to_ident(
@@ -201,7 +197,7 @@ fn expand_assign_to_ident_mul_value(
     y: String,
     n: BigUint,
 ) -> StdResult<Expr> {
-    let tmp = private_identifier(context);
+    let tmp = priv_ident(context);
 
     let instruction = format!(
         indoc! {"

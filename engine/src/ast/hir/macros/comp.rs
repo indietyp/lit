@@ -10,7 +10,6 @@ use num_traits::Zero;
 use crate::ast::context::CompileContext;
 use crate::ast::control::Control;
 use crate::ast::expr::Expr;
-use crate::ast::hir::macros::lower::box_ident;
 use crate::ast::hir::macros::Macro;
 use crate::ast::hir::Hir;
 use crate::ast::variant::UInt;
@@ -18,7 +17,8 @@ use crate::ast::verbs::ComparisonVerb;
 use crate::build::Builder;
 use crate::errors::StdResult;
 use crate::types::LineNo;
-use crate::utils::private_identifier;
+use crate::utils::box_hir_ident;
+use crate::utils::priv_ident;
 
 fn terms_are_ok(terms: Vec<StdResult<Expr>>) -> StdResult<Vec<Expr>> {
     let iter = terms.iter().clone();
@@ -47,7 +47,7 @@ fn if_else_body(
     // We need to build the body manually
     let if_body = Hir::Control(Control::Loop {
         lno,
-        ident: box_ident(if_ident),
+        ident: box_hir_ident(if_ident),
         terms: Box::new(if_terms.clone()),
     })
     .lower(context);
@@ -56,7 +56,7 @@ fn if_else_body(
     if else_terms.is_some() {
         let else_body = Hir::Control(Control::Loop {
             lno,
-            ident: box_ident(else_ident),
+            ident: box_hir_ident(else_ident),
             terms: Box::new(else_terms.clone().unwrap()),
         })
         .lower(context);
@@ -85,7 +85,7 @@ fn lower_comp_not_zero(
 
     let ident = {
         if comp.lhs.is_left() {
-            let tmp = private_identifier(context);
+            let tmp = priv_ident(context);
 
             instructions.push(format!(
                 "{_3} := {value}",
@@ -98,8 +98,8 @@ fn lower_comp_not_zero(
         }
     };
 
-    let tmp1 = private_identifier(context);
-    let tmp2 = private_identifier(context);
+    let tmp1 = priv_ident(context);
+    let tmp2 = priv_ident(context);
     let stmt = format!(
         indoc! {"
         {_1} := 0
@@ -141,7 +141,7 @@ fn lower_comp_gt(
     // if the value of y is a number, implicity convert it to a variable when expanding
     let x = {
         if comp.lhs.is_left() {
-            let tmp = private_identifier(context);
+            let tmp = priv_ident(context);
             instructions.push(format!(
                 "{_4} := {value}",
                 _4 = tmp,
@@ -156,7 +156,7 @@ fn lower_comp_gt(
     // if the value of y is a number implicitly convert it to a variable when expanding
     let y = {
         if comp.rhs.is_left() {
-            let tmp = private_identifier(context);
+            let tmp = priv_ident(context);
             instructions.push(format!(
                 "{_5} := {value}",
                 _5 = tmp,
@@ -168,9 +168,9 @@ fn lower_comp_gt(
         }
     };
 
-    let tmp1 = private_identifier(context);
-    let tmp2 = private_identifier(context);
-    let tmp3 = private_identifier(context);
+    let tmp1 = priv_ident(context);
+    let tmp2 = priv_ident(context);
+    let tmp3 = priv_ident(context);
 
     let stmt = format!(
         indoc! {"
@@ -225,7 +225,7 @@ fn lower_comp_gte(
     } else {
         // if x is an identifier create a new instruction that just adds one to a
         // new variable and mutate comp.rhs
-        let tmp = private_identifier(context);
+        let tmp = priv_ident(context);
         instructions.push(format!(
             "{_1} := {x} + 1",
             _1 = tmp,
