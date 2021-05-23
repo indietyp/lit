@@ -5,23 +5,39 @@
     "dev": "vite",
     "build": "npm run generate-parser && tsc && vite build",
     "generate-parser": "lezer-generator src/lezer-language/loop.grammar -o src/lezer-language/parser.js",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "test": "jest"
   },
   "dependencies": {
     "@codemirror/basic-setup": "^0.18.0",
-    "@loopit!/engine": "^0.1.0",
+    "@loopit!/engine": "^0.1.6",
     "halfmoon": "^1.1.1",
     "lezer": "^0.13.4",
+    "material-design-icons": "^3.0.1",
     "mobx": "^6.3.0",
     "mobx-react-lite": "^3.2.0",
     "react": "^17.0.0",
     "react-dom": "^17.0.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.14.2",
+    "@babel/plugin-syntax-import-meta": "^7.10.4",
+    "@babel/preset-env": "^7.14.2",
+    "@babel/preset-react": "^7.13.13",
+    "@babel/preset-typescript": "^7.13.0",
+    "@types/jest": "^26.0.23",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "@vitejs/plugin-react-refresh": "^1.3.1",
+    "babel-jest": "^27.0.0-next.9",
+    "babel-plugin-search-and-replace": "^1.1.0",
+    "babel-plugin-transform-import-meta": "^2.0.0",
+    "isomorphic-fetch": "^3.0.0",
+    "jest": "^27.0.0-next.9",
+    "jest-fetch-mock": "^3.0.3",
     "lezer-generator": "^0.13.3",
+    "react-test-renderer": "^17.0.2",
+    "ts-node": "^9.1.1",
     "typescript": "^4.1.2",
     "vite": "^2.2.3"
   }
