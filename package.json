@@ -6,13 +6,13 @@
     "build": "npm run generate-parser && tsc && vite build",
     "generate-parser": "lezer-generator src/lezer-language/loop.grammar -o src/lezer-language/parser.js",
     "serve": "vite preview",
-    "test:prebuild": "tsc injectNodeEnvTransformer.ts",
+    "test:prebuild": "tsc src/test-utils/injectNodeEnvTransformer.ts",
     "test:unit": "NODE_OPTIONS=--experimental-vm-modules npx jest",
     "test": "npm run test:prebuild && npm run test:unit"
   },
   "dependencies": {
     "@codemirror/basic-setup": "^0.18.0",
-    "@loopit!/engine": "^0.1.6",
+    "@loopit!/engine": "^0.1.7",
     "halfmoon": "^1.1.1",
     "lezer": "^0.13.4",
     "material-design-icons": "^3.0.1",

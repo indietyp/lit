@@ -8,13 +8,10 @@ const config: InitialOptionsTsJest = {
         'ts-jest': {
             useESM: true,
             astTransformers: {
-                before: ['./injectNodeEnvTransformer']
+                before: ['./src/test-utils/injectNodeEnvTransformer']
             }
         },
     },
-    setupFiles: [
-        "./setupTests.ts"
-    ]
 };
 
 export default config;
