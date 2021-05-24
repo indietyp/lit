@@ -1,20 +1,17 @@
-import type { Config } from '@jest/types';
+import type { InitialOptionsTsJest } from 'ts-jest/dist/types';
 
-const config: Config.InitialOptions = {
-    // rootDir: "./src/",
-    transform: {
-        // "^.+\\.tsx?$": "ts-jest",
-        "^.+\\.[jt]sx?$": "babel-jest",
+const config: InitialOptionsTsJest = {
+    preset: 'ts-jest/presets/js-with-ts-esm',
+    transform: {},
+    extensionsToTreatAsEsm: ['.ts'],
+    globals: {
+        'ts-jest': {
+            useESM: true,
+            astTransformers: {
+                before: ['./injectNodeEnvTransformer']
+            }
+        },
     },
-    transformIgnorePatterns: [
-        "node_modules\\/(?!(@loopit!\\/engine)\\/)"
-    ],
-    // moduleFileExtensions: ["js", "ts", "tsx"],
-    moduleDirectories: ["node_modules", "src", "engine"],
-    // testEnvironment: 'jest-environment-node',
-    // extensionsToTreatAsEsm: ['.ts', '.tsx'],
-    automock: false,
-    resetMocks: false,
     setupFiles: [
         "./setupTests.ts"
     ]
