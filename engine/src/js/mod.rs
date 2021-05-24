@@ -59,7 +59,7 @@ extern "C" {
     pub type IExecutionResult;
 }
 
-#[wasm_bindgen(module = "polyfill.js")]
+#[wasm_bindgen(module = "/src/js/polyfill.js")]
 extern "C" {
     fn convertVariables(variables: IVariables) -> IVariablesBigInt;
 }
