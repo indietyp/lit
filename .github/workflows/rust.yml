@@ -50,15 +50,15 @@ jobs:
       with:
         file: engine/pkg/package.json
         field: 'main'
-        value: 'lit.js'
-        parse_json: false
+        value: '"lit.js"'
+        parse_json: true
     - name: Inject type
       uses: jossef/action-set-json-field@v1
       with:
         file: engine/pkg/package.json
         field: 'type'
-        value: 'module'
-        parse_json: false
+        value: '"module"'
+        parse_json: true
     - name: Extract version from package.json
       uses: sergeysova/jq-action@v2
       id: version
