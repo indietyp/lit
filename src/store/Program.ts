@@ -1,7 +1,5 @@
-// import { Builder } from '@loopit!/engine';
-// import { Module, Expr, Exec } from '@loopit!/engine/schema';
-import { Builder } from '../../engine/pkg';
-import { Module, Expr, Exec } from '../../engine/pkg/schema';
+import { Builder } from '@loopit!/engine';
+import { Module, Expr, Exec } from '@loopit!/engine/schema';
 
 export class Program {
     public module!: Module;

@@ -1,6 +1,5 @@
 import { Program } from './Program';
-// import init, { Builder, Runtime } from '@loopit!/engine';
-import init, { Builder, Runtime } from '../../engine/pkg';
+import init, { Builder, Runtime } from '@loopit!/engine';
 
 export class Interpreter {
     public currentRuntime: Runtime | null = null;

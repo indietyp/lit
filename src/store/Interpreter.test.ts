@@ -1,5 +1,5 @@
 import { Interpreter } from './Interpreter';
-import init from '../../engine/pkg';
+import init from '@loopit!/engine';
 import { mockFetchWasmFile } from '../test-utils/mockFetchWasmFile';
 
 beforeAll(async () => {
