@@ -43,8 +43,11 @@ extern "C" {
     #[wasm_bindgen(typescript_type = "Exec")]
     pub type IExec;
 
-    #[wasm_bindgen(typescript_type = "{[var: string]: number[]}")]
+    #[wasm_bindgen(typescript_type = "{ [var: string]: number[] }")]
     pub type IVariables;
+
+    #[wasm_bindgen(typescript_type = "{ [var: string]: BigInt }")]
+    pub type IVariablesBigInt;
 
     #[wasm_bindgen(typescript_type = "Error[]")]
     pub type IErrors;
@@ -54,6 +57,11 @@ extern "C" {
 
     #[wasm_bindgen(typescript_type = "ExecutionResult")]
     pub type IExecutionResult;
+}
+
+#[wasm_bindgen(module = "polyfill.js")]
+extern "C" {
+    fn convertVariables(variables: IVariables) -> IVariablesBigInt;
 }
 
 #[wasm_bindgen(js_name = Runtime)]
@@ -124,10 +132,10 @@ impl JavaScriptRuntime {
         self.runtime.is_running()
     }
 
-    pub fn context(&self) -> IVariables {
-        JsValue::from_serde(&self.runtime.context())
-            .unwrap()
-            .unchecked_into()
+    pub fn context(&self) -> IVariablesBigInt {
+        let value = JsValue::from_serde(&self.runtime.context()).unwrap();
+
+        convertVariables(value.unchecked_into())
     }
 }
 
