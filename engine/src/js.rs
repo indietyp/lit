@@ -43,7 +43,7 @@ extern "C" {
     #[wasm_bindgen(typescript_type = "Exec")]
     pub type IExec;
 
-    #[wasm_bindgen(typescript_type = "Map<string, number>")]
+    #[wasm_bindgen(typescript_type = "{[var: string]: number[]}")]
     pub type IVariables;
 
     #[wasm_bindgen(typescript_type = "Error[]")]
