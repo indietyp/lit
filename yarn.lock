@@ -849,10 +849,10 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
-"@loopit!/engine@^0.1.7":
-  version "0.1.7"
-  resolved "https://registry.yarnpkg.com/@loopit!/engine/-/engine-0.1.7.tgz#48319086b319619beb826cf421d940aba81d55a6"
-  integrity sha512-djyELuUflz6Q8e7NWMf5sWQGwaGdNd97qnteFI76/rkVYvaC6V9ZV/P6l1/zSRFqfT3CpHm1O42Z2eQiEwltGA==
+"@loopit!/engine@^0.1.8":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@loopit!/engine/-/engine-0.1.8.tgz#852dd4f0121726952b84f1820a884d5548a3a684"
+  integrity sha512-tDVXRq00WUxQMrT2MAx9d7Gl7yPzSAxD+mtwNWQLwdV3K8ZcjeVf8ppH9lcMypfSaDqbuQPqCPtP4Jd5StKOcg==
 
 "@sinonjs/commons@^1.7.0":
   version "1.8.3"
