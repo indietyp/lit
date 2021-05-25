@@ -43,10 +43,10 @@ extern "C" {
     #[wasm_bindgen(typescript_type = "Exec")]
     pub type IExec;
 
-    #[wasm_bindgen(typescript_type = "{ [var: string]: number[] }")]
+    #[wasm_bindgen(typescript_type = "{ [key: string]: number[] }")]
     pub type IVariables;
 
-    #[wasm_bindgen(typescript_type = "{ [var: string]: BigInt }")]
+    #[wasm_bindgen(typescript_type = "{ [key: string]: BigInt }")]
     pub type IVariablesBigInt;
 
     #[wasm_bindgen(typescript_type = "Error[]")]
