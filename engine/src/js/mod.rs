@@ -46,6 +46,9 @@ extern "C" {
     #[wasm_bindgen(typescript_type = "{ [key: string]: number[] }")]
     pub type IVariables;
 
+    #[wasm_bindgen(typescript_type = "Record<string, number>")]
+    pub type IVariablesNew;
+
     #[wasm_bindgen(typescript_type = "{ [key: string]: BigInt }")]
     pub type IVariablesBigInt;
 
@@ -73,7 +76,7 @@ pub struct JavaScriptRuntime {
 #[wasm_bindgen(js_class = Runtime)]
 impl JavaScriptRuntime {
     #[wasm_bindgen(constructor)]
-    pub fn new(exec: IExec, locals: IVariables) -> Result<JavaScriptRuntime, JsValue> {
+    pub fn new(exec: IExec, locals: IVariablesNew) -> Result<JavaScriptRuntime, JsValue> {
         let exec: Exec = exec.into_serde().unwrap_throw();
         let locals: Map = locals.unchecked_into::<Map>();
 
@@ -92,7 +95,7 @@ impl JavaScriptRuntime {
                     );
                 }
             } else {
-                errors.push("Key is not a valid type detected");
+                errors.push("Key is not a valid type.");
             }
         });
 
