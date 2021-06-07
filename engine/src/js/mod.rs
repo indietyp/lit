@@ -180,7 +180,7 @@ impl JavaScriptBuilder {
         Ok(JsValue::from_serde(&result).unwrap().unchecked_into())
     }
 
-    pub fn exec(exec: IExec, locals: IVariables) -> Result<JavaScriptRuntime, JsValue> {
+    pub fn exec(exec: IExec, locals: IVariablesNew) -> Result<JavaScriptRuntime, JsValue> {
         JavaScriptRuntime::new(exec, locals)
     }
 
