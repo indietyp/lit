@@ -17,7 +17,6 @@ pub use crate::pair::Pair;
 
 mod comp;
 mod dir;
-mod err;
 mod kind;
 mod kw;
 mod op;
@@ -37,7 +36,7 @@ impl<'a> Lexer<'a> {
 }
 
 impl<'a> Iterator for Lexer<'a> {
-    type Item = Token<'a>;
+    type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
         let kind = self.lexer.next()?;
@@ -54,15 +53,15 @@ impl<'a> Iterator for Lexer<'a> {
 
         Some(Self::Item {
             kind,
-            content,
+            content: content.to_string(),
             range,
         })
     }
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct Token<'a> {
+pub struct Token {
     pub kind: Kind,
-    pub content: &'a str,
+    pub content: String,
     pub range: TextRange,
 }

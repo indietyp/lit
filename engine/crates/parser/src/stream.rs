@@ -2,7 +2,6 @@ use combine::stream::{ResetStream, StreamErrorFor};
 use combine::{ParseError, Positioned, RangeStreamOnce, StreamOnce};
 
 use crate::err::LexerStreamError;
-use crate::{Lexer, Token};
 use combine::error::StringStreamError;
 use lexer::{Lexer, Token};
 
