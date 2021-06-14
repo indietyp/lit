@@ -1,20 +1,8 @@
-use combine::{satisfy, ParseError, Parser, Stream};
-
 use lexer::{Keyword, Kind};
-use paste::paste;
 
 macro_rules! create_kw {
     ($name:tt, $( $pattern:pat )|+) => {
-        paste! {
-            pub fn [<kw_ $name>]<Input>() -> impl Parser<Input, Output = ::lexer::Token, PartialState = ()>
-            where
-                Input: Stream<Token = ::lexer::Token>,
-                Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
-            {
-                let f: fn(::lexer::Token) -> bool = |token| ::std::matches!(token.kind, $($pattern)|*);
-                ::combine::satisfy(f).expected(::std::stringify!($name))
-            }
-        }
+        simple_combinator!(kw, $name, $($pattern)|*);
     };
 }
 
