@@ -1,9 +1,9 @@
 use combine::stream::{ResetStream, StreamErrorFor};
-use combine::{Positioned, RangeStream, RangeStreamOnce, Stream, StreamOnce};
-use text_size::{TextRange, TextSize};
+use combine::{ParseError, Positioned, RangeStreamOnce, StreamOnce};
 
 use crate::err::LexerStreamError;
 use crate::{Lexer, Token};
+use combine::error::StringStreamError;
 
 pub(crate) type Position = usize;
 pub(crate) type Range<'a> = Vec<Token<'a>>;
@@ -42,7 +42,17 @@ impl<'a> StreamOnce for LexerStream<'a> {
     type Error = LexerStreamError<'a>;
 
     fn uncons(&mut self) -> Result<Self::Token, StreamErrorFor<Self>> {
-        todo!()
+        let token = self.tokens.get(self.pos).map_or_else(
+            Err(LexerStreamError::from_error(
+                self.pos,
+                StringStreamError::Eoi,
+            )),
+            |value| Ok(value),
+        )?;
+
+        self.pos += 1;
+
+        Ok(token.clone())
     }
 }
 
@@ -94,7 +104,3 @@ impl<'a> RangeStreamOnce for LexerStream<'a> {
         self.tokens.as_slice()[self.pos..].to_vec()
     }
 }
-
-impl<'a> RangeStream for LexerStream<'a> {}
-
-impl<'a> Stream for LexerStream<'a> {}
