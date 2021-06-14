@@ -15,23 +15,25 @@ use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub struct UInt(pub BigUint);
+pub struct UInt(BigUint);
 
-NewtypeDeref! {() pub struct UInt(pub BigUint); }
-NewtypeDerefMut! {() pub struct UInt(pub BigUint); }
-NewtypeFrom! {() pub struct UInt(pub BigUint); }
+NewtypeDeref! {() pub struct UInt(BigUint); }
+NewtypeDerefMut! {() pub struct UInt(BigUint); }
+
+NewtypeFrom! {() pub struct UInt(BigUint); }
+NewtypeDisplay! {() pub struct UInt(BigUint);}
 
 // a + b
-NewtypeAdd! {() pub struct UInt(pub BigUint); }
-NewtypeAdd! {(BigUint) pub struct UInt(pub BigUint); }
+NewtypeAdd! {() pub struct UInt(BigUint); }
+NewtypeAdd! {(BigUint) pub struct UInt(BigUint); }
 
 // a - b
-NewtypeSub! {() pub struct UInt(pub BigUint); }
-NewtypeSub! {(BigUint) pub struct UInt(pub BigUint); }
+NewtypeSub! {() pub struct UInt(BigUint); }
+NewtypeSub! {(BigUint) pub struct UInt(BigUint); }
 
 // a * b
-NewtypeMul! {() pub struct UInt(pub BigUint); }
-NewtypeMul! {(BigUint) pub struct UInt(pub BigUint); }
+NewtypeMul! {() pub struct UInt(BigUint); }
+NewtypeMul! {(BigUint) pub struct UInt(BigUint); }
 
 // a / b
 NewtypeDiv! {() pub struct UInt(pub BigUint); }
@@ -104,3 +106,20 @@ impl FromStr for UInt {
         BigUint::from_str(s).map(Self)
     }
 }
+
+macro_rules! generate_from {
+    (($t0:ty) -> $name:ident($t1:ty)) => {
+        impl ::std::convert::From<$t0> for $name {
+            fn from(value: $t0) -> Self {
+                Self(<$t1>::from(value))
+            }
+        }
+    };
+}
+
+generate_from! { (u8) -> UInt(BigUint) }
+generate_from! { (u16) -> UInt(BigUint) }
+generate_from! { (u32) -> UInt(BigUint) }
+generate_from! { (u64) -> UInt(BigUint) }
+generate_from! { (u128) -> UInt(BigUint) }
+generate_from! { (usize) -> UInt(BigUint) }

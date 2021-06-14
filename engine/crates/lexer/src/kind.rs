@@ -10,15 +10,10 @@ use crate::comp::Comp;
 use crate::dir::{Directive, MacroModifier, Placeholder};
 use crate::op::Op;
 
-fn comp(lex: &mut Lexer<Kind>) -> std::thread::Result<Comp> {
-    let slice = lex.slice();
-    panic::catch_unwind(|| slice.into())
-}
-
-fn template(lex: &mut Lexer<Kind>) -> Option<Directive> {
+fn placeholder(lex: &mut Lexer<Kind>) -> Option<Directive> {
     lazy_static! {
         static ref TEMPLATE_REGEX: Result<Regex, regex::Error> =
-            Regex::new(r"(% | \$)([_a-z])\.([0-9])");
+            Regex::new(r"([%$])([_a-z])\.([0-9]+)");
     }
 
     let slice = lex.slice();
@@ -26,9 +21,9 @@ fn template(lex: &mut Lexer<Kind>) -> Option<Directive> {
     let regex = TEMPLATE_REGEX.as_ref().ok()?;
     let captures: Captures = regex.captures(slice)?;
 
-    let scope = captures.get(0)?.as_str();
-    let type_ = captures.get(1)?.as_str();
-    let number: u32 = captures.get(2)?.as_str().parse().ok()?;
+    let scope = captures.get(1)?.as_str();
+    let type_ = captures.get(2)?.as_str();
+    let number = captures.get(3)?.as_str().parse::<u32>().ok()?;
 
     let ident = match scope {
         "%" => match type_ {
@@ -59,7 +54,6 @@ fn macro_start(lex: &mut Lexer<Kind>) -> Option<Directive> {
     }
 
     let slice = lex.slice();
-
     let regex = MACRO_START_REGEX.as_ref().ok()?;
     let captures: Captures = regex.captures(slice)?;
 
@@ -82,12 +76,33 @@ fn macro_start(lex: &mut Lexer<Kind>) -> Option<Directive> {
     Some(Directive::MacroStart(modifiers))
 }
 
+fn line_comment(lex: &mut Lexer<Kind>) -> Option<()> {
+    let len = lex.remainder().find('\n');
+    if len.is_none() {
+        // means the comment is at the end of the line
+        lex.bump(lex.remainder().len());
+        return Some(());
+    }
+
+    let len = len?;
+    lex.bump(len); // do not include \n as \n is a separator
+
+    Some(())
+}
+
+fn block_comment(lex: &mut Lexer<Kind>) -> Option<()> {
+    let len = lex.remainder().find("###")?;
+    lex.bump(len + 3); // include the length of ###
+
+    Some(())
+}
+
 #[derive(Debug, Clone, PartialEq, Logos)]
 pub enum Kind {
-    #[token("+", | _ | Some(Op::Plus))]
-    #[token("-", | _ | Some(Op::Minus))]
-    #[token("*", | _ | Some(Op::Star))]
-    #[token("/", | _ | Some(Op::Slash))]
+    #[token("+", | _ | Op::Plus)]
+    #[token("-", | _ | Op::Minus)]
+    #[token("*", | _ | Op::Star)]
+    #[token("/", | _ | Op::Slash)]
     Op(Op),
 
     #[token("...")]
@@ -99,10 +114,10 @@ pub enum Kind {
     #[regex("[0-9]+", | v | v.slice().parse())]
     Number(UInt),
 
-    #[regex("[wH][hH][iI][lL][eE]")]
+    #[regex("while", ignore(case))]
     WhileKw,
 
-    #[regex("[lL][oO][oO][pP]")]
+    #[regex("loop", ignore(case))]
     LoopKw,
 
     #[regex(r"@macro(/[i]*)?", macro_start)]
@@ -110,24 +125,30 @@ pub enum Kind {
     #[token("@end", | _ | Directive::End)]
     #[token("@if", | _ | Directive::If)]
     #[token("@else", | _ | Directive::Else)]
-    #[regex(r"%(i | a | v | e | t | c | o | _)\.[0-9]+", template)]
-    #[regex(r"\$(i)\.[0-9]+", template)]
+    #[regex(r"%[iavetco_]\.[0-9]+", placeholder)]
+    #[regex(r"\$(i)\.[0-9]+", placeholder)]
     Directive(Directive),
 
     #[token(":=")]
     Assign,
 
-    #[regex("(== | != | > | >= | <= | < | =)", comp)]
+    #[token("=", | _ | Comp::Equal)]
+    #[token("==", | _ | Comp::Equal)]
+    #[token("!=", | _ | Comp::NotEqual)]
+    #[token(">", | _ | Comp::GreaterThan)]
+    #[token(">=", | _ | Comp::GreaterEqual)]
+    #[token("<", | _ | Comp::LessThan)]
+    #[token("<=", | _ | Comp::LessEqual)]
     Comp(Comp),
 
-    #[regex("#.*")]
-    #[regex("###[.\n]*###")]
+    #[token("#", line_comment)]
+    #[token("###", block_comment)]
     Comment,
 
-    #[regex(r"[ \t\n\f]+")]
+    #[regex(r"[ \t\f]+")]
     Whitespace,
 
-    #[regex(";?\n")]
+    #[regex(r";?\n")]
     Separator,
 
     #[error]
@@ -135,7 +156,7 @@ pub enum Kind {
 }
 
 impl Kind {
-    pub fn is_trivia(self) -> bool {
+    pub fn is_trivia(&self) -> bool {
         matches!(self, Self::Whitespace | Self::Comment | Self::Separator)
     }
 }
@@ -151,7 +172,7 @@ impl fmt::Display for Kind {
                 Self::Comment => "comment".into(),
                 Self::Op(op) => format!("{}", op),
                 Self::Ellipsis => "...".into(),
-                Self::Number(n) => "number".into(),
+                Self::Number(n) => format!("number<{}>", n),
                 Self::WhileKw => "while".into(),
                 Self::LoopKw => "loop".into(),
                 Self::Directive(directive) => format!("{}", directive),
@@ -167,6 +188,149 @@ impl fmt::Display for Kind {
 //region Tests
 #[cfg(test)]
 mod tests {
+    use crate::Lexer;
+
     use super::*;
+
+    fn check_single_kind(input: &str, kind: Kind) {
+        let mut lexer = Lexer::new(input);
+
+        let token = lexer.next().unwrap();
+        assert_eq!(token.kind, kind);
+        assert_eq!(token.content, input)
+    }
+
+    #[test]
+    fn lex_op() {
+        check_single_kind("+", Kind::Op(Op::Plus));
+        check_single_kind("-", Kind::Op(Op::Minus));
+        check_single_kind("*", Kind::Op(Op::Star));
+        check_single_kind("/", Kind::Op(Op::Slash))
+    }
+
+    #[test]
+    fn lex_ellipsis() {
+        check_single_kind("...", Kind::Ellipsis);
+    }
+
+    #[test]
+    fn lex_ident() {
+        check_single_kind("abc", Kind::Ident)
+    }
+
+    #[test]
+    fn lex_number() {
+        check_single_kind("123", Kind::Number(UInt::from(123u8)))
+    }
+
+    #[test]
+    fn lex_kw() {
+        check_single_kind("while", Kind::WhileKw);
+        check_single_kind("wHiLe", Kind::WhileKw);
+        check_single_kind("loop", Kind::LoopKw);
+        check_single_kind("LOOP", Kind::LoopKw);
+    }
+
+    #[test]
+    fn lex_directive() {
+        check_single_kind(
+            "@macro",
+            Kind::Directive(Directive::MacroStart(MacroModifier::empty())),
+        );
+        check_single_kind(
+            "@macro/i",
+            Kind::Directive(Directive::MacroStart(MacroModifier::CaseInsensitive)),
+        );
+
+        check_single_kind("@sub", Kind::Directive(Directive::SubStart));
+        check_single_kind("@end", Kind::Directive(Directive::End));
+
+        check_single_kind("@if", Kind::Directive(Directive::If));
+        check_single_kind("@else", Kind::Directive(Directive::Else));
+
+        check_single_kind(
+            "%i.1",
+            Kind::Directive(Directive::Placeholder(Placeholder::Ident(1))),
+        );
+        check_single_kind(
+            "%a.1",
+            Kind::Directive(Directive::Placeholder(Placeholder::Atom(1))),
+        );
+        check_single_kind(
+            "%v.1",
+            Kind::Directive(Directive::Placeholder(Placeholder::Value(1))),
+        );
+        check_single_kind(
+            "%e.1",
+            Kind::Directive(Directive::Placeholder(Placeholder::Expr(1))),
+        );
+        check_single_kind(
+            "%t.1",
+            Kind::Directive(Directive::Placeholder(Placeholder::Terms(1))),
+        );
+        check_single_kind(
+            "%c.1",
+            Kind::Directive(Directive::Placeholder(Placeholder::Comp(1))),
+        );
+        check_single_kind(
+            "%o.1",
+            Kind::Directive(Directive::Placeholder(Placeholder::Op(1))),
+        );
+        check_single_kind(
+            "%_.1",
+            Kind::Directive(Directive::Placeholder(Placeholder::Any(1))),
+        );
+        check_single_kind(
+            "$i.1",
+            Kind::Directive(Directive::Placeholder(Placeholder::TempIdent(1))),
+        );
+    }
+
+    #[test]
+    fn lex_assign() {
+        check_single_kind(":=", Kind::Assign);
+    }
+
+    #[test]
+    fn lex_comp() {
+        check_single_kind("=", Kind::Comp(Comp::Equal));
+        check_single_kind("==", Kind::Comp(Comp::Equal));
+        check_single_kind("!=", Kind::Comp(Comp::NotEqual));
+        check_single_kind(">", Kind::Comp(Comp::GreaterThan));
+        check_single_kind(">=", Kind::Comp(Comp::GreaterEqual));
+        check_single_kind("<", Kind::Comp(Comp::LessThan));
+        check_single_kind("<=", Kind::Comp(Comp::LessEqual));
+    }
+
+    #[test]
+    fn lex_comment() {
+        check_single_kind(
+            "### comment ## intermediate # \n comment ###",
+            Kind::Comment,
+        );
+        check_single_kind("# comment", Kind::Comment);
+
+        // check if \n is marked as a separator
+        let mut lexer = Lexer::new("# comment\n");
+
+        let token = lexer.next().unwrap();
+        assert_eq!(token.kind, Kind::Comment);
+        assert_eq!(token.content, "# comment");
+
+        let token = lexer.next().unwrap();
+        assert_eq!(token.kind, Kind::Separator);
+        assert_eq!(token.content, "\n");
+    }
+
+    #[test]
+    fn lex_whitespace() {
+        check_single_kind("     \t    ", Kind::Whitespace);
+    }
+
+    #[test]
+    fn lex_sep() {
+        check_single_kind(";\n", Kind::Separator);
+        check_single_kind("\n", Kind::Separator);
+    }
 }
 //endregion

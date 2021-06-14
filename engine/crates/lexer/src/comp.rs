@@ -29,7 +29,8 @@ impl fmt::Display for Comp {
 impl From<&str> for Comp {
     fn from(value: &str) -> Self {
         match value {
-            "==" | "=" => Self::Equal,
+            "==" => Self::Equal,
+            "=" => Self::Equal,
             "!=" => Self::NotEqual,
             ">" => Self::GreaterThan,
             ">=" => Self::GreaterEqual,
