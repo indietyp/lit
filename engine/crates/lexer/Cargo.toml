@@ -13,3 +13,5 @@ lazy_static = "1.4.0"
 bitflags = "1.2.1"
 variants = { path = "../variants" }
 text-size = "1.1.0"
+combine = "4.5.2"
+either = "1.6.1"

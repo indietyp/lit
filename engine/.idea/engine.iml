@@ -26,6 +26,7 @@
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/syn-1e8063fd0abfe31c/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/lexer/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/bitflags-5db67fd30471ef15/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/memchr-45bd7e7e594ea978/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/memchr-62e37417c1c22d84/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/newtype_derive-3483607dfba3974f/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/num-bigint-214c3bbbfed9afe9/out" isTestSource="false" />
