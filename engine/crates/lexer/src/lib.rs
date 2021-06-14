@@ -1,14 +1,15 @@
 #[macro_use]
 extern crate bitflags;
 
+use std::convert::TryFrom;
+
+use logos::{Logos, Span};
+use text_size::{TextRange, TextSize};
+
 pub use crate::comp::Comp;
 pub use crate::dir::{Directive, MacroModifier, Placeholder};
 pub use crate::kind::Kind;
 pub use crate::op::Op;
-
-use logos::{Logos, Span};
-use std::convert::TryFrom;
-use text_size::{TextRange, TextSize};
 
 mod comp;
 mod dir;

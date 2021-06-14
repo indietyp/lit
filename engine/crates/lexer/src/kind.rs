@@ -1,12 +1,14 @@
-use crate::comp::Comp;
-use crate::dir::{Directive, MacroModifier, Placeholder};
-use crate::op::Op;
+use std::{fmt, panic};
 
 use lazy_static::lazy_static;
 use logos::{Lexer, Logos};
 use regex::{Captures, Regex};
-use std::{fmt, panic};
+
 use variants::uint::UInt;
+
+use crate::comp::Comp;
+use crate::dir::{Directive, MacroModifier, Placeholder};
+use crate::op::Op;
 
 fn comp(lex: &mut Lexer<Kind>) -> std::thread::Result<Comp> {
     let slice = lex.slice();
@@ -82,10 +84,10 @@ fn macro_start(lex: &mut Lexer<Kind>) -> Option<Directive> {
 
 #[derive(Debug, Clone, PartialEq, Logos)]
 pub enum Kind {
-    #[token("+", |_| Some(Op::Plus))]
-    #[token("-", |_| Some(Op::Minus))]
-    #[token("*", |_| Some(Op::Star))]
-    #[token("/", |_| Some(Op::Slash))]
+    #[token("+", | _ | Some(Op::Plus))]
+    #[token("-", | _ | Some(Op::Minus))]
+    #[token("*", | _ | Some(Op::Star))]
+    #[token("/", | _ | Some(Op::Slash))]
     Op(Op),
 
     #[token("...")]
@@ -94,7 +96,7 @@ pub enum Kind {
     #[regex("[_a-zA-Z][_a-zA-Z0-9]*")]
     Ident,
 
-    #[regex("[0-9]+", |v| v.slice().parse())]
+    #[regex("[0-9]+", | v | v.slice().parse())]
     Number(UInt),
 
     #[regex("[wH][hH][iI][lL][eE]")]
@@ -104,10 +106,10 @@ pub enum Kind {
     LoopKw,
 
     #[regex(r"@macro(/[i]*)?", macro_start)]
-    #[token("@sub", |_| Directive::SubStart)]
-    #[token("@end", |_| Directive::End)]
-    #[token("@if", |_| Directive::If)]
-    #[token("@else", |_| Directive::Else)]
+    #[token("@sub", | _ | Directive::SubStart)]
+    #[token("@end", | _ | Directive::End)]
+    #[token("@if", | _ | Directive::If)]
+    #[token("@else", | _ | Directive::Else)]
     #[regex(r"%(i | a | v | e | t | c | o | _)\.[0-9]+", template)]
     #[regex(r"\$(i)\.[0-9]+", template)]
     Directive(Directive),
