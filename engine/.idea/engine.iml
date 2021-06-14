@@ -24,8 +24,13 @@
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/newtype_derive-3483607dfba3974f/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/src/ast/hir/macros/rules/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/syn-1e8063fd0abfe31c/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/memchr-62e37417c1c22d84/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/proc-macro2-3273c003050a3e4f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/syn-8ff6bb4645a5c599/out" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/src/ast/hir/macros/rules/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/lexer/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
