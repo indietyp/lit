@@ -14,7 +14,6 @@ pub use crate::kind::Kind;
 pub use crate::kw::Keyword;
 pub use crate::op::Op;
 pub use crate::pair::Pair;
-pub use crate::stream::LexerStream;
 
 mod comp;
 mod dir;
@@ -23,7 +22,6 @@ mod kind;
 mod kw;
 mod op;
 mod pair;
-mod stream;
 
 #[derive(Clone)]
 pub struct Lexer<'a> {
@@ -59,12 +57,6 @@ impl<'a> Iterator for Lexer<'a> {
             content,
             range,
         })
-    }
-}
-
-impl<'a> Lexer<'a> {
-    pub fn stream(&self) -> LexerStream {
-        LexerStream::new_from_lexer(self.clone())
     }
 }
 
