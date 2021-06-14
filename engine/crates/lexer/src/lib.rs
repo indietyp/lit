@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate bitflags;
+
 mod comp;
 mod dir;
 mod op;

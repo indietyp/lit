@@ -1,6 +1,12 @@
+bitflags! {
+    pub struct MacroModifier: u16 {
+        const CaseInsensitive = 0b0001;
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Directive {
-    MacroStart,
+    MacroStart(MacroModifier),
     SubStart,
     End,
 
