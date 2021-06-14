@@ -11,6 +11,7 @@ use crate::comp::Comp;
 use crate::dir::{Directive, MacroModifier, Placeholder};
 use crate::op::Op;
 use crate::pair::Pair;
+use crate::Keyword;
 
 fn placeholder(lex: &mut Lexer<Kind>) -> Option<Directive> {
     lazy_static! {
@@ -61,7 +62,7 @@ fn macro_start(lex: &mut Lexer<Kind>) -> Option<Directive> {
 
     let flags = captures.name("flags");
     if flags.is_none() {
-        return Some(Directive::MacroKw(MacroModifier::empty()));
+        return Some(Directive::Macro(MacroModifier::empty()));
     }
 
     let flags = flags.unwrap();
@@ -75,7 +76,7 @@ fn macro_start(lex: &mut Lexer<Kind>) -> Option<Directive> {
         })
         .fold(MacroModifier::empty(), |a, b| a | b);
 
-    Some(Directive::MacroKw(modifiers))
+    Some(Directive::Macro(modifiers))
 }
 
 fn line_comment(lex: &mut Lexer<Kind>) -> Option<()> {
@@ -116,21 +117,23 @@ pub enum Kind {
     #[regex("[0-9]+", | v | v.slice().parse())]
     Number(UInt),
 
-    #[regex("while", ignore(case))]
-    WhileKw,
-
-    #[regex("loop", ignore(case))]
-    LoopKw,
+    #[token("while", ignore(case) callback = |_| Keyword::While)]
+    #[token("loop", ignore(case) callback = |_| Keyword::Loop)]
+    #[token("fn", ignore(case) callback = |_| Keyword::Fn)]
+    #[token("decl", ignore(case) callback = |_| Keyword::Decl)]
+    #[token("end", ignore(case) callback = |_| Keyword::End)]
+    Keyword(Keyword),
 
     #[regex(r"@macro(/[i]*)?", macro_start)]
-    #[token("@sub", | _ | Directive::SubKw)]
-    #[token("@end", | _ | Directive::EndKw)]
-    #[token("@if", | _ | Directive::IfKw)]
-    #[token("@else", | _ | Directive::ElseKw)]
+    #[token("@sub", | _ | Directive::Sub)]
+    #[token("@end", | _ | Directive::End)]
+    #[token("@if", | _ | Directive::If)]
+    #[token("@else", | _ | Directive::Else)]
     #[regex(r"%[iavetco_]\.[0-9]+", placeholder)]
     #[regex(r"\$(i)\.[0-9]+", placeholder)]
     Directive(Directive),
 
+    #[token("=")]
     #[token(":=")]
     Assign,
 
@@ -148,7 +151,6 @@ pub enum Kind {
     #[token("}", | _ | Pair::Right)]
     Brace(Pair),
 
-    #[token("=", | _ | Comp::Equal)]
     #[token("==", | _ | Comp::Equal)]
     #[token("!=", | _ | Comp::NotEqual)]
     #[token(">", | _ | Comp::GreaterThan)]
@@ -189,8 +191,7 @@ impl fmt::Display for Kind {
                 Self::Op(op) => format!("{}", op),
                 Self::Ellipsis => "‘...‘".into(),
                 Self::Number(n) => format!("number<‘{}‘>", n),
-                Self::WhileKw => "‘while‘".into(),
-                Self::LoopKw => "‘loop‘".into(),
+                Self::Keyword(keyword) => format!("{}", keyword),
                 Self::Directive(directive) => format!("{}", directive),
                 Self::Assign => "‘:=‘".into(),
                 Self::Comp(comp) => format!("{}", comp),
@@ -248,28 +249,30 @@ mod tests {
 
     #[test]
     fn lex_kw() {
-        check_single_kind("while", Kind::WhileKw);
-        check_single_kind("wHiLe", Kind::WhileKw);
-        check_single_kind("loop", Kind::LoopKw);
-        check_single_kind("LOOP", Kind::LoopKw);
+        check_single_kind("while", Kind::Keyword(Keyword::While));
+        check_single_kind("wHiLe", Kind::Keyword(Keyword::While));
+        check_single_kind("loop", Kind::Keyword(Keyword::Loop));
+        check_single_kind("LOOP", Kind::Keyword(Keyword::Loop));
+        check_single_kind("end", Kind::Keyword(Keyword::End));
+        check_single_kind("fn", Kind::Keyword(Keyword::Fn));
     }
 
     #[test]
     fn lex_directive() {
         check_single_kind(
             "@macro",
-            Kind::Directive(Directive::MacroKw(MacroModifier::empty())),
+            Kind::Directive(Directive::Macro(MacroModifier::empty())),
         );
         check_single_kind(
             "@macro/i",
-            Kind::Directive(Directive::MacroKw(MacroModifier::CaseInsensitive)),
+            Kind::Directive(Directive::Macro(MacroModifier::CaseInsensitive)),
         );
 
-        check_single_kind("@sub", Kind::Directive(Directive::SubKw));
-        check_single_kind("@end", Kind::Directive(Directive::EndKw));
+        check_single_kind("@sub", Kind::Directive(Directive::Sub));
+        check_single_kind("@end", Kind::Directive(Directive::End));
 
-        check_single_kind("@if", Kind::Directive(Directive::IfKw));
-        check_single_kind("@else", Kind::Directive(Directive::ElseKw));
+        check_single_kind("@if", Kind::Directive(Directive::If));
+        check_single_kind("@else", Kind::Directive(Directive::Else));
 
         check_single_kind(
             "%i.1",

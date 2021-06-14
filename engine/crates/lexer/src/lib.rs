@@ -9,12 +9,14 @@ use text_size::{TextRange, TextSize};
 pub use crate::comp::Comp;
 pub use crate::dir::{Directive, MacroModifier, Placeholder};
 pub use crate::kind::Kind;
+pub use crate::kw::Keyword;
 pub use crate::op::Op;
 pub use crate::pair::Pair;
 
 mod comp;
 mod dir;
 mod kind;
+mod kw;
 mod op;
 mod pair;
 
