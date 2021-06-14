@@ -27,11 +27,27 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/lexer/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/bitflags-5db67fd30471ef15/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/memchr-62e37417c1c22d84/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/newtype_derive-3483607dfba3974f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/num-bigint-214c3bbbfed9afe9/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/num-integer-079345bff47f6beb/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/num-traits-b89d0ed1bd1a2e79/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/proc-macro2-3273c003050a3e4f/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/syn-8ff6bb4645a5c599/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/newtype_derive-3483607dfba3974f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/num-bigint-214c3bbbfed9afe9/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/num-bigint-461917a2575ad209/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/num-integer-079345bff47f6beb/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/num-traits-114620c1a58bf9ad/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/num-traits-b89d0ed1bd1a2e79/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/proc-macro2-3273c003050a3e4f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/serde-5b3375a83d9f67be/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/serde_derive-571d86fe5bb52e5c/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/syn-d490bce6b530cdc0/out" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/src/ast/hir/macros/rules/target" />
       <excludeFolder url="file://$MODULE_DIR$/crates/lexer/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/variants/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

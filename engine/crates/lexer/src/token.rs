@@ -5,7 +5,7 @@ use crate::op::Op;
 use lazy_static::lazy_static;
 use logos::{Lexer, Logos};
 use regex::{Captures, Regex};
-use std::panic;
+use std::{fmt, panic};
 
 fn comp(lex: &mut Lexer<Token>) -> std::thread::Result<Comp> {
     let slice = lex.slice();
@@ -46,7 +46,7 @@ fn template(lex: &mut Lexer<Token>) -> Option<Directive> {
         _ => None,
     }?;
 
-    Some(Directive::Ident(ident))
+    Some(Directive::Placeholder(ident))
 }
 
 fn macro_start(lex: &mut Lexer<Token>) -> Option<Directive> {
@@ -93,6 +93,9 @@ pub enum Token {
     #[regex("[_a-zA-Z][_a-zA-Z0-9]*")]
     Ident,
 
+    #[regex("[0-9]+")]
+    Number,
+
     #[regex("[wH][hH][iI][lL][eE]")]
     WhileKw,
 
@@ -126,4 +129,34 @@ pub enum Token {
 
     #[error]
     Error,
+}
+
+impl Token {
+    pub fn is_trivia(self) -> bool {
+        matches!(self, Self::Whitespace | Self::Comment | Self::Separator)
+    }
+}
+
+impl fmt::Display for Token {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Whitespace => "whitespace".into(),
+                Self::Ident => "identifier".into(),
+                Self::Comment => "comment".into(),
+                Self::Op(op) => format!("{}", op),
+                Self::Ellipsis => "...".into(),
+                Self::Number(n) => "number".into(),
+                Self::WhileKw => "while".into(),
+                Self::LoopKw => "loop".into(),
+                Self::Directive(directive) => format!("{}", directive),
+                Self::Assign => ":=".into(),
+                Self::Comp(comp) => format!("{}", comp),
+                Self::Separator => "sep".into(),
+                Self::Error => "an unrecognized token".into(),
+            }
+        )
+    }
 }

@@ -1,3 +1,6 @@
+use std::fmt;
+use std::fmt::Formatter;
+
 bitflags! {
     pub struct MacroModifier: u16 {
         const CaseInsensitive = 0b0001;
@@ -13,7 +16,24 @@ pub enum Directive {
     If,
     Else,
 
-    Ident(Placeholder),
+    Placeholder(Placeholder),
+}
+
+impl fmt::Display for Directive {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::MacroStart(modifier) => format!("@macro/[{:?}]", modifier),
+                Self::SubStart => "@sub".into(),
+                Self::End => "@end".into(),
+                Self::If => "@if".into(),
+                Self::Else => "@else".into(),
+                Self::Placeholder(placeholder) => format!("{}", placeholder),
+            }
+        )
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -30,4 +50,23 @@ pub enum Placeholder {
     Op(u32),
 
     TempIdent(u32),
+}
+
+impl fmt::Display for Placeholder {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.write_str(
+            match self {
+                Self::Ident(n) => format!("%i.{}", n),
+                Self::Value(n) => format!("%v.{}", n),
+                Self::Atom(n) => format!("%a.{}", n),
+                Self::Any(n) => format!("%_.{}", n),
+                Self::Expr(n) => format!("%e.{}", n),
+                Self::Terms(n) => format!("%t.{}", n),
+                Self::Comp(n) => format!("%c.{}", n),
+                Self::Op(n) => format!("%o.{}", n),
+                Self::TempIdent(n) => format!("$t.{}", n),
+            }
+            .as_str(),
+        )
+    }
 }

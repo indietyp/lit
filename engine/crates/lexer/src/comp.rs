@@ -1,3 +1,6 @@
+use std::fmt;
+use std::fmt::Formatter;
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Comp {
     Equal,
@@ -8,6 +11,19 @@ pub enum Comp {
 
     LessThan,
     LessEqual,
+}
+
+impl fmt::Display for Comp {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Comp::Equal => "==",
+            Comp::NotEqual => "!=",
+            Comp::GreaterThan => ">",
+            Comp::GreaterEqual => ">=",
+            Comp::LessThan => "<",
+            Comp::LessEqual => "<=",
+        })
+    }
 }
 
 impl From<&str> for Comp {
