@@ -33,6 +33,16 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/num-traits-b89d0ed1bd1a2e79/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/proc-macro2-3273c003050a3e4f/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/syn-8ff6bb4645a5c599/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/bitflags-5db67fd30471ef15/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/memchr-45bd7e7e594ea978/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/memchr-b738c5af9a4ba719/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/newtype_derive-3483607dfba3974f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/num-bigint-214c3bbbfed9afe9/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/num-integer-079345bff47f6beb/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/num-traits-b89d0ed1bd1a2e79/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/proc-macro2-3273c003050a3e4f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/syn-8ff6bb4645a5c599/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/variants/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/newtype_derive-3483607dfba3974f/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/num-bigint-214c3bbbfed9afe9/out" isTestSource="false" />
@@ -48,6 +58,7 @@
       <excludeFolder url="file://$MODULE_DIR$/src/ast/hir/macros/rules/target" />
       <excludeFolder url="file://$MODULE_DIR$/crates/lexer/target" />
       <excludeFolder url="file://$MODULE_DIR$/crates/variants/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/parser/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

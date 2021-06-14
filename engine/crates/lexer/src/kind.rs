@@ -102,8 +102,11 @@ fn block_comment(lex: &mut Lexer<Kind>) -> Option<()> {
 
 #[derive(Debug, Clone, PartialEq, Logos)]
 pub enum Kind {
-    #[regex("[_a-zA-Z][_a-zA-Z0-9]*", |lex| String::from(lex.slice()))]
+    #[regex("[_a-zA-Z][_a-zA-Z0-9]*", callback = |lex| String::from(lex.slice()))]
     Ident(String),
+
+    #[regex("[a-zA-Z_]+(::[a-zA-Z_]+)+", callback = |lex| lex.slice().split("::").map(String::from).collect::<Vec<_>>())]
+    Path(Vec<String>),
 
     #[regex("[0-9]+", | v | v.slice().parse())]
     Number(UInt),
@@ -113,6 +116,9 @@ pub enum Kind {
     #[token("fn", ignore(case) callback = |_| Keyword::Fn)]
     #[token("decl", ignore(case) callback = |_| Keyword::Decl)]
     #[token("end", ignore(case) callback = |_| Keyword::End)]
+    #[token("import", ignore(case) callback = |_| Keyword::Import)]
+    #[token("from", ignore(case) callback = |_| Keyword::From)]
+    #[token("as", ignore(case) callback = |_| Keyword::From)]
     Keyword(Keyword),
 
     #[token("+", | _ | Op::Plus)]
@@ -210,6 +216,7 @@ impl fmt::Display for Kind {
                 Self::Brace(Pair::Left) => "‘{‘".into(),
                 Self::Brace(Pair::Right) => "‘}‘".into(),
                 Self::Error => "an unrecognized token".into(),
+                Self::Path(_) => "path".into(),
             }
         )
     }
@@ -247,6 +254,12 @@ mod tests {
     #[test]
     fn lex_ident() {
         check_single_kind("abc", Kind::Ident(String::from("abc")))
+    }
+
+    #[test]
+    fn lex_path() {
+        let path: Vec<String> = vec!["abc".into(), "ccd".into()];
+        check_single_kind("abc::ccd", Kind::Path(path))
     }
 
     #[test]

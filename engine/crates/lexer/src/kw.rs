@@ -5,9 +5,13 @@ use std::fmt::Formatter;
 pub enum Keyword {
     While,
     Loop,
+    Do,
     End,
     Fn,
     Decl,
+    Import,
+    From,
+    As,
 }
 
 impl fmt::Display for Keyword {
@@ -15,9 +19,13 @@ impl fmt::Display for Keyword {
         f.write_str(match self {
             Keyword::While => "‘while‘",
             Keyword::Loop => "‘loop‘",
+            Keyword::Do => "‘do‘",
             Keyword::End => "‘end‘",
             Keyword::Fn => "‘fn‘",
             Keyword::Decl => "‘decl‘",
+            Keyword::Import => "‘import‘",
+            Keyword::From => "‘from‘",
+            Keyword::As => "‘as‘",
         })
     }
 }
