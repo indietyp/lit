@@ -102,15 +102,6 @@ fn block_comment(lex: &mut Lexer<Kind>) -> Option<()> {
 
 #[derive(Debug, Clone, PartialEq, Logos)]
 pub enum Kind {
-    #[token("+", | _ | Op::Plus)]
-    #[token("-", | _ | Op::Minus)]
-    #[token("*", | _ | Op::Star)]
-    #[token("/", | _ | Op::Slash)]
-    Op(Op),
-
-    #[token("...")]
-    Ellipsis,
-
     #[regex("[_a-zA-Z][_a-zA-Z0-9]*", |lex| String::from(lex.slice()))]
     Ident(String),
 
@@ -123,6 +114,20 @@ pub enum Kind {
     #[token("decl", ignore(case) callback = |_| Keyword::Decl)]
     #[token("end", ignore(case) callback = |_| Keyword::End)]
     Keyword(Keyword),
+
+    #[token("+", | _ | Op::Plus)]
+    #[token("-", | _ | Op::Minus)]
+    #[token("*", | _ | Op::Star)]
+    #[token("/", | _ | Op::Slash)]
+    Op(Op),
+
+    #[token("==", | _ | Comp::Equal)]
+    #[token("!=", | _ | Comp::NotEqual)]
+    #[token(">", | _ | Comp::GreaterThan)]
+    #[token(">=", | _ | Comp::GreaterEqual)]
+    #[token("<", | _ | Comp::LessThan)]
+    #[token("<=", | _ | Comp::LessEqual)]
+    Comp(Comp),
 
     #[regex(r"@macro(/[i]*)?", macro_start)]
     #[token("@sub", | _ | Directive::Sub)]
@@ -137,12 +142,6 @@ pub enum Kind {
     #[token(":=")]
     Assign,
 
-    #[token("->")]
-    Into,
-
-    #[token(",")]
-    Comma,
-
     #[token("(", | _ | Pair::Left)]
     #[token(")", | _ | Pair::Right)]
     Paren(Pair),
@@ -151,13 +150,14 @@ pub enum Kind {
     #[token("}", | _ | Pair::Right)]
     Brace(Pair),
 
-    #[token("==", | _ | Comp::Equal)]
-    #[token("!=", | _ | Comp::NotEqual)]
-    #[token(">", | _ | Comp::GreaterThan)]
-    #[token(">=", | _ | Comp::GreaterEqual)]
-    #[token("<", | _ | Comp::LessThan)]
-    #[token("<=", | _ | Comp::LessEqual)]
-    Comp(Comp),
+    #[token("->")]
+    Into,
+
+    #[token("...")]
+    Ellipsis,
+
+    #[token(",")]
+    Comma,
 
     #[token("#", line_comment)]
     #[token("###", block_comment)]
