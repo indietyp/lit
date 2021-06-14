@@ -321,12 +321,12 @@ mod tests {
 
     #[test]
     fn lex_assign() {
+        check_single_kind("=", Kind::Assign);
         check_single_kind(":=", Kind::Assign);
     }
 
     #[test]
     fn lex_comp() {
-        check_single_kind("=", Kind::Comp(Comp::Equal));
         check_single_kind("==", Kind::Comp(Comp::Equal));
         check_single_kind("!=", Kind::Comp(Comp::NotEqual));
         check_single_kind(">", Kind::Comp(Comp::GreaterThan));
