@@ -166,8 +166,11 @@ pub enum Kind {
     #[regex(r"[ \t\f]+")]
     Whitespace,
 
-    #[regex(r";?\n")]
-    Separator,
+    #[regex(r";")]
+    Semicolon,
+
+    #[token("\n")]
+    Newline,
 
     #[error]
     Error,
@@ -175,7 +178,10 @@ pub enum Kind {
 
 impl Kind {
     pub fn is_trivia(&self) -> bool {
-        matches!(self, Self::Whitespace | Self::Comment | Self::Separator)
+        matches!(
+            self,
+            Self::Whitespace | Self::Comment | Self::Newline | Self::Semicolon
+        )
     }
 }
 
@@ -185,7 +191,7 @@ impl fmt::Display for Kind {
             f,
             "{}",
             match self {
-                Self::Whitespace => "_".into(),
+                Self::Whitespace => "␠".into(),
                 Self::Ident(m) => format!("ident<‘{}‘>", m),
                 Self::Comment => "comment".into(),
                 Self::Op(op) => format!("{}", op),
@@ -195,7 +201,8 @@ impl fmt::Display for Kind {
                 Self::Directive(directive) => format!("{}", directive),
                 Self::Assign => "‘:=‘".into(),
                 Self::Comp(comp) => format!("{}", comp),
-                Self::Separator => "sep\n".into(),
+                Self::Semicolon => "‘;‘\n".into(),
+                Self::Newline => "␊\n".into(),
                 Self::Into => "‘->‘".into(),
                 Self::Comma => "‘,‘".into(),
                 Self::Paren(Pair::Left) => "‘(‘".into(),
@@ -349,7 +356,7 @@ mod tests {
         assert_eq!(token.content, "# comment");
 
         let token = lexer.next().unwrap();
-        assert_eq!(token.kind, Kind::Separator);
+        assert_eq!(token.kind, Kind::Newline);
         assert_eq!(token.content, "\n");
     }
 
@@ -360,8 +367,8 @@ mod tests {
 
     #[test]
     fn lex_sep() {
-        check_single_kind(";\n", Kind::Separator);
-        check_single_kind("\n", Kind::Separator);
+        check_single_kind(";", Kind::Semicolon);
+        check_single_kind("\n", Kind::Newline);
     }
 }
 //endregion
