@@ -1,4 +1,4 @@
-use num_bigint::BigUint;
+use num_bigint::{BigUint, ParseBigIntError};
 use num_traits::{One, Zero};
 
 #[cfg(feature = "schema")]
@@ -11,6 +11,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
+use std::str::FromStr;
 
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -93,5 +94,13 @@ impl One for UInt {
 impl Hash for UInt {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.0.hash(state)
+    }
+}
+
+impl FromStr for UInt {
+    type Err = ParseBigIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        BigUint::from_str(s).map(Self)
     }
 }

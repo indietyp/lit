@@ -6,13 +6,14 @@ use lazy_static::lazy_static;
 use logos::{Lexer, Logos};
 use regex::{Captures, Regex};
 use std::{fmt, panic};
+use variants::uint::UInt;
 
-fn comp(lex: &mut Lexer<Token>) -> std::thread::Result<Comp> {
+fn comp(lex: &mut Lexer<Kind>) -> std::thread::Result<Comp> {
     let slice = lex.slice();
     panic::catch_unwind(|| slice.into())
 }
 
-fn template(lex: &mut Lexer<Token>) -> Option<Directive> {
+fn template(lex: &mut Lexer<Kind>) -> Option<Directive> {
     lazy_static! {
         static ref TEMPLATE_REGEX: Result<Regex, regex::Error> =
             Regex::new(r"(% | \$)([_a-z])\.([0-9])");
@@ -49,7 +50,7 @@ fn template(lex: &mut Lexer<Token>) -> Option<Directive> {
     Some(Directive::Placeholder(ident))
 }
 
-fn macro_start(lex: &mut Lexer<Token>) -> Option<Directive> {
+fn macro_start(lex: &mut Lexer<Kind>) -> Option<Directive> {
     lazy_static! {
         static ref MACRO_START_REGEX: Result<Regex, regex::Error> =
             Regex::new(r"@macro(?:/(?P<flags>[i]*))?");
@@ -79,8 +80,8 @@ fn macro_start(lex: &mut Lexer<Token>) -> Option<Directive> {
     Some(Directive::MacroStart(modifiers))
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Logos)]
-pub enum Token {
+#[derive(Debug, Clone, PartialEq, Logos)]
+pub enum Kind {
     #[token("+", |_| Some(Op::Plus))]
     #[token("-", |_| Some(Op::Minus))]
     #[token("*", |_| Some(Op::Star))]
@@ -93,8 +94,8 @@ pub enum Token {
     #[regex("[_a-zA-Z][_a-zA-Z0-9]*")]
     Ident,
 
-    #[regex("[0-9]+")]
-    Number,
+    #[regex("[0-9]+", |v| v.slice().parse())]
+    Number(UInt),
 
     #[regex("[wH][hH][iI][lL][eE]")]
     WhileKw,
@@ -131,13 +132,13 @@ pub enum Token {
     Error,
 }
 
-impl Token {
+impl Kind {
     pub fn is_trivia(self) -> bool {
         matches!(self, Self::Whitespace | Self::Comment | Self::Separator)
     }
 }
 
-impl fmt::Display for Token {
+impl fmt::Display for Kind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
@@ -160,3 +161,10 @@ impl fmt::Display for Token {
         )
     }
 }
+
+//region Tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+}
+//endregion
