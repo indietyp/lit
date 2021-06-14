@@ -1,4 +1,5 @@
-use std::{fmt, panic};
+use std::fmt;
+use std::string::String;
 
 use lazy_static::lazy_static;
 use logos::{Lexer, Logos};
@@ -9,6 +10,7 @@ use variants::uint::UInt;
 use crate::comp::Comp;
 use crate::dir::{Directive, MacroModifier, Placeholder};
 use crate::op::Op;
+use crate::pair::Pair;
 
 fn placeholder(lex: &mut Lexer<Kind>) -> Option<Directive> {
     lazy_static! {
@@ -59,7 +61,7 @@ fn macro_start(lex: &mut Lexer<Kind>) -> Option<Directive> {
 
     let flags = captures.name("flags");
     if flags.is_none() {
-        return Some(Directive::MacroStart(MacroModifier::empty()));
+        return Some(Directive::MacroKw(MacroModifier::empty()));
     }
 
     let flags = flags.unwrap();
@@ -73,7 +75,7 @@ fn macro_start(lex: &mut Lexer<Kind>) -> Option<Directive> {
         })
         .fold(MacroModifier::empty(), |a, b| a | b);
 
-    Some(Directive::MacroStart(modifiers))
+    Some(Directive::MacroKw(modifiers))
 }
 
 fn line_comment(lex: &mut Lexer<Kind>) -> Option<()> {
@@ -108,8 +110,8 @@ pub enum Kind {
     #[token("...")]
     Ellipsis,
 
-    #[regex("[_a-zA-Z][_a-zA-Z0-9]*")]
-    Ident,
+    #[regex("[_a-zA-Z][_a-zA-Z0-9]*", |lex| String::from(lex.slice()))]
+    Ident(String),
 
     #[regex("[0-9]+", | v | v.slice().parse())]
     Number(UInt),
@@ -121,16 +123,30 @@ pub enum Kind {
     LoopKw,
 
     #[regex(r"@macro(/[i]*)?", macro_start)]
-    #[token("@sub", | _ | Directive::SubStart)]
-    #[token("@end", | _ | Directive::End)]
-    #[token("@if", | _ | Directive::If)]
-    #[token("@else", | _ | Directive::Else)]
+    #[token("@sub", | _ | Directive::SubKw)]
+    #[token("@end", | _ | Directive::EndKw)]
+    #[token("@if", | _ | Directive::IfKw)]
+    #[token("@else", | _ | Directive::ElseKw)]
     #[regex(r"%[iavetco_]\.[0-9]+", placeholder)]
     #[regex(r"\$(i)\.[0-9]+", placeholder)]
     Directive(Directive),
 
     #[token(":=")]
     Assign,
+
+    #[token("->")]
+    Into,
+
+    #[token(",")]
+    Comma,
+
+    #[token("(", | _ | Pair::Left)]
+    #[token(")", | _ | Pair::Right)]
+    Paren(Pair),
+
+    #[token("{", | _ | Pair::Left)]
+    #[token("}", | _ | Pair::Right)]
+    Brace(Pair),
 
     #[token("=", | _ | Comp::Equal)]
     #[token("==", | _ | Comp::Equal)]
@@ -167,18 +183,24 @@ impl fmt::Display for Kind {
             f,
             "{}",
             match self {
-                Self::Whitespace => "whitespace".into(),
-                Self::Ident => "identifier".into(),
+                Self::Whitespace => "_".into(),
+                Self::Ident(m) => format!("ident<‘{}‘>", m),
                 Self::Comment => "comment".into(),
                 Self::Op(op) => format!("{}", op),
-                Self::Ellipsis => "...".into(),
-                Self::Number(n) => format!("number<{}>", n),
-                Self::WhileKw => "while".into(),
-                Self::LoopKw => "loop".into(),
+                Self::Ellipsis => "‘...‘".into(),
+                Self::Number(n) => format!("number<‘{}‘>", n),
+                Self::WhileKw => "‘while‘".into(),
+                Self::LoopKw => "‘loop‘".into(),
                 Self::Directive(directive) => format!("{}", directive),
-                Self::Assign => ":=".into(),
+                Self::Assign => "‘:=‘".into(),
                 Self::Comp(comp) => format!("{}", comp),
-                Self::Separator => "sep".into(),
+                Self::Separator => "sep\n".into(),
+                Self::Into => "‘->‘".into(),
+                Self::Comma => "‘,‘".into(),
+                Self::Paren(Pair::Left) => "‘(‘".into(),
+                Self::Paren(Pair::Right) => "‘)‘".into(),
+                Self::Brace(Pair::Left) => "‘{‘".into(),
+                Self::Brace(Pair::Right) => "‘}‘".into(),
                 Self::Error => "an unrecognized token".into(),
             }
         )
@@ -191,6 +213,7 @@ mod tests {
     use crate::Lexer;
 
     use super::*;
+    use std::fs::read_to_string;
 
     fn check_single_kind(input: &str, kind: Kind) {
         let mut lexer = Lexer::new(input);
@@ -215,7 +238,7 @@ mod tests {
 
     #[test]
     fn lex_ident() {
-        check_single_kind("abc", Kind::Ident)
+        check_single_kind("abc", Kind::Ident(String::from("abc")))
     }
 
     #[test]
@@ -235,18 +258,18 @@ mod tests {
     fn lex_directive() {
         check_single_kind(
             "@macro",
-            Kind::Directive(Directive::MacroStart(MacroModifier::empty())),
+            Kind::Directive(Directive::MacroKw(MacroModifier::empty())),
         );
         check_single_kind(
             "@macro/i",
-            Kind::Directive(Directive::MacroStart(MacroModifier::CaseInsensitive)),
+            Kind::Directive(Directive::MacroKw(MacroModifier::CaseInsensitive)),
         );
 
-        check_single_kind("@sub", Kind::Directive(Directive::SubStart));
-        check_single_kind("@end", Kind::Directive(Directive::End));
+        check_single_kind("@sub", Kind::Directive(Directive::SubKw));
+        check_single_kind("@end", Kind::Directive(Directive::EndKw));
 
-        check_single_kind("@if", Kind::Directive(Directive::If));
-        check_single_kind("@else", Kind::Directive(Directive::Else));
+        check_single_kind("@if", Kind::Directive(Directive::IfKw));
+        check_single_kind("@else", Kind::Directive(Directive::ElseKw));
 
         check_single_kind(
             "%i.1",
@@ -300,6 +323,11 @@ mod tests {
         check_single_kind(">=", Kind::Comp(Comp::GreaterEqual));
         check_single_kind("<", Kind::Comp(Comp::LessThan));
         check_single_kind("<=", Kind::Comp(Comp::LessEqual));
+    }
+
+    #[test]
+    fn lex_arrow() {
+        check_single_kind("->", Kind::Into);
     }
 
     #[test]

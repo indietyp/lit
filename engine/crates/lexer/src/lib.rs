@@ -10,11 +10,13 @@ pub use crate::comp::Comp;
 pub use crate::dir::{Directive, MacroModifier, Placeholder};
 pub use crate::kind::Kind;
 pub use crate::op::Op;
+pub use crate::pair::Pair;
 
 mod comp;
 mod dir;
 mod kind;
 mod op;
+mod pair;
 
 pub struct Lexer<'a>(logos::Lexer<'a, Kind>);
 

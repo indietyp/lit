@@ -9,12 +9,12 @@ bitflags! {
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Directive {
-    MacroStart(MacroModifier),
-    SubStart,
-    End,
+    MacroKw(MacroModifier),
+    SubKw,
+    EndKw,
 
-    If,
-    Else,
+    IfKw,
+    ElseKw,
 
     Placeholder(Placeholder),
 }
@@ -25,11 +25,11 @@ impl fmt::Display for Directive {
             f,
             "{}",
             match self {
-                Self::MacroStart(modifier) => format!("@macro/[{:?}]", modifier),
-                Self::SubStart => "@sub".into(),
-                Self::End => "@end".into(),
-                Self::If => "@if".into(),
-                Self::Else => "@else".into(),
+                Self::MacroKw(modifier) => format!("‘@macro/[{:?}]‘", modifier),
+                Self::SubKw => "‘@sub‘".into(),
+                Self::EndKw => "‘@end‘".into(),
+                Self::IfKw => "‘@if‘".into(),
+                Self::ElseKw => "‘@else‘".into(),
                 Self::Placeholder(placeholder) => format!("{}", placeholder),
             }
         )
