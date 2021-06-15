@@ -8,7 +8,7 @@ macro_rules! simple_combinator {
                 Input::Error: ::combine::ParseError<Input::Token, Input::Range, Input::Position>,
             {
                 let f: fn(::lexer::Token) -> bool = |token| ::std::matches!(token.kind, $($pattern)|*);
-                ::combine::satisfy(f).expected(::std::stringify!($name))
+                ::combine::Parser::expected(::combine::satisfy(f), ::std::stringify!($name))
             }
         }
     };

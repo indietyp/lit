@@ -1,54 +1,47 @@
 use combine::stream::{ResetStream, StreamErrorFor};
 use combine::{ParseError, Positioned, RangeStreamOnce, StreamOnce};
 
-use crate::err::LexerStreamError;
-use combine::error::StringStreamError;
+use combine::error::{StringStreamError, UnexpectedParse};
 use lexer::{Lexer, Token};
 
 pub(crate) type Position = usize;
-pub(crate) type Range<'a> = Vec<Token<'a>>;
+pub(crate) type Range = Vec<Token>;
 
-pub struct LexerStream<'a> {
-    lexer: Lexer<'a>,
-
+pub struct LexerStream {
     pos: Position,
-    tokens: Range<'a>,
+    pub(crate) tokens: Range,
 }
 
-impl<'a> LexerStream<'a> {
+impl LexerStream {
     pub fn new(input: &str) -> Self {
         Lexer::new(input).into()
     }
 
-    pub(crate) fn new_from_lexer(lexer: Lexer<'a>) -> Self {
+    pub(crate) fn new_from_lexer(lexer: Lexer) -> Self {
         lexer.into()
     }
 }
 
-impl<'a, 'b> From<Lexer<'b>> for LexerStream<'a> {
+impl<'a> From<Lexer<'a>> for LexerStream {
     fn from(lexer: Lexer<'a>) -> Self {
         Self {
-            lexer: lexer.clone(),
             pos: 0,
-            tokens: lexer.collect_vec(),
+            tokens: lexer.collect::<Vec<_>>(),
         }
     }
 }
 
-impl<'a> StreamOnce for LexerStream<'a> {
-    type Token = Token<'a>;
-    type Range = Range<'a>;
+impl StreamOnce for LexerStream {
+    type Token = Token;
+    type Range = Range;
     type Position = Position;
-    type Error = LexerStreamError<'a>;
+    type Error = UnexpectedParse;
 
     fn uncons(&mut self) -> Result<Self::Token, StreamErrorFor<Self>> {
-        let token = self.tokens.get(self.pos).map_or_else(
-            Err(LexerStreamError::from_error(
-                self.pos,
-                StringStreamError::Eoi,
-            )),
-            |value| Ok(value),
-        )?;
+        let token = self
+            .tokens
+            .get(self.pos)
+            .map_or_else(|| Err(UnexpectedParse::Unexpected), |value| Ok(value))?;
 
         self.pos += 1;
 
@@ -56,13 +49,13 @@ impl<'a> StreamOnce for LexerStream<'a> {
     }
 }
 
-impl<'a> Positioned for LexerStream<'a> {
+impl Positioned for LexerStream {
     fn position(&self) -> Self::Position {
         self.pos
     }
 }
 
-impl<'a> ResetStream for LexerStream<'a> {
+impl ResetStream for LexerStream {
     type Checkpoint = Self::Position;
 
     fn checkpoint(&self) -> Self::Checkpoint {
@@ -70,30 +63,31 @@ impl<'a> ResetStream for LexerStream<'a> {
     }
 
     fn reset(&mut self, checkpoint: Self::Checkpoint) -> Result<(), Self::Error> {
-        self.position = checkpoint;
+        self.pos = checkpoint;
 
         Ok(())
     }
 }
 
-impl<'a> RangeStreamOnce for LexerStream<'a> {
+impl RangeStreamOnce for LexerStream {
     fn uncons_range(&mut self, size: usize) -> Result<Self::Range, StreamErrorFor<Self>> {
         if self.position() + size >= self.tokens.len() {
-            Err(())
+            Err(UnexpectedParse::Eoi)
         } else {
             Ok(self.tokens.as_slice().clone()[self.pos..self.pos + size].to_vec())
         }
     }
 
-    fn uncons_while<F>(&mut self, predicate: F) -> Result<Self::Range, StreamErrorFor<Self>>
+    fn uncons_while<F>(&mut self, mut predicate: F) -> Result<Self::Range, StreamErrorFor<Self>>
     where
         F: FnMut(Self::Token) -> bool,
     {
         Ok(self
             .tokens
+            .clone()
             .into_iter()
-            .take_while(|item| predicate(item.clone()))
-            .into())
+            .take_while(|value| predicate(value.clone()))
+            .collect::<Vec<_>>())
     }
 
     fn distance(&self, end: &Self::Checkpoint) -> usize {

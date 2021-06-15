@@ -18,3 +18,39 @@ create_is!(assign, Kind::Assign);
 
 create_is!(semicolon, Kind::Semicolon);
 create_is!(newline, Kind::Newline);
+
+//region Tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::combinators::check_single_kind;
+
+    #[test]
+    fn combine_paren() {
+        check_single_kind("(", is_lparen);
+        check_single_kind(")", is_rparen);
+    }
+
+    #[test]
+    fn combine_brace() {
+        check_single_kind("{", is_lbrace);
+        check_single_kind("}", is_rbrace);
+    }
+
+    #[test]
+    fn combine_symbols() {
+        check_single_kind("->", is_into);
+        check_single_kind("...", is_ellipsis);
+        check_single_kind(",", is_comma);
+
+        check_single_kind(":=", is_assign);
+        check_single_kind("=", is_assign);
+    }
+
+    #[test]
+    fn combine_sep() {
+        check_single_kind(";", is_semicolon);
+        check_single_kind("\n", is_newline)
+    }
+}
+//endregion
