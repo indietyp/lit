@@ -1,5 +1,3 @@
-// TODO
-// (should return which op is used -> token kind?)
 use lexer::{Kind, Op};
 
 macro_rules! create_op {
