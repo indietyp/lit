@@ -1,7 +1,6 @@
 #[macro_use]
 extern crate combine;
 
-use combinators::trivia::many_trivia;
 use combine::parser::char::{letter, spaces};
 use combine::{many1, ParseError, Parser, Stream};
 use lexer::Token;

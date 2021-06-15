@@ -18,8 +18,9 @@ fn check_single_kind<
     let stream = crate::stream::LexerStream::new(input);
 
     let result = combinator().parse(stream);
+
     if let Err(error) = result {
-        println!("{:?}", error)
+        println!("{:?}", error);
+        panic!("Encountered Error")
     }
-    assert!(result.is_ok())
 }

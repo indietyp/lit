@@ -25,12 +25,14 @@ mod pair;
 #[derive(Clone)]
 pub struct Lexer<'a> {
     lexer: logos::Lexer<'a, Kind>,
+    lno: usize,
 }
 
 impl<'a> Lexer<'a> {
     pub fn new(input: &'a str) -> Self {
         Self {
             lexer: Kind::lexer(input),
+            lno: 0,
         }
     }
 }
@@ -51,11 +53,19 @@ impl<'a> Iterator for Lexer<'a> {
             TextRange::new(start, end)
         };
 
-        Some(Self::Item {
-            kind,
+        let item = Some(Self::Item {
+            kind: kind.clone(),
             content: content.to_string(),
-            range,
-        })
+            span: range,
+            lno: self.lno,
+        });
+
+        if matches!(kind, Kind::Newline) {
+            // increase the line number manually
+            self.lno += 1
+        }
+
+        item
     }
 }
 
@@ -63,5 +73,7 @@ impl<'a> Iterator for Lexer<'a> {
 pub struct Token {
     pub kind: Kind,
     pub content: String,
-    pub range: TextRange,
+
+    pub span: TextRange,
+    pub lno: usize,
 }

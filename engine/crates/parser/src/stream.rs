@@ -1,12 +1,14 @@
 use combine::stream::{ResetStream, StreamErrorFor};
 use combine::{ParseError, Positioned, RangeStreamOnce, StreamOnce};
 
+use combine::easy::{Error, Errors};
 use combine::error::{StringStreamError, UnexpectedParse};
 use lexer::{Lexer, Token};
 
 pub(crate) type Position = usize;
 pub(crate) type Range = Vec<Token>;
 
+#[derive(Debug, Clone)]
 pub struct LexerStream {
     pos: Position,
     pub(crate) tokens: Range,
@@ -26,7 +28,9 @@ impl<'a> From<Lexer<'a>> for LexerStream {
     fn from(lexer: Lexer<'a>) -> Self {
         Self {
             pos: 0,
-            tokens: lexer.collect::<Vec<_>>(),
+            // while tokenization needs to know trivia we do not.
+            // This means we're constructing a lossy stream
+            tokens: lexer.filter(|token| !token.kind.is_trivia()).collect(),
         }
     }
 }
@@ -35,13 +39,13 @@ impl StreamOnce for LexerStream {
     type Token = Token;
     type Range = Range;
     type Position = Position;
-    type Error = UnexpectedParse;
+    type Error = Errors<Self::Token, Self::Range, Self::Position>;
 
     fn uncons(&mut self) -> Result<Self::Token, StreamErrorFor<Self>> {
         let token = self
             .tokens
             .get(self.pos)
-            .map_or_else(|| Err(UnexpectedParse::Unexpected), |value| Ok(value))?;
+            .map_or_else(|| Err(Error::end_of_input()), |value| Ok(value))?;
 
         self.pos += 1;
 
@@ -72,9 +76,9 @@ impl ResetStream for LexerStream {
 impl RangeStreamOnce for LexerStream {
     fn uncons_range(&mut self, size: usize) -> Result<Self::Range, StreamErrorFor<Self>> {
         if self.position() + size >= self.tokens.len() {
-            Err(UnexpectedParse::Eoi)
+            Err(Error::end_of_input())
         } else {
-            Ok(self.tokens.as_slice().clone()[self.pos..self.pos + size].to_vec())
+            Ok(self.tokens.as_slice()[self.pos..self.pos + size].to_vec())
         }
     }
 
