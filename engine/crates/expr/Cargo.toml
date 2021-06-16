@@ -1,5 +1,5 @@
 [package]
-name = "ast"
+name = "expr"
 version = "0.1.0"
 authors = ["bmahmoud <bmahmoud@mpi-cbg.de>"]
 edition = "2018"
