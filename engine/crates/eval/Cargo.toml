@@ -1,9 +1,8 @@
 [package]
-name = "hir"
+name = "eval"
 version = "0.1.0"
 authors = ["bmahmoud <bmahmoud@mpi-cbg.de>"]
 edition = "2018"
-description = "High-Level Intermediate Representation of LIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
