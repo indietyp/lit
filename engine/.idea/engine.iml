@@ -55,11 +55,20 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/serde-5b3375a83d9f67be/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/serde_derive-571d86fe5bb52e5c/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/syn-d490bce6b530cdc0/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ctrl/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ctrl/target/debug/build/proc-macro2-3273c003050a3e4f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ctrl/target/debug/build/ryu-382e10b477dee234/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ctrl/target/debug/build/schemars-21183a09ee6f334a/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ctrl/target/debug/build/serde-5b3375a83d9f67be/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ctrl/target/debug/build/serde_derive-571d86fe5bb52e5c/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ctrl/target/debug/build/serde_json-91784d0d6f0c6441/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ctrl/target/debug/build/syn-a99f65dac867231c/out" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/src/ast/hir/macros/rules/target" />
       <excludeFolder url="file://$MODULE_DIR$/crates/lexer/target" />
       <excludeFolder url="file://$MODULE_DIR$/crates/variants/target" />
       <excludeFolder url="file://$MODULE_DIR$/crates/parser/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/ctrl/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

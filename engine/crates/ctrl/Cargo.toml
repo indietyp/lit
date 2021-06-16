@@ -1,15 +1,16 @@
 [package]
-name = "lexer"
+name = "ctrl"
 version = "0.1.0"
 authors = ["Bilal Mahmoud <bilalmahmoud@posteo.de>"]
 edition = "2018"
+description = "Holds the different control structures from LIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-logos = "0.12.0"
-regex = "1.5.4"
-lazy_static = "1.4.0"
-bitflags = "1.2.1"
+serde = { version = "1.0.126", optional = true }
+schemars = { version = "0.8.3", optional = true }
 variants = { path = "../variants" }
-text-size = "1.1.0"
+
+[features]
+schema = ["serde", "schemars"]

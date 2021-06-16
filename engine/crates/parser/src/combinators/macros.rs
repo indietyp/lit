@@ -13,3 +13,19 @@ macro_rules! simple_combinator {
         }
     };
 }
+
+#[macro_export]
+macro_rules! extract_combinator {
+    ($prefix:tt, $name:tt, $fnc:expr, $type:ty, $( $pattern:pat )|+) => {
+        ::paste::paste! {
+            pub fn [<$prefix _ $name>]<Input>() -> impl ::combine::Parser<Input, Output = (::lexer::Token, $type), PartialState = ()>
+            where
+                Input: ::combine::Stream<Token = ::lexer::Token>,
+                Input::Error: ::combine::ParseError<Input::Token, Input::Range, Input::Position>,
+            {
+                let f: fn(::lexer::Token) -> bool = |token| ::std::matches!(token.kind, $($pattern)|*);
+                ::combine::Parser::map(::combine::Parser::expected(::combine::satisfy(f), ::std::stringify!($name)), $fnc)
+            }
+        }
+    };
+}

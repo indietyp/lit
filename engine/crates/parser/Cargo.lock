@@ -66,8 +66,6 @@ name = "lexer"
 version = "0.1.0"
 dependencies = [
  "bitflags",
- "combine",
- "either",
  "lazy_static",
  "logos",
  "regex",
@@ -246,4 +244,5 @@ dependencies = [
  "newtype_derive",
  "num-bigint",
  "num-traits",
+ "text-size",
 ]

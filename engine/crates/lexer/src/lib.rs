@@ -3,8 +3,6 @@ extern crate bitflags;
 
 use std::convert::TryFrom;
 
-use combine::stream::{RangeStream, ResetStream};
-use combine::{ParseError, Positioned, RangeStreamOnce, Stream, StreamOnce};
 use logos::{Logos, Span};
 use text_size::{TextRange, TextSize};
 
@@ -25,14 +23,18 @@ mod pair;
 #[derive(Clone)]
 pub struct Lexer<'a> {
     lexer: logos::Lexer<'a, Kind>,
-    lno: usize,
+
+    rel_row: TextSize,
+    rel_col: TextSize,
 }
 
 impl<'a> Lexer<'a> {
     pub fn new(input: &'a str) -> Self {
         Self {
             lexer: Kind::lexer(input),
-            lno: 0,
+
+            rel_row: TextSize::from(0),
+            rel_col: TextSize::from(0),
         }
     }
 }
@@ -56,13 +58,19 @@ impl<'a> Iterator for Lexer<'a> {
         let item = Some(Self::Item {
             kind: kind.clone(),
             content: content.to_string(),
+
             span: range,
-            lno: self.lno,
+
+            row: TextRange::new(self.rel_row, self.rel_row),
+            col: TextRange::new(range.start() - self.rel_col, range.end() - self.rel_col),
         });
 
         if matches!(kind, Kind::Newline) {
             // increase the line number manually
-            self.lno += 1
+            self.rel_row += TextSize::from(1);
+            // increase the col to the current character + 1, so that the first item on the next line
+            // has the value 0
+            self.rel_col += range.start() + TextSize::from(1);
         }
 
         item
@@ -75,5 +83,7 @@ pub struct Token {
     pub content: String,
 
     pub span: TextRange,
-    pub lno: usize,
+
+    pub row: TextRange,
+    pub col: TextRange,
 }
