@@ -10,7 +10,7 @@ description = "Holds the different control structures from LIT"
 [dependencies]
 serde = { version = "1.0.126", optional = true }
 schemars = { version = "0.8.3", optional = true }
-variants = { path = "../variants" }
+variants = { path = "../../variants" }
 
 [features]
 schema = ["serde", "schemars"]
