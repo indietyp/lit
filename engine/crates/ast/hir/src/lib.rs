@@ -1,7 +1,7 @@
 // The HIR = Higher Level Representation has to go through 2 steps
 // 1) Undefined pattern matching into Macros
-// 2) resolve macros
-// 3) resolve functions
+// 2) lower macros
+// 3) lower functions
 
 pub enum Hir {
     Expr(Expr),

@@ -1,7 +1,15 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
+pub use crate::primitive::Primitive;
+
+mod binop;
+mod comp;
+mod primitive;
+
+pub enum Expr {
+    Primitive(Primitive),
+
+    Comp(Comp),
+    BinOp(BinOp),
+    Assign(Assign),
+
+    Control(Control<Expr>)
 }
