@@ -12,7 +12,7 @@ pub enum CompVerb {
 }
 
 pub struct Comp {
-    pub lno: LineNo,
+    pub kind: Vec<Kind>,
 
     pub lhs: Box<Expr>,
     pub verb: CompVerb,

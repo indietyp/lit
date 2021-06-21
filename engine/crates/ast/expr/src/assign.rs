@@ -1,5 +1,5 @@
 pub struct Assign {
-    pub lno: LineNo,
+    pub kind: Vec<Kind>,
 
     pub lhs: Box<Expr>,
     pub rhs: Box<Expr>

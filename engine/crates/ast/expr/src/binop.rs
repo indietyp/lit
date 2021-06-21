@@ -10,7 +10,7 @@ pub enum BinOpVerb {
 }
 
 pub struct BinOp {
-    pub lno: LineNo,
+    pub kind: Vec<Kind>,
 
     pub lhs: Box<Expr>,
     pub verb: BinOpVerb,

@@ -1,4 +1,4 @@
 pub enum Primitive {
-    Ident(String),
-    Number(UInt),
+    Ident { value: String, kind: Vec<Kind> },
+    Number { value: UInt, kind: Vec<Kind> },
 }
