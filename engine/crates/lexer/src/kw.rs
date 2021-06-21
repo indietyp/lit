@@ -12,6 +12,7 @@ pub enum Keyword {
     Import,
     From,
     As,
+    Macro,
 }
 
 impl fmt::Display for Keyword {
@@ -26,6 +27,7 @@ impl fmt::Display for Keyword {
             Keyword::Import => "‘import‘",
             Keyword::From => "‘from‘",
             Keyword::As => "‘as‘",
+            Keyword::Macro => "‘macro‘",
         })
     }
 }

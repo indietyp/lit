@@ -8,3 +8,4 @@ description = "High-Level Intermediate Representation of LIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+ctrl = { path = "../ctrl" }

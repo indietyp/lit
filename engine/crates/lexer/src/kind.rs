@@ -119,6 +119,7 @@ pub enum Kind {
     #[token("import", ignore(case) callback = |_| Keyword::Import)]
     #[token("from", ignore(case) callback = |_| Keyword::From)]
     #[token("as", ignore(case) callback = |_| Keyword::As)]
+    #[token("macro", ignore(case) callback = |_| Keyword::Macro)]
     Keyword(Keyword),
 
     #[token("+", | _ | Op::Plus)]

@@ -63,12 +63,34 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/ctrl/target/debug/build/serde_derive-571d86fe5bb52e5c/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/ctrl/target/debug/build/serde_json-91784d0d6f0c6441/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/ctrl/target/debug/build/syn-a99f65dac867231c/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/ctrl/target/debug/build/newtype_derive-3483607dfba3974f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/ctrl/target/debug/build/num-bigint-214c3bbbfed9afe9/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/ctrl/target/debug/build/num-integer-079345bff47f6beb/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/ctrl/target/debug/build/num-traits-b89d0ed1bd1a2e79/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/fnc/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/mcr/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/module/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/cli/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/eval/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/js/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/resolve/src" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/src/ast/hir/macros/rules/target" />
       <excludeFolder url="file://$MODULE_DIR$/crates/lexer/target" />
       <excludeFolder url="file://$MODULE_DIR$/crates/variants/target" />
       <excludeFolder url="file://$MODULE_DIR$/crates/parser/target" />
       <excludeFolder url="file://$MODULE_DIR$/crates/ast/ctrl/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/eval/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/ast/module/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/ast/mcr/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/ast/hir/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/ast/fnc/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/ast/expr/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/cli/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/js/target" />
+      <excludeFolder url="file://$MODULE_DIR$/crates/resolve/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
