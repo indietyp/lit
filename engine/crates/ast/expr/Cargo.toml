@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 variants = { path = "../../variants" }
 lexer = { path = "../../lexer" }
+ctrl = { path = "../ctrl" }

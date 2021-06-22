@@ -12,6 +12,7 @@ pub use crate::kind::Kind;
 pub use crate::kw::Keyword;
 pub use crate::op::Op;
 pub use crate::pair::Pair;
+use variants::LineNo;
 
 mod comp;
 mod dir;
@@ -61,8 +62,10 @@ impl<'a> Iterator for Lexer<'a> {
 
             span: range,
 
-            row: TextRange::new(self.rel_row, self.rel_row),
-            col: TextRange::new(range.start() - self.rel_col, range.end() - self.rel_col),
+            lno: LineNo::new(
+                TextRange::new(self.rel_row, self.rel_row),
+                TextRange::new(range.start() - self.rel_col, range.end() - self.rel_col),
+            ),
         });
 
         if matches!(kind, Kind::Newline) {
@@ -84,6 +87,5 @@ pub struct Token {
 
     pub span: TextRange,
 
-    pub row: TextRange,
-    pub col: TextRange,
+    pub lno: LineNo,
 }
