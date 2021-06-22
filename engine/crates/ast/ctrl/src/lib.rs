@@ -1,4 +1,4 @@
-// TODO: this might need to move into variants
+// TODO: should this use kind?!
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};

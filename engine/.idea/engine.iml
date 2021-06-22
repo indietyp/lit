@@ -76,22 +76,79 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/eval/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/js/src" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/resolve/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/ctrl/target/debug/build/newtype_derive-20acff5efe337492/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/ctrl/target/debug/build/num-bigint-02e2917320e293ff/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/ctrl/target/debug/build/num-integer-d4089cfe88f0ffe7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/ctrl/target/debug/build/num-traits-117707504e10786e/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/bitflags-5db67fd30471ef15/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/bitflags-ddeb6dd3b5a8c970/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/memchr-5771814e25e948b7/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/memchr-62e37417c1c22d84/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/newtype_derive-20acff5efe337492/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/newtype_derive-3483607dfba3974f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/num-bigint-02e2917320e293ff/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/num-bigint-214c3bbbfed9afe9/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/num-integer-079345bff47f6beb/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/num-integer-d4089cfe88f0ffe7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/num-traits-117707504e10786e/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/num-traits-b89d0ed1bd1a2e79/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/proc-macro2-3273c003050a3e4f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/proc-macro2-9a6aed73bc98d555/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/syn-8ff6bb4645a5c599/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/expr/target/debug/build/syn-c2f415d5352f0590/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/newtype_derive-20acff5efe337492/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/newtype_derive-3483607dfba3974f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/num-bigint-02e2917320e293ff/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/num-bigint-214c3bbbfed9afe9/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/num-integer-079345bff47f6beb/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/num-integer-d4089cfe88f0ffe7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/num-traits-117707504e10786e/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/num-traits-b89d0ed1bd1a2e79/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/module/target/debug/build/newtype_derive-20acff5efe337492/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/module/target/debug/build/newtype_derive-3483607dfba3974f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/module/target/debug/build/num-bigint-02e2917320e293ff/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/module/target/debug/build/num-bigint-214c3bbbfed9afe9/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/module/target/debug/build/num-integer-079345bff47f6beb/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/module/target/debug/build/num-integer-d4089cfe88f0ffe7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/module/target/debug/build/num-traits-117707504e10786e/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/module/target/debug/build/num-traits-b89d0ed1bd1a2e79/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/bitflags-ddeb6dd3b5a8c970/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/memchr-5771814e25e948b7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/newtype_derive-20acff5efe337492/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/num-bigint-02e2917320e293ff/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/num-integer-d4089cfe88f0ffe7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/num-traits-117707504e10786e/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/proc-macro2-9a6aed73bc98d555/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/syn-c2f415d5352f0590/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/bitflags-ddeb6dd3b5a8c970/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/memchr-52b65868a2adf656/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/newtype_derive-20acff5efe337492/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/num-bigint-02e2917320e293ff/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/num-integer-d4089cfe88f0ffe7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/num-traits-117707504e10786e/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/proc-macro2-9a6aed73bc98d555/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/syn-c2f415d5352f0590/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/newtype_derive-20acff5efe337492/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/num-bigint-02e2917320e293ff/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/num-integer-d4089cfe88f0ffe7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/num-traits-117707504e10786e/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/bitflags-ddeb6dd3b5a8c970/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/log-8c57d77eb76adccf/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/newtype_derive-20acff5efe337492/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/num-bigint-25d465d2dc16f7d7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/num-integer-d4089cfe88f0ffe7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/num-traits-117707504e10786e/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/proc-macro-hack-1db9d272813d9788/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/proc-macro2-546d7903a3fadc1f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/proc-macro2-8beac96f9f9c7e1c/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/ryu-51862341f7880d1d/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/serde-4fc93162bc006d91/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/serde_derive-810c55bd1d881487/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/serde_json-affc5e5a5eaa4a75/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/syn-092f40bcb510b051/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/syn-6a7a5c89c9ffc6cc/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/wasm-bindgen-04fbbec522f8771f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/target/debug/build/wasm-bindgen-shared-380b7c0cecb7f38f/out" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/src/ast/hir/macros/rules/target" />
       <excludeFolder url="file://$MODULE_DIR$/crates/lexer/target" />

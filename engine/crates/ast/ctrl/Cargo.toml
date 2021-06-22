@@ -13,4 +13,5 @@ schemars = { version = "0.8.3", optional = true }
 variants = { path = "../../variants" }
 
 [features]
-schema = ["serde", "schemars"]
+schema = ["serde1", "schemars", "variants/schema"]
+serde1 = ["serde", "variants/serde"]
