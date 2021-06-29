@@ -5,7 +5,7 @@ use schemars::JsonSchema;
 #[cfg(feature = "serde")]
 use serde::ser::SerializeMap;
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Serialize, Serializer};
 use std::collections::HashMap;
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
@@ -50,9 +50,6 @@ impl Serialize for LineNo {
         map.end()
     }
 }
-
-#[cfg(feature = "serde")]
-impl Deserialize for LineNo {}
 
 #[cfg(feature = "schema")]
 impl JsonSchema for LineNo {}

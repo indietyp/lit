@@ -1,5 +1,7 @@
 // This module is called whl instead of while because while is a reserved keyword
 
+use crate::combinators::kw::{kw_end, kw_while};
+use crate::combinators::trivia::sep;
 use combine::parser::token::Token as CombineToken;
 use combine::{token, Stream};
 use lexer::{Keyword, Kind, Token};
@@ -8,7 +10,7 @@ use lexer::{Keyword, Kind, Token};
 // parse: WHILE IDENT != VALUE DO terms END
 // return: HIR of While
 
-fn parse_while(input: &str) {
+fn parse_while(input: &str) -> Result<Hir, Errors> {
     (
         kw_while(),
         is_ident(),
@@ -18,8 +20,10 @@ fn parse_while(input: &str) {
             _ => false,
         }),
         kw_do(),
+        sep(),
         terms(),
         kw_end(),
+        sep(),
     )
         .parse(input)
 }

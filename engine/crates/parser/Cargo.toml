@@ -9,4 +9,5 @@ edition = "2018"
 [dependencies]
 combine = "4.5.2"
 lexer = { path = "../lexer" }
+hir = { path = '../ast/hir' }
 paste = "1.0.5"

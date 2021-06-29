@@ -3,6 +3,8 @@
 // 2) lower macros
 // 3) lower functions
 
+use ctrl::Control;
+
 pub enum Hir {
     Expr(Expr),
     Func(Func),

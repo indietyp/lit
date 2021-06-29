@@ -6,9 +6,9 @@ use combine::{many1, ParseError, Parser, Stream};
 use lexer::Token;
 
 mod combinators;
+mod parsers;
 mod skip;
 pub(crate) mod stream;
-mod while_;
 
 // fn parse(input: &str) -> Parser {
 //     todo!()
