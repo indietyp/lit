@@ -6,5 +6,6 @@ pub mod lno;
 pub mod uint;
 
 pub use err::Error;
+pub use err::Errors;
 pub use lno::LineNo;
 pub use uint::UInt;

@@ -166,6 +166,7 @@ dependencies = [
  "hir",
  "lexer",
  "paste",
+ "variants",
 ]
 
 [[package]]
