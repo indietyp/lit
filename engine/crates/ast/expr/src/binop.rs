@@ -50,6 +50,7 @@ impl TryFrom<lexer::Token> for BinOpVerb {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct BinOp {
     pub lno: LineNo,
 

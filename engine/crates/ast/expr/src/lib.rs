@@ -9,6 +9,7 @@ pub mod binop;
 pub mod comp;
 pub mod primitive;
 
+#[derive(Debug, Clone)]
 pub enum Expr {
     Primitive(Primitive),
 

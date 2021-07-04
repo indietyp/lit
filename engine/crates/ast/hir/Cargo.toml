@@ -9,3 +9,6 @@ description = "High-Level Intermediate Representation of LIT"
 
 [dependencies]
 ctrl = { path = "../ctrl" }
+expr = { path = "../expr" }
+fnc = { path = "../fnc" }
+mcr = { path = "../mcr" }

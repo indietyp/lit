@@ -68,6 +68,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "fnc"
+version = "0.1.0"
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -78,6 +82,9 @@ name = "hir"
 version = "0.1.0"
 dependencies = [
  "ctrl",
+ "expr",
+ "fnc",
+ "mcr",
 ]
 
 [[package]]
@@ -121,6 +128,10 @@ dependencies = [
  "syn",
  "utf8-ranges",
 ]
+
+[[package]]
+name = "mcr"
+version = "0.1.0"
 
 [[package]]
 name = "memchr"

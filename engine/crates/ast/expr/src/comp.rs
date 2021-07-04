@@ -42,6 +42,7 @@ impl TryFrom<lexer::Token> for CompVerb {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct Comp {
     pub lno: LineNo,
 

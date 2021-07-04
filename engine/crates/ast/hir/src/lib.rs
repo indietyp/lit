@@ -4,6 +4,7 @@
 // 3) lower functions
 
 use ctrl::Control;
+use expr::Expr;
 
 #[derive(Debug, Clone)]
 pub enum Hir {

@@ -1,6 +1,9 @@
 use hir::Hir;
 use variants::Errors;
 
+// TODO: macro declaration
+// TODO: undefined lazy eval
+
 pub(crate) mod assign;
 pub(crate) mod lp;
 pub(crate) mod noop;
