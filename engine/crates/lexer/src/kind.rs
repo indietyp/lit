@@ -71,7 +71,7 @@ fn macro_start(lex: &mut Lexer<Kind>) -> Option<Directive> {
         .chars()
         .into_iter()
         .map(|char| match char {
-            'i' => MacroModifier::CaseInsensitive,
+            'i' => MacroModifier::CASE_INSENSITIVE,
             _ => MacroModifier::empty(),
         })
         .fold(MacroModifier::empty(), |a, b| a | b);
@@ -141,6 +141,7 @@ pub enum Kind {
     #[token("@end", | _ | Directive::End)]
     #[token("@if", | _ | Directive::If)]
     #[token("@else", | _ | Directive::Else)]
+    #[token("@sep", | _ | Directive::Sep)]
     #[regex(r"%[iavetco_]\.[0-9]+", placeholder)]
     #[regex(r"\$(i)\.[0-9]+", placeholder)]
     Directive(Directive),
@@ -286,7 +287,7 @@ mod tests {
         );
         check_single_kind(
             "@macro/i",
-            Kind::Directive(Directive::Macro(MacroModifier::CaseInsensitive)),
+            Kind::Directive(Directive::Macro(MacroModifier::CASE_INSENSITIVE)),
         );
 
         check_single_kind("@sub", Kind::Directive(Directive::Sub));
@@ -294,6 +295,8 @@ mod tests {
 
         check_single_kind("@if", Kind::Directive(Directive::If));
         check_single_kind("@else", Kind::Directive(Directive::Else));
+
+        check_single_kind("@sep", Kind::Directive(Directive::Sep));
 
         check_single_kind(
             "%i.1",

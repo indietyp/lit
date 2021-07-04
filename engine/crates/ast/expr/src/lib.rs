@@ -4,10 +4,10 @@ pub use crate::comp::Comp;
 pub use crate::primitive::Primitive;
 use ctrl::Control;
 
-mod assign;
-mod binop;
-mod comp;
-mod primitive;
+pub mod assign;
+pub mod binop;
+pub mod comp;
+pub mod primitive;
 
 pub enum Expr {
     Primitive(Primitive),

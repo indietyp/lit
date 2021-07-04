@@ -3,19 +3,21 @@ use std::fmt::Formatter;
 
 bitflags! {
     pub struct MacroModifier: u16 {
-        const CaseInsensitive = 0b0001;
+        const CASE_INSENSITIVE = 0b0001;
     }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Directive {
     Macro(MacroModifier),
-    // starts the substition
+    // starts the substitution
     Sub,
     End,
 
     If,
     Else,
+
+    Sep,
 
     Placeholder(Placeholder),
 }
@@ -31,6 +33,7 @@ impl fmt::Display for Directive {
                 Self::End => "‘@end‘".into(),
                 Self::If => "‘@if‘".into(),
                 Self::Else => "‘@else‘".into(),
+                Self::Sep => "‘@sep‘".into(),
                 Self::Placeholder(placeholder) => format!("{}", placeholder),
             }
         )

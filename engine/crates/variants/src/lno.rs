@@ -14,6 +14,15 @@ pub struct LineNo {
     pub col: TextRange,
 }
 
+impl LineNo {
+    pub fn end_at(&self, lno: &LineNo) -> Self {
+        Self {
+            row: TextRange::new(self.row.start(), lno.row.end()),
+            col: TextRange::new(self.col.start(), lno.col.end()),
+        }
+    }
+}
+
 #[cfg(feature = "serde")]
 impl Serialize for LineNo {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

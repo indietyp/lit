@@ -11,12 +11,25 @@ pub enum ErrorKindUnsupported {
     Comp,
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-pub enum ErrorKind {
-    Unsupported(ErrorKindUnsupported),
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ErrorKindInvalidToken {
+    expected: String,
+    got: String,
 }
 
-#[derive(Debug, Clone, Copy)]
+impl ErrorKindInvalidToken {
+    pub fn new(expected: String, got: String) -> Self {
+        Self { expected, got }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum ErrorKind {
+    Unsupported(ErrorKindUnsupported),
+    InvalidToken(ErrorKindInvalidToken),
+}
+
+#[derive(Debug, Clone)]
 pub struct Error {
     pub lno: Option<LineNo>,
 

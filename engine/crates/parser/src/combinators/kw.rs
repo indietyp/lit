@@ -27,6 +27,7 @@ mod tests {
         check_single_kind("while", kw_while);
         check_single_kind("loop", kw_loop);
         check_single_kind("end", kw_end);
+        check_single_kind("do", kw_do_);
     }
 
     #[test]

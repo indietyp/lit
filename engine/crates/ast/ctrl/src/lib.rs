@@ -12,8 +12,6 @@ use variants::LineNo;
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 pub enum Control<TNode> {
     Terms {
-        lno: LineNo,
-
         terms: Vec<TNode>,
     },
     Loop {

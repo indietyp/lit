@@ -9,6 +9,7 @@ mod combinators;
 mod parsers;
 mod skip;
 pub(crate) mod stream;
+mod utils;
 
 // fn parse(input: &str) -> Parser {
 //     todo!()

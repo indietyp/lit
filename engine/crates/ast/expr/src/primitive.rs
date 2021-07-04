@@ -1,13 +1,7 @@
-use lexer::Kind;
+use lexer::{Token};
 use variants::UInt;
 
-pub struct Value<Type> {
-    value: Type,
-
-    kind: Vec<Kind>
-}
-
 pub enum Primitive {
-    Ident(Value<String>),
-    Number(Value<UInt>),
+    Ident { value: String, token: Vec<Token> },
+    Number { value: UInt, token: Vec<Token> },
 }

@@ -1,5 +1,5 @@
-use crate::Expr;
-use lexer::Kind;
+use crate::{Expr, Primitive};
+use lexer::{Kind, Token};
 use std::convert::TryFrom;
 use variants::err::{ErrorKind, ErrorKindUnsupported};
 use variants::Error;
@@ -43,9 +43,9 @@ impl TryFrom<lexer::Token> for CompVerb {
 }
 
 pub struct Comp {
-    pub kind: Vec<Kind>,
+    pub token: Vec<Token>,
 
-    pub lhs: Box<Expr>,
+    pub lhs: Primitive,
     pub verb: CompVerb,
-    pub rhs: Box<Expr>,
+    pub rhs: Primitive,
 }

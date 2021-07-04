@@ -27,9 +27,13 @@ where
     let newline: fn(Token) -> bool = |token| matches!(token.kind, ::lexer::Kind::Newline);
     let semicolon: fn(Token) -> bool = |token| matches!(token.kind, ::lexer::Kind::Semicolon);
 
-    (satisfy(newline), optional(satisfy(semicolon)))
-        .expected("Separator")
-        .map(|v| ())
+    choice!(
+        (satisfy(semicolon), satisfy(newline)),
+        satisfy(semicolon),
+        satisfy(newline),
+    )
+    .expected("separator")
+    .map(|_| ())
 }
 
 pub fn sep<Input>() -> impl Parser<Input, Output = ()>
@@ -37,5 +41,5 @@ where
     Input: Stream<Token = Token>,
     Input::Error: ParseError<Input::Token, Input::Range, Input::Position>,
 {
-    skip_many(single_sep()).expected("se[")
+    skip_many(single_sep()).expected("sep")
 }

@@ -11,4 +11,6 @@ combine = "4.5.2"
 lexer = { path = "../lexer" }
 hir = { path = '../ast/hir' }
 variants = { path = "../variants" }
+ctrl = { path = "../ast/ctrl" }
+expr = { path = "../ast/expr" }
 paste = "1.0.5"
