@@ -2,7 +2,7 @@ use crate::{Expr, Primitive};
 use lexer::{Kind, Token};
 use std::convert::TryFrom;
 use variants::err::{ErrorKind, ErrorKindUnsupported};
-use variants::Error;
+use variants::{Error, LineNo};
 
 // We use our own enum instead of the one from the lexer
 // to divorce the lexer and AST
@@ -43,7 +43,7 @@ impl TryFrom<lexer::Token> for CompVerb {
 }
 
 pub struct Comp {
-    pub token: Vec<Token>,
+    pub lno: LineNo,
 
     pub lhs: Primitive,
     pub verb: CompVerb,

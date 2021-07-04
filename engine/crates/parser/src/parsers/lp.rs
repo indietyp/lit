@@ -29,6 +29,7 @@ where
         .map(|(start, ident, _, _, terms, end, _)| {
             Hir::Control(Control::Loop {
                 lno: start.lno.end_at(&end.lno),
+
                 ident: Box::new(Hir::Expr(Expr::Primitive(to_ident(ident)?))),
                 terms: Box::new(terms),
             })

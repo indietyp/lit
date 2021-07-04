@@ -1,8 +1,8 @@
 use lexer::{Kind, Op, Token};
 use variants::err::{ErrorKind, ErrorKindUnsupported};
-use variants::Error;
+use variants::{Error, LineNo};
 
-use crate::Expr;
+use crate::{Expr, Primitive};
 use std::convert::TryFrom;
 
 // We use our own enum instead of the one from the lexer
@@ -51,11 +51,11 @@ impl TryFrom<lexer::Token> for BinOpVerb {
 }
 
 pub struct BinOp {
-    pub kind: Vec<Kind>,
+    pub lno: LineNo,
 
-    pub lhs: Box<Expr>,
+    pub lhs: Primitive,
     pub verb: BinOpVerb,
-    pub rhs: Box<Expr>,
+    pub rhs: Primitive,
 }
 
 //region Tests

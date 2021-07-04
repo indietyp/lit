@@ -1,8 +1,9 @@
 use crate::{Expr, Primitive};
-use lexer::Kind;
+use lexer::Token;
+use variants::LineNo;
 
 pub struct Assign {
-    pub kind: Vec<Kind>,
+    pub lno: LineNo,
 
     pub lhs: Primitive,
     pub rhs: Box<Expr>,

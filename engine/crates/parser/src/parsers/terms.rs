@@ -11,5 +11,6 @@ where
     Input: Stream<Token = Token>,
     Input::Error: Sized,
 {
-    many(choice([whl(), lp()])).map(|many| Hir::Control(Control::Terms { terms: many }))
+    many::<Vec<_>, _, _>(choice([whl(), lp()]))
+        .map(|many| Hir::Control(Control::Terms { terms: many }))
 }

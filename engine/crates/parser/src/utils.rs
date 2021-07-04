@@ -1,4 +1,5 @@
 use crate::{Kind, Token};
+use expr::binop::BinOpVerb;
 use expr::comp::CompVerb;
 use expr::Primitive;
 use hir::Hir;
@@ -29,6 +30,19 @@ pub(crate) fn to_comp_verb(token: Token) -> Result<CompVerb, Errors> {
             Some(token.lno),
             ErrorKind::InvalidToken(ErrorKindInvalidToken::new(
                 stringify!(Kind::Comp).into(),
+                stringify!(token.kind).into(),
+            )),
+        ))),
+    }
+}
+
+pub(crate) fn to_binop_verb(token: Token) -> Result<BinOpVerb, Errors> {
+    match token.kind {
+        Kind::Op(op) => Ok(op.into()),
+        _ => Err(Errors::from(Error::new_from_kind(
+            Some(token.lno),
+            ErrorKind::InvalidToken(ErrorKindInvalidToken::new(
+                stringify!(Kind::Op).into(),
                 stringify!(token.kind).into(),
             )),
         ))),

@@ -42,8 +42,10 @@ where
         .map(|(start, ident, comp, number, _, _, terms, end, _)| {
             Hir::Control(Control::While {
                 lno: start.lno.end_at(&end.lno),
+
                 comp: Box::new(Hir::Expr(Expr::Comp(Comp {
-                    token: vec![ident.clone(), comp.clone(), number.clone()],
+                    lno: ident.lno.end_at(&number.lno),
+
                     lhs: to_ident(ident)?,
                     verb: to_comp_verb(comp)?,
                     rhs: to_uint(number)?,
