@@ -3,6 +3,7 @@ use variants::Errors;
 
 pub(crate) mod assign;
 pub(crate) mod lp;
+pub(crate) mod noop;
 pub(crate) mod terms;
 pub(crate) mod whl;
 

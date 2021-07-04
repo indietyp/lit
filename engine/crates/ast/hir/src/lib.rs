@@ -5,6 +5,7 @@
 
 use ctrl::Control;
 
+#[derive(Debug, Clone)]
 pub enum Hir {
     Expr(Expr),
     Func(Func),

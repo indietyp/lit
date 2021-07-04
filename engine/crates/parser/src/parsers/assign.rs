@@ -19,7 +19,6 @@ where
         is_ident(),
         choice([op_plus(), op_minus()]),
         is_number(),
-        sep(),
     )
         .map(|(ident, _, lhs, op, rhs)| {
             Hir::Expr(Expr::Assign(Assign {

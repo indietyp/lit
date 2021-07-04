@@ -17,21 +17,26 @@ where
     Input: Stream<Token = Token>,
     Input::Error: Sized,
 {
-    (
-        kw_loop(),
-        is_ident(),
-        kw_do_(),
-        sep(),
-        terms(),
-        kw_end(),
-        sep(),
-    )
-        .map(|(start, ident, _, _, terms, end, _)| {
+    (kw_loop(), is_ident(), kw_do_(), sep(), terms(), kw_end()).map(
+        |(start, ident, _, _, terms, end)| {
             Hir::Control(Control::Loop {
                 lno: start.lno.end_at(&end.lno),
 
                 ident: Box::new(Hir::Expr(Expr::Primitive(to_ident(ident)?))),
                 terms: Box::new(terms),
             })
-        })
+        },
+    )
 }
+
+//region Tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parser_lp() {
+        println!("{:#?}", lp().parse("LOOP x DO; ;END").unwrap());
+    }
+}
+//endregion

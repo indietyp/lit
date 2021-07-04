@@ -29,19 +29,19 @@ mod tests {
     use crate::combinators::check_single_kind;
 
     #[test]
-    fn is_paren() {
+    fn combine_paren() {
         check_single_kind("(", is_lparen);
         check_single_kind(")", is_rparen);
     }
 
     #[test]
-    fn is_brace() {
+    fn combine_brace() {
         check_single_kind("{", is_lbrace);
         check_single_kind("}", is_rbrace);
     }
 
     #[test]
-    fn is_symbols() {
+    fn combine_symbols() {
         check_single_kind("->", is_into);
         check_single_kind("...", is_ellipsis);
         check_single_kind(",", is_comma);
@@ -51,13 +51,13 @@ mod tests {
     }
 
     #[test]
-    fn is_sep() {
+    fn combine_sep() {
         check_single_kind(";", is_semicolon);
         check_single_kind("\n", is_newline)
     }
 
     #[test]
-    fn is_primitive() {
+    fn combine_primitive() {
         check_single_kind("abc", is_ident);
         check_single_kind("123", is_number);
     }

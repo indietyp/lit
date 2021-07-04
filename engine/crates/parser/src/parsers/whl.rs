@@ -37,9 +37,8 @@ where
         sep(),
         terms(),
         kw_end(),
-        sep(),
     )
-        .map(|(start, ident, comp, number, _, _, terms, end, _)| {
+        .map(|(start, ident, comp, number, _, _, terms, end)| {
             Hir::Control(Control::While {
                 lno: start.lno.end_at(&end.lno),
 
