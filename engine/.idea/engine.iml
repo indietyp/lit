@@ -149,6 +149,26 @@
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/syn-6a7a5c89c9ffc6cc/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/wasm-bindgen-04fbbec522f8771f/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/target/debug/build/wasm-bindgen-shared-380b7c0cecb7f38f/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/fnc/target/debug/build/bitflags-ddeb6dd3b5a8c970/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/fnc/target/debug/build/memchr-5771814e25e948b7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/fnc/target/debug/build/newtype_derive-20acff5efe337492/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/fnc/target/debug/build/num-bigint-02e2917320e293ff/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/fnc/target/debug/build/num-integer-d4089cfe88f0ffe7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/fnc/target/debug/build/num-traits-117707504e10786e/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/fnc/target/debug/build/proc-macro2-9a6aed73bc98d555/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/fnc/target/debug/build/syn-c2f415d5352f0590/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/bitflags-ddeb6dd3b5a8c970/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/memchr-5771814e25e948b7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/proc-macro2-9a6aed73bc98d555/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/syn-c2f415d5352f0590/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/mcr/target/debug/build/bitflags-ddeb6dd3b5a8c970/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/mcr/target/debug/build/memchr-5771814e25e948b7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/mcr/target/debug/build/newtype_derive-20acff5efe337492/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/mcr/target/debug/build/num-bigint-02e2917320e293ff/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/mcr/target/debug/build/num-integer-d4089cfe88f0ffe7/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/mcr/target/debug/build/num-traits-117707504e10786e/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/mcr/target/debug/build/proc-macro2-9a6aed73bc98d555/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/mcr/target/debug/build/syn-c2f415d5352f0590/out" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/src/ast/hir/macros/rules/target" />
       <excludeFolder url="file://$MODULE_DIR$/crates/lexer/target" />

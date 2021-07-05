@@ -1,8 +1,7 @@
-// TODO: should this use kind?!
-
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
+use crate::{Comp, Expr, Primitive};
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 use variants::LineNo;
@@ -10,20 +9,20 @@ use variants::LineNo;
 #[derive(Debug, Clone, Hash, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
-pub enum Control<TNode> {
+pub enum Control<Type, Primitive, Comp> {
     Terms {
-        terms: Vec<TNode>,
+        terms: Vec<Type>,
     },
     Loop {
         lno: LineNo,
 
-        ident: Box<TNode>,
-        terms: Box<TNode>,
+        ident: Primitive,
+        terms: Box<Type>,
     },
     While {
         lno: LineNo,
 
-        comp: Box<TNode>,
-        terms: Box<TNode>,
+        comp: Comp,
+        terms: Box<Type>,
     },
 }

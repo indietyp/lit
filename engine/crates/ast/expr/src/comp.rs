@@ -6,6 +6,7 @@ use variants::{Error, LineNo};
 
 // We use our own enum instead of the one from the lexer
 // to divorce the lexer and AST
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub enum CompVerb {
     Equal,
     NotEqual,

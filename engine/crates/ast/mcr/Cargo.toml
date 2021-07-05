@@ -8,3 +8,4 @@ description = "mcr stands for macro - provides LIT macro capabilities"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+lexer = { path = "../../lexer" }

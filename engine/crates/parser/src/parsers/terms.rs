@@ -3,7 +3,6 @@ use crate::parsers::lp::lp;
 use crate::parsers::noop::noop;
 use crate::parsers::whl::whl;
 use combine::{choice, many, optional, Parser, Stream};
-use ctrl::Control;
 use hir::Hir;
 use lexer::Token;
 use variants::Errors;

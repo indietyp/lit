@@ -8,7 +8,6 @@ use crate::parsers::terms::terms;
 use crate::utils::{to_comp_verb, to_ident, to_uint};
 use combine::parser::token::Token as CombineToken;
 use combine::{look_ahead, satisfy, token, Parser, Stream};
-use ctrl::Control;
 use expr::{Comp, Expr, Primitive};
 use hir::Hir;
 use lexer::{Keyword, Kind, Token};

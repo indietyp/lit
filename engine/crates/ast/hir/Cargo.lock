@@ -54,6 +54,11 @@ dependencies = [
 [[package]]
 name = "fnc"
 version = "0.1.0"
+dependencies = [
+ "expr",
+ "lexer",
+ "variants",
+]
 
 [[package]]
 name = "fnv"
@@ -116,6 +121,9 @@ dependencies = [
 [[package]]
 name = "mcr"
 version = "0.1.0"
+dependencies = [
+ "lexer",
+]
 
 [[package]]
 name = "memchr"

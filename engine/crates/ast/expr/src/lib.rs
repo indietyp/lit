@@ -17,5 +17,5 @@ pub enum Expr {
     BinOp(BinOp),
     Assign(Assign),
 
-    Control(Control<Expr>),
+    Control(Control<Expr, Primitive, Comp>),
 }

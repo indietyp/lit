@@ -4,17 +4,20 @@
 // 3) lower functions
 
 use ctrl::Control;
-use expr::Expr;
+use expr::{Comp, Expr, Primitive};
+use fnc::Func;
+use mcr::Unknown;
 
 #[derive(Debug, Clone)]
 pub enum Hir {
     Expr(Expr),
     Func(Func),
-    Control(Control<Hir>),
+
+    // These need to be lowered, to account for not yet lowered things
+    Control(Control<Hir, Primitive, Comp>),
 
     // To be determined via Macro-Matching
-    Macro(Macro),
-    Undefined(Undefined),
+    Unknown(Unknown),
 
     // No Operation
     NoOp,
