@@ -30,6 +30,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
+name = "bytes"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b700ce4376041dcd0a327fd0097c41095743c4c8af8887265942faf1100bd040"
+
+[[package]]
+name = "combine"
+version = "4.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2d47c1b11006b87e492b53b313bb699ce60e16613c4dddaa91f8f7c220ab2fa"
+dependencies = [
+ "bytes",
+ "memchr",
+]
+
+[[package]]
 name = "ctrl"
 version = "0.1.0"
 dependencies = [
@@ -236,6 +252,7 @@ checksum = "b4ae116fef2b7fea257ed6440d3cfcff7f190865f170cdad00bb6465bf18ecba"
 name = "variants"
 version = "0.1.0"
 dependencies = [
+ "combine",
  "either",
  "newtype_derive",
  "num-bigint",

@@ -1,34 +1,52 @@
 use crate::combinators::trivia::sep;
 use crate::parsers::lp::lp;
 use crate::parsers::noop::noop;
+use crate::parsers::unknown::unknowns;
 use crate::parsers::whl::whl;
-use combine::{choice, many, optional, Parser, Stream};
+use combine::parser::combinator::no_partial;
+use combine::{many, optional, Parser, Stream};
+use ctrl::Control;
 use hir::Hir;
 use lexer::Token;
-use variants::Errors;
 
-pub(crate) fn term<Input>() -> impl Parser<Input, Output = Hir>
+fn term<Input>(unknown: bool) -> impl Parser<Input, Output = Hir, PartialState = ()>
 where
     Input: Stream<Token = Token>,
     Input::Error: Sized,
 {
-    choice([whl(), lp(), noop()])
+    let combinator = whl().or(lp().or(if unknown {
+        noop().or(unknowns()).left()
+    } else {
+        noop().right()
+    }));
+
+    no_partial(combinator)
 }
 
-pub(crate) fn terms<Input>() -> impl Parser<Input, Output = Hir>
+fn terms_<Input>(unknown: bool) -> impl Parser<Input, Output = Hir, PartialState = ()>
 where
     Input: Stream<Token = Token>,
     Input::Error: Sized,
 {
-    optional(
+    let combinator = optional(
         (
-            term(),
-            many::<Vec<_>, _, _>((sep(), term()).map(|(_, term)| term)),
+            term(unknown),
+            many::<Vec<_>, _, _>((sep(), term(unknown)).map(|(_, term)| term)),
         )
-            .map(|(term, terms)| vec![term].into_iter().chain(terms).collect_vec()),
+            .map(|(term, terms)| vec![term].into_iter().chain(terms).collect()),
     )
     .map(|terms| match terms {
         None => Hir::NoOp,
         Some(terms) => Hir::Control(Control::Terms { terms }),
-    })
+    });
+
+    no_partial(combinator)
+}
+
+parser! {
+    pub(crate) fn terms[Input](unknown: bool)(Input) -> Hir
+    where [Input: Stream<Token = Token>]
+    {
+        terms_(*unknown)
+    }
 }

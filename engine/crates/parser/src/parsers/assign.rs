@@ -17,7 +17,7 @@ where
         is_ident(),
         is_assign(),
         is_ident(),
-        choice([op_plus(), op_minus()]),
+        choice!(op_plus(), op_minus()),
         is_number(),
     )
         .map(|(ident, _, lhs, op, rhs)| {

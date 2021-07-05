@@ -10,5 +10,5 @@ where
     Input: Stream<Token = Token>,
     Input::Error: Sized,
 {
-    is_ellipsis().map(|| Hir::NoOp)
+    is_ellipsis().map(|_| Hir::NoOp)
 }

@@ -1,4 +1,4 @@
 use lexer::Token;
 
 #[derive(Debug, Clone)]
-pub struct Unknown(Vec<Token>);
+pub struct Unknown(pub Vec<Token>);

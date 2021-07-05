@@ -1,7 +1,6 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-use crate::{Comp, Expr, Primitive};
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 use variants::LineNo;

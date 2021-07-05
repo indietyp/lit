@@ -9,6 +9,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
+name = "bytes"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b700ce4376041dcd0a327fd0097c41095743c4c8af8887265942faf1100bd040"
+
+[[package]]
+name = "combine"
+version = "4.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2d47c1b11006b87e492b53b313bb699ce60e16613c4dddaa91f8f7c220ab2fa"
+dependencies = [
+ "bytes",
+ "memchr",
+]
+
+[[package]]
 name = "ctrl"
 version = "0.1.0"
 dependencies = [
@@ -34,6 +50,12 @@ name = "itoa"
 version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd25036021b0de88a0aff6b850051563c6516d0bf53f8638938edbb9de732736"
+
+[[package]]
+name = "memchr"
+version = "2.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b16bd47d9e329435e309c58469fe0791c2d0d1ba96ec0954152a5ae2b04387dc"
 
 [[package]]
 name = "newtype_derive"
@@ -208,6 +230,7 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 name = "variants"
 version = "0.1.0"
 dependencies = [
+ "combine",
  "either",
  "newtype_derive",
  "num-bigint",

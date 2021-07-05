@@ -10,6 +10,8 @@ edition = "2018"
 combine = "4.5.2"
 lexer = { path = "../lexer" }
 hir = { path = '../ast/hir' }
+mcr = { path = '../ast/mcr' }
+num-traits = "0.2.14"
 variants = { path = "../variants" }
 ctrl = {path = "../ast/ctrl"}
 expr = { path = "../ast/expr" }

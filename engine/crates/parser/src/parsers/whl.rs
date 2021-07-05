@@ -6,49 +6,74 @@ use crate::combinators::kw::{kw_do_, kw_end, kw_while};
 use crate::combinators::trivia::sep;
 use crate::parsers::terms::terms;
 use crate::utils::{to_comp_verb, to_ident, to_uint};
-use combine::parser::token::Token as CombineToken;
-use combine::{look_ahead, satisfy, token, Parser, Stream};
-use expr::{Comp, Expr, Primitive};
+use combine::error::Info::Format;
+use combine::parser::combinator::no_partial;
+use combine::{unexpected_any, value, Parser, Stream};
+use ctrl::Control;
+use expr::Comp;
 use hir::Hir;
-use lexer::{Keyword, Kind, Token};
-use variants::{Errors, UInt};
+use lexer::{Kind, Token};
+use num_traits::Zero;
+use variants::Errors;
 
 // parse: WHILE <ident> != <uint> DO <terms> END
 // return: HIR
-pub(crate) fn whl<Input>() -> impl Parser<Input, Output = Hir>
+pub(crate) fn whl<Input>() -> impl Parser<Input, Output = Hir, PartialState = ()>
 where
     Input: Stream<Token = Token>,
     Input::Error: Sized,
 {
-    (
+    let combinator = (
         kw_while(),
         is_ident(),
         comp_ne(),
-        (
-            look_ahead(is_number()),
-            satisfy(|token| match token.kind {
-                Kind::Number(number) => number.is_zero(),
-                _ => false,
-            }),
-        )
-            .map(|(token, _)| token),
+        is_number().then(|token| match &token.kind {
+            Kind::Number(number) if number.is_zero() => value(token).left(),
+            _ => unexpected_any("number")
+                .message("Number is not a 0")
+                .right(),
+        }),
         kw_do_(),
         sep(),
-        terms(),
+        terms(true),
         kw_end(),
     )
-        .map(|(start, ident, comp, number, _, _, terms, end)| {
-            Hir::Control(Control::While {
+        .then(|(start, ident, comp, number, _, _, terms, end)| {
+            let lhs = to_ident(ident.clone());
+            let verb = to_comp_verb(comp);
+            let rhs = to_uint(number.clone());
+
+            let mut errors = Errors::new();
+            if let Err(err) = &lhs {
+                errors += err.clone();
+            }
+            if let Err(err) = &verb {
+                errors += err.clone();
+            }
+            if let Err(err) = &rhs {
+                errors += err.clone();
+            }
+
+            if !errors.is_empty() {
+                // TODO: we somehow need to return the error!
+                return unexpected_any(Format(errors)).right();
+            }
+
+            let ctrl = Hir::Control(Control::While {
                 lno: start.lno.end_at(&end.lno),
 
-                comp: Box::new(Hir::Expr(Expr::Comp(Comp {
+                comp: Comp {
                     lno: ident.lno.end_at(&number.lno),
 
-                    lhs: to_ident(ident)?,
-                    verb: to_comp_verb(comp)?,
-                    rhs: to_uint(number)?,
-                }))),
+                    lhs: lhs.unwrap(),
+                    verb: verb.unwrap(),
+                    rhs: rhs.unwrap(),
+                },
                 terms: Box::new(terms),
-            })
-        })
+            });
+
+            return value(ctrl).left();
+        });
+
+    no_partial(combinator)
 }

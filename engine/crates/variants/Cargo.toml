@@ -13,6 +13,8 @@ num-traits = "0.2.14"
 newtype_derive = "0.1.6"
 text-size = "1.1.0"
 
+combine = "4.6.0"
+
 either = "1.6.1"
 # schema
 schemars = { version = "0.8.3", features = ["impl_json_schema", "derive", "either"], optional = true }

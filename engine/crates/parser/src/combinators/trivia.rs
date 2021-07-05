@@ -28,12 +28,11 @@ where
     let semicolon: fn(Token) -> bool = |token| matches!(token.kind, ::lexer::Kind::Semicolon);
 
     choice!(
-        (satisfy(semicolon), satisfy(newline)),
-        satisfy(semicolon),
-        satisfy(newline),
+        (satisfy(semicolon), satisfy(newline)).map(|_| ()),
+        satisfy(semicolon).map(|_| ()),
+        satisfy(newline).map(|_| ())
     )
     .expected("separator")
-    .map(|_| ())
 }
 
 pub fn sep<Input>() -> impl Parser<Input, Output = ()>

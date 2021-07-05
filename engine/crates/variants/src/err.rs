@@ -1,9 +1,11 @@
 // TODO: consider using the token instead of the lno
 
 use crate::LineNo;
+
 use std::error;
 use std::fmt;
-use std::ops::Add;
+use std::fmt::{Display, Formatter};
+use std::ops::{Add, AddAssign};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum ErrorKindUnsupported {
@@ -62,8 +64,12 @@ impl Errors {
         self.0.push(error)
     }
 
-    fn concat(&self, slice: Self) -> Self {
+    pub fn concat(&self, slice: Self) -> Self {
         Self([&self.0[..], &slice.0[..]].concat())
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
     }
 }
 
@@ -75,8 +81,20 @@ impl Add for Errors {
     }
 }
 
+impl AddAssign for Errors {
+    fn add_assign(&mut self, rhs: Self) {
+        self.0 = self.concat(rhs).0
+    }
+}
+
 impl From<Error> for Errors {
     fn from(error: Error) -> Self {
         Errors(vec![error])
+    }
+}
+
+impl Display for Errors {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.write_fmt(format_args!("{:#?}", self))
     }
 }
