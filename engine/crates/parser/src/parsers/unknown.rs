@@ -1,14 +1,18 @@
-use crate::parsers::terms::terms;
-use combine::parser::repeat::take_until;
-use combine::{attempt, Parser, Stream};
+use combine::{satisfy, Parser, Stream};
 use hir::Hir;
-use lexer::Token;
+use lexer::{Keyword, Kind, Token};
 use mcr::Unknown;
 
-pub(crate) fn unknowns<Input>() -> impl Parser<Input, Output = Hir>
+pub(crate) fn unknown<Input>() -> impl Parser<Input, Output = Hir>
 where
     Input: Stream<Token = Token>,
     Input::Error: Sized,
 {
-    take_until(attempt(terms(false))).map(|val| Hir::Unknown(Unknown(val)))
+    // Do and End are hard keywords, which should never be used in an unknown context
+    satisfy(|token: Token| {
+        !matches!(token.kind, Kind::Keyword(Keyword::End))
+            && !matches!(token.kind, Kind::Keyword(Keyword::Do))
+    })
+    .map(|value| Hir::Unknown(Unknown::Token(value)))
+    .expected("unknown")
 }

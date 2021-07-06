@@ -30,33 +30,25 @@ impl CompactRepresentation for Hir {
 
 impl CompactRepresentation for Unknown {
     fn compact(&self, indent: Option<usize>) -> String {
-        let text: String = self
-            .clone()
-            .0
-            .into_iter()
-            .map(|value| value.content)
-            .collect::<Vec<_>>()
-            .join(" ");
+        let text: String = match self {
+            Unknown::Token(token) => vec![token.clone()],
+            Unknown::Tokens(tokens) => tokens.clone(),
+        }
+        .into_iter()
+        .map(|value| value.content)
+        .collect::<Vec<_>>()
+        .join(" ");
         let wrapped: String =
             textwrap::wrap(text.as_str(), Options::new(25).break_words(false)).join("\n");
-        let wrapped = textwrap::indent(
-            &wrapped,
-            " ".repeat((indent.unwrap_or(0) + 1) * INDENTATION_LEVEL)
-                .as_str(),
-        );
+        let wrapped = textwrap::indent(&wrapped, " ".repeat(INDENTATION_LEVEL).as_str());
 
-        textwrap::indent(
-            format!(
-                indoc!(
-                    "\
-                    Unknown:
-                    {}
-                    "
-                ),
-                wrapped
-            )
-            .as_str(),
-            " ".repeat(indent.unwrap_or(0) * INDENTATION_LEVEL).as_str(),
+        format!(
+            indoc!(
+                "\
+                Unknown:
+                {}"
+            ),
+            wrapped
         )
     }
 }
@@ -129,7 +121,7 @@ where
 {
     fn compact(&self, indent: Option<usize>) -> String {
         let value = match self {
-            Control::Terms { terms } => terms
+            Control::Block { terms } => terms
                 .iter()
                 .map(|term| term.clone().compact(indent))
                 .collect::<Vec<_>>()

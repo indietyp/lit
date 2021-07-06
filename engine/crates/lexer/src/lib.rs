@@ -12,6 +12,7 @@ pub use crate::kind::Kind;
 pub use crate::kw::Keyword;
 pub use crate::op::Op;
 pub use crate::pair::Pair;
+use variants::lno::ColRange;
 use variants::LineNo;
 
 mod comp;
@@ -64,7 +65,7 @@ impl<'a> Iterator for Lexer<'a> {
 
             lno: LineNo::new(
                 TextRange::new(self.rel_row, self.rel_row),
-                TextRange::new(range.start() - self.rel_col, range.end() - self.rel_col),
+                ColRange::new(range.start() - self.rel_col, range.end() - self.rel_col),
             ),
         });
 

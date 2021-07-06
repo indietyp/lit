@@ -1,7 +1,7 @@
 use crate::combinators::is::is_ident;
-use crate::combinators::kw::{kw_do, kw_end, kw_loop};
+use crate::combinators::kw::{kw_do, kw_loop};
 use crate::combinators::trivia::sep;
-use crate::parsers::terms::terms;
+use crate::parsers::terms::block;
 use crate::utils::to_ident;
 use combine::error::Info::Format;
 use combine::parser::combinator::no_partial;
@@ -21,11 +21,9 @@ where
     let combinator = (
         kw_loop(), //
         is_ident(),
-        kw_do(),
-        sep(),
-        (sep(), terms(true), kw_end()),
+        block(),
     )
-        .then(|(start, ident, _, _, (_, terms, end))| {
+        .then(|(start, ident, block)| {
             let ident = to_ident(ident);
 
             if let Err(err) = ident {
@@ -34,10 +32,10 @@ where
             }
 
             let hir = Hir::Control(Control::Loop {
-                lno: start.lno.end_at(&end.lno),
+                lno: start.lno.end_at(&block.lno),
 
                 ident: ident.unwrap(),
-                terms: Box::new(terms),
+                terms: Box::new(block.terms),
             });
 
             value(hir).left()
@@ -52,12 +50,12 @@ mod tests {
     use super::*;
     use crate::disp::CompactRepresentation;
     use indoc::indoc;
-    use lexer::Lexer;
 
     #[test]
     fn parser_lp() {
         let stream = crate::stream::LexerStream::new("LOOP x DO; ... ;END");
         let parsed = lp().parse(stream);
+
         assert!(parsed.is_ok());
 
         let (hir, stream) = parsed.unwrap();
@@ -89,7 +87,7 @@ mod tests {
     }
 
     #[test]
-    fn parser_nested_lp() {
+    fn parser_nested_lp_with_unknowns() {
         let stream = crate::stream::LexerStream::new(indoc!(
             "\
             LOOP x DO
@@ -100,23 +98,22 @@ mod tests {
         ));
         let parsed = lp().parse(stream);
 
-        println!("{:#?}", parsed);
         assert!(parsed.is_ok());
 
-        println!("{}", parsed.unwrap().clone().0.compact(None));
-        // assert_eq!(
-        //     indoc!(
-        //         "
-        //         Loop@[0:0->0:36]:
-        //           Ident: x
-        //           Terms:
-        //             Loop@[0:11->0:31]:
-        //               Ident: y
-        //               Terms:
-        //                 NoOp\n\n"
-        //     ),
-        //     parsed.unwrap().0.compact(None)
-        // )
+        assert_eq!(
+            indoc!(
+                "
+                Loop@[0:0->4:3]:
+                  Ident: x
+                  Terms:
+                    Loop@[1:4->3:7]:
+                      Ident: y
+                      Terms:
+                        Unknown:
+                          WHILE WHILE WHILE WHILE\n\n"
+            ),
+            parsed.unwrap().0.compact(None)
+        )
     }
 }
 //endregion

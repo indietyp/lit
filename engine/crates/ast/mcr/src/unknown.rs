@@ -1,4 +1,7 @@
-use lexer::Token;
+use lexer::{Kind, Token};
 
 #[derive(Debug, Clone)]
-pub struct Unknown(pub Vec<Token>);
+pub enum Unknown {
+    Token(Token),
+    Tokens(Vec<Token>),
+}

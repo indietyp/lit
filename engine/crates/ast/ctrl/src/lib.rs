@@ -9,7 +9,7 @@ use variants::LineNo;
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "schema", derive(JsonSchema))]
 pub enum Control<Type, Primitive, Comp> {
-    Terms {
+    Block {
         terms: Vec<Type>,
     },
     Loop {

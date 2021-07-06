@@ -1,4 +1,4 @@
-use text_size::TextRange;
+use text_size::{TextRange, TextSize};
 
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
@@ -7,18 +7,46 @@ use serde::ser::SerializeMap;
 #[cfg(feature = "serde")]
 use serde::{Serialize, Serializer};
 use std::collections::HashMap;
+use std::fmt;
+
+#[derive(Copy, Clone, Hash, PartialEq, Eq)]
+pub struct ColRange {
+    start: TextSize,
+    end: TextSize,
+}
+
+impl ColRange {
+    pub fn new(start: TextSize, end: TextSize) -> Self {
+        Self { start, end }
+    }
+
+    pub fn start(&self) -> TextSize {
+        self.start
+    }
+
+    pub fn end(&self) -> TextSize {
+        self.end
+    }
+}
+
+impl fmt::Debug for ColRange {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#?}..{:#?}", self.start(), self.end())
+    }
+}
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq)]
 pub struct LineNo {
     pub row: TextRange,
-    pub col: TextRange,
+    // this is not a range, as the col can go over multiple lines
+    pub col: ColRange,
 }
 
 impl LineNo {
     pub fn end_at(&self, lno: &LineNo) -> Self {
         Self {
             row: TextRange::new(self.row.start(), lno.row.end()),
-            col: TextRange::new(self.col.start(), lno.col.end()),
+            col: ColRange::new(self.col.start(), lno.col.end()),
         }
     }
 }
@@ -64,7 +92,7 @@ impl Serialize for LineNo {
 impl JsonSchema for LineNo {}
 
 impl LineNo {
-    pub fn new(row: TextRange, col: TextRange) -> Self {
+    pub fn new(row: TextRange, col: ColRange) -> Self {
         Self { row, col }
     }
 }
