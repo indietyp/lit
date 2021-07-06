@@ -8,9 +8,9 @@ use variants::err::{ErrorKind, ErrorKindInvalidToken};
 use variants::{Error, Errors};
 
 pub(crate) fn to_ident(token: Token) -> Result<Primitive, Errors> {
-    match token.kind {
+    match &token.kind {
         Kind::Ident(ident) => Ok(Primitive::Ident {
-            value: ident,
+            value: ident.clone(),
             token: vec![token],
         }),
         _ => Err(Errors::from(Error::new_from_kind(
@@ -50,9 +50,9 @@ pub(crate) fn to_binop_verb(token: Token) -> Result<BinOpVerb, Errors> {
 }
 
 pub(crate) fn to_uint(token: Token) -> Result<Primitive, Errors> {
-    match token.kind {
+    match &token.kind {
         Kind::Number(ident) => Ok(Primitive::Number {
-            value: ident,
+            value: ident.clone(),
             token: vec![token],
         }),
         _ => Err(Errors::from(Error::new_from_kind(

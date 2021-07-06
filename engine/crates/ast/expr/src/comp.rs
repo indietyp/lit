@@ -29,6 +29,19 @@ impl From<lexer::Comp> for CompVerb {
     }
 }
 
+impl ToString for CompVerb {
+    fn to_string(&self) -> String {
+        match self {
+            CompVerb::Equal => "==".to_string(),
+            CompVerb::NotEqual => "!=".to_string(),
+            CompVerb::GreaterThan => ">".to_string(),
+            CompVerb::GreaterThanEqual => ">=".to_string(),
+            CompVerb::LessThan => "<".to_string(),
+            CompVerb::LessThanEqual => "<=".to_string(),
+        }
+    }
+}
+
 impl TryFrom<lexer::Token> for CompVerb {
     type Error = Error;
 

@@ -1,4 +1,4 @@
-use combine::{optional, satisfy, skip_many, ParseError, Parser, Stream};
+use combine::{attempt, optional, satisfy, skip_many, ParseError, Parser, Stream};
 
 use lexer::Token;
 
@@ -28,9 +28,9 @@ where
     let semicolon: fn(Token) -> bool = |token| matches!(token.kind, ::lexer::Kind::Semicolon);
 
     choice!(
-        (satisfy(semicolon), satisfy(newline)).map(|_| ()),
-        satisfy(semicolon).map(|_| ()),
-        satisfy(newline).map(|_| ())
+        attempt((satisfy(semicolon), satisfy(newline))).map(|_| ()),
+        attempt(satisfy(semicolon)).map(|_| ()),
+        attempt(satisfy(newline)).map(|_| ())
     )
     .expected("separator")
 }

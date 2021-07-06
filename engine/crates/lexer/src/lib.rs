@@ -73,7 +73,7 @@ impl<'a> Iterator for Lexer<'a> {
             self.rel_row += TextSize::from(1);
             // increase the col to the current character + 1, so that the first item on the next line
             // has the value 0
-            self.rel_col += range.start() + TextSize::from(1);
+            self.rel_col = range.start() + TextSize::from(1);
         }
 
         item

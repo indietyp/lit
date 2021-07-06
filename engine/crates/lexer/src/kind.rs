@@ -114,6 +114,7 @@ pub enum Kind {
     #[token("while", ignore(case) callback = |_| Keyword::While)]
     #[token("loop", ignore(case) callback = |_| Keyword::Loop)]
     #[token("fn", ignore(case) callback = |_| Keyword::Fn)]
+    #[token("do", ignore(case) callback = |_| Keyword::Do)]
     #[token("decl", ignore(case) callback = |_| Keyword::Decl)]
     #[token("end", ignore(case) callback = |_| Keyword::End)]
     #[token("import", ignore(case) callback = |_| Keyword::Import)]
@@ -186,10 +187,7 @@ pub enum Kind {
 
 impl Kind {
     pub fn is_trivia(&self) -> bool {
-        matches!(
-            self,
-            Self::Whitespace | Self::Comment | Self::Newline | Self::Semicolon
-        )
+        matches!(self, Self::Whitespace | Self::Comment)
     }
 }
 

@@ -165,6 +165,7 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/memchr-5771814e25e948b7/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/proc-macro2-9a6aed73bc98d555/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/syn-c2f415d5352f0590/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/ast/hir/target/debug/build/unicode-linebreak-9c15e527899f3df8/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/mcr/target/debug/build/bitflags-ddeb6dd3b5a8c970/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/mcr/target/debug/build/memchr-52b65868a2adf656/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/mcr/target/debug/build/memchr-5771814e25e948b7/out" isTestSource="false" />
@@ -176,6 +177,7 @@
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/mcr/target/debug/build/syn-c2f415d5352f0590/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/ast/module/target/debug/build/memchr-b8d9a59da07862e6/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/lexer/target/debug/build/memchr-52b65868a2adf656/out" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/crates/parser/target/debug/build/unicode-linebreak-9c15e527899f3df8/out" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/crates/variants/target/debug/build/memchr-b8d9a59da07862e6/out" isTestSource="false" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
       <excludeFolder url="file://$MODULE_DIR$/src/ast/hir/macros/rules/target" />

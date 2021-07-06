@@ -1,4 +1,4 @@
-use lexer::{Keyword, Kind};
+use lexer::{Keyword, Kind, Token};
 
 macro_rules! create_kw {
     ($name:tt, $( $pattern:pat )|+) => {
@@ -8,13 +8,23 @@ macro_rules! create_kw {
 
 create_kw!(while, Kind::Keyword(Keyword::While));
 create_kw!(loop, Kind::Keyword(Keyword::Loop));
-create_kw!(do_, Kind::Keyword(Keyword::Do));
 create_kw!(end, Kind::Keyword(Keyword::End));
 create_kw!(fn, Kind::Keyword(Keyword::Fn));
 create_kw!(decl, Kind::Keyword(Keyword::Decl));
 create_kw!(import, Kind::Keyword(Keyword::Import));
 create_kw!(from, Kind::Keyword(Keyword::From));
 create_kw!(as, Kind::Keyword(Keyword::As));
+
+// idk why, but this needs to be done separately
+pub(crate) fn kw_do<Input>() -> impl ::combine::Parser<Input, Output = Token, PartialState = ()>
+where
+    Input: ::combine::Stream<Token = Token>,
+    Input::Error: ::combine::ParseError<Input::Token, Input::Range, Input::Position>,
+{
+    let f: fn(::lexer::Token) -> bool =
+        |token| ::std::matches!(token.kind, Kind::Keyword(Keyword::Do));
+    ::combine::Parser::expected(::combine::satisfy(f), "do")
+}
 
 //region Tests
 #[cfg(test)]
@@ -27,7 +37,7 @@ mod tests {
         check_single_kind("while", kw_while);
         check_single_kind("loop", kw_loop);
         check_single_kind("end", kw_end);
-        check_single_kind("do", kw_do_);
+        check_single_kind("do", kw_do);
     }
 
     #[test]

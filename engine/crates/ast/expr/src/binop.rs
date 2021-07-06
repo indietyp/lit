@@ -50,6 +50,16 @@ impl TryFrom<lexer::Token> for BinOpVerb {
     }
 }
 
+impl ToString for BinOpVerb {
+    fn to_string(&self) -> String {
+        match self {
+            BinOpVerb::Plus => "+".to_string(),
+            BinOpVerb::Minus => "-".to_string(),
+            BinOpVerb::Multiply => "*".to_string(),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct BinOp {
     pub lno: LineNo,

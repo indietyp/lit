@@ -2,7 +2,7 @@
 
 use crate::combinators::comp::comp_ne;
 use crate::combinators::is::{is_ident, is_number};
-use crate::combinators::kw::{kw_do_, kw_end, kw_while};
+use crate::combinators::kw::{kw_do, kw_end, kw_while};
 use crate::combinators::trivia::sep;
 use crate::parsers::terms::terms;
 use crate::utils::{to_comp_verb, to_ident, to_uint};
@@ -33,7 +33,7 @@ where
                 .message("Number is not a 0")
                 .right(),
         }),
-        kw_do_(),
+        kw_do(),
         sep(),
         terms(true),
         kw_end(),
@@ -72,7 +72,7 @@ where
                 terms: Box::new(terms),
             });
 
-            return value(ctrl).left();
+            value(ctrl).left()
         });
 
     no_partial(combinator)

@@ -22,6 +22,10 @@ impl LexerStream {
     pub(crate) fn new_from_lexer(lexer: Lexer) -> Self {
         lexer.into()
     }
+
+    pub fn is_exhausted(&self) -> bool {
+        self.pos == self.tokens.len()
+    }
 }
 
 impl<'a> From<Lexer<'a>> for LexerStream {
@@ -45,11 +49,11 @@ impl StreamOnce for LexerStream {
         let token = self
             .tokens
             .get(self.pos)
-            .map_or_else(|| Err(Error::end_of_input()), |value| Ok(value))?;
+            .map_or_else(|| Err(Error::end_of_input()), |value| Ok(value.clone()))?;
 
         self.pos += 1;
 
-        Ok(token.clone())
+        Ok(token)
     }
 }
 

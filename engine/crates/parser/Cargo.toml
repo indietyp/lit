@@ -13,6 +13,9 @@ hir = { path = '../ast/hir' }
 mcr = { path = '../ast/mcr' }
 num-traits = "0.2.14"
 variants = { path = "../variants" }
-ctrl = {path = "../ast/ctrl"}
+ctrl = { path = "../ast/ctrl" }
 expr = { path = "../ast/expr" }
+fnc = { path = "../ast/fnc" }
 paste = "1.0.5"
+textwrap = "0.14.2"
+indoc = "1.0.3"
