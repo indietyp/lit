@@ -5,7 +5,9 @@ use variants::Errors;
 // TODO: undefined lazy eval
 
 pub(crate) mod assign;
+pub(crate) mod fnc;
 pub(crate) mod lp;
+pub(crate) mod mcr;
 pub(crate) mod noop;
 pub(crate) mod terms;
 pub(crate) mod unknown;
