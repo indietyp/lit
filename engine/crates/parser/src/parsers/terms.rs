@@ -6,8 +6,9 @@ use crate::parsers::noop::noop;
 use crate::parsers::whl::whl;
 use combine::parser::combinator::no_partial;
 
+use crate::parsers::assign::assign;
 use crate::parsers::unknown::unknown;
-use combine::{attempt, between, many, optional, satisfy, sep_by, sep_end_by, Parser, Stream};
+use combine::{attempt, sep_end_by, Parser, Stream};
 use ctrl::Control;
 use hir::Hir;
 use lexer::Token;
@@ -21,6 +22,7 @@ where
 {
     let combinator = attempt(whl()) //
         .or(attempt(lp()) //
+            .or(attempt(assign())) //
             .or(if unkn {
                 attempt(noop())
                     .or(attempt(block().map(|block| block.terms)) //

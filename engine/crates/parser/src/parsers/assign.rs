@@ -66,3 +66,58 @@ where
 
     no_partial(combinator)
 }
+
+//region Tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::disp::CompactRepresentation;
+
+    #[test]
+    fn parser_assign_plus() {
+        let stream = crate::stream::LexerStream::new("x := x + 1");
+        let parsed = assign().parse(stream);
+
+        assert!(parsed.is_ok());
+
+        let (hir, stream) = parsed.unwrap();
+
+        assert!(stream.is_exhausted());
+        assert_eq!("Assign@[0:0->0:10]: x := x + 1", hir.compact(None));
+    }
+
+    #[test]
+    fn parser_assign_normal_eq_plus() {
+        let stream = crate::stream::LexerStream::new("x = x + 1");
+        let parsed = assign().parse(stream);
+
+        assert!(parsed.is_ok());
+
+        let (hir, stream) = parsed.unwrap();
+
+        assert!(stream.is_exhausted());
+        assert_eq!("Assign@[0:0->0:9]: x := x + 1", hir.compact(None));
+    }
+
+    #[test]
+    fn parser_assign_minus() {
+        let stream = crate::stream::LexerStream::new("x := x - 1");
+        let parsed = assign().parse(stream);
+
+        assert!(parsed.is_ok());
+
+        let (hir, stream) = parsed.unwrap();
+
+        assert!(stream.is_exhausted());
+        assert_eq!("Assign@[0:0->0:10]: x := x - 1", hir.compact(None));
+    }
+
+    #[test]
+    fn parser_assign_unsupported_operator() {
+        let stream = crate::stream::LexerStream::new("x := x * 1");
+        let parsed = assign().parse(stream);
+
+        assert!(parsed.is_err());
+    }
+}
+//endregion
