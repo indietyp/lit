@@ -1,4 +1,5 @@
 use either::Either;
+use variants::LineNo;
 
 pub struct Wildcard {}
 pub struct Alias {

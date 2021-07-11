@@ -2,7 +2,7 @@ use lexer::{Kind, Op, Token};
 use variants::err::{ErrorKind, ErrorKindUnsupported};
 use variants::{Error, LineNo};
 
-use crate::{Expr, Primitive};
+use crate::Primitive;
 use std::convert::TryFrom;
 
 // We use our own enum instead of the one from the lexer

@@ -1,5 +1,4 @@
 use crate::{Expr, Primitive};
-use lexer::Token;
 use variants::LineNo;
 
 #[derive(Debug, Clone)]

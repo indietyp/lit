@@ -1,3 +1,6 @@
+#[macro_use]
+pub(crate) mod macros;
+
 use hir::Hir;
 use variants::Errors;
 

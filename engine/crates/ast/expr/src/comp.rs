@@ -1,5 +1,5 @@
-use crate::{Expr, Primitive};
-use lexer::{Kind, Token};
+use crate::Primitive;
+use lexer::Kind;
 use std::convert::TryFrom;
 use variants::err::{ErrorKind, ErrorKindUnsupported};
 use variants::{Error, LineNo};

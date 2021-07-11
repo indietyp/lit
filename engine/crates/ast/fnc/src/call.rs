@@ -1,12 +1,13 @@
 use expr::Primitive;
-use lexer::Token;
+
 use variants::LineNo;
 
 #[derive(Debug, Clone)]
 pub struct Call {
-    pub token: Token,
+    pub lno: LineNo,
 
     pub ident: Primitive,
+    pub args: Vec<Primitive>,
 }
 
 #[derive(Debug, Clone)]

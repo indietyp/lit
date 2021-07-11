@@ -19,3 +19,4 @@ fnc = { path = "../ast/fnc" }
 paste = "1.0.5"
 textwrap = "0.14.2"
 indoc = "1.0.3"
+itertools = "0.10.1"

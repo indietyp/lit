@@ -73,6 +73,12 @@ impl Errors {
     }
 }
 
+impl Default for Errors {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Add for Errors {
     type Output = Self;
 

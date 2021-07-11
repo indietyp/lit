@@ -4,6 +4,7 @@ use fnc::Func;
 use hir::Hir;
 
 use indoc::indoc;
+use itertools::Itertools;
 use mcr::Unknown;
 use textwrap::Options;
 use variants::LineNo;
@@ -29,7 +30,7 @@ impl CompactRepresentation for Hir {
 }
 
 impl CompactRepresentation for Unknown {
-    fn compact(&self, indent: Option<usize>) -> String {
+    fn compact(&self, _: Option<usize>) -> String {
         let text: String = match self {
             Unknown::Token(token) => vec![token.clone()],
             Unknown::Tokens(tokens) => tokens.clone(),
@@ -109,7 +110,20 @@ impl CompactRepresentation for Expr {
 
 impl CompactRepresentation for Func {
     fn compact(&self, indent: Option<usize>) -> String {
-        todo!()
+        match self {
+            Func::BoundCall(call) => format!(
+                "FncCall@{}: {} := {}({})",
+                call.lno.compact(indent),
+                call.lhs.compact(indent),
+                call.rhs.ident.compact(indent),
+                call.rhs
+                    .args
+                    .clone()
+                    .into_iter()
+                    .map(|primitive| primitive.compact(indent))
+                    .join(", ")
+            ),
+        }
     }
 }
 
