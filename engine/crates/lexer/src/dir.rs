@@ -1,3 +1,5 @@
+use itertools::Itertools;
+use lazy_static::lazy_static;
 use std::fmt;
 use std::fmt::Formatter;
 
@@ -40,35 +42,73 @@ impl fmt::Display for Directive {
     }
 }
 
+bitflags! {
+    pub struct PlaceholderVariant: u16 {
+        // none means that it will be never matched
+        // effectively being a match blocker
+        const NONE      = 0b0000;
+
+        const IDENT     = 0b0001;
+        const NUMBER    = 0b0010;
+        const PRIMITIVE = 0b0011;
+
+        const COMP = 0b0001 << 4;
+        const OP   = 0b0010 << 4;
+
+        const EXPR  = 0b0001 << 8;
+        const BLOCK = 0b0010 << 8;
+
+        const ANY = 0b1111_1111_1111_1111;
+    }
+}
+
+impl fmt::Display for PlaceholderVariant {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        lazy_static! {
+            static ref MAPPING: [(PlaceholderVariant, &'static str); 6] = [
+                (PlaceholderVariant::IDENT, "i"),
+                (PlaceholderVariant::NUMBER, "n"),
+                (PlaceholderVariant::COMP, "c"),
+                (PlaceholderVariant::OP, "o"),
+                (PlaceholderVariant::EXPR, "e"),
+                (PlaceholderVariant::BLOCK, "b"),
+            ];
+        }
+
+        let mut variants: Vec<String> = vec![];
+        for idx in 0..MAPPING.len() {
+            let (variant, value) = MAPPING[idx];
+            if self.contains(variant) {
+                variants.push(value.into());
+            }
+        }
+
+        f.write_str(variants.into_iter().sorted().join("").as_str())
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Placeholder {
-    Ident(u32),
-    Value(u32),
-    Atom(u32),
-
-    Any(u32),
-    Expr(u32),
-    Terms(u32),
-
-    Comp(u32),
-    Op(u32),
-
-    TempIdent(u32),
+    // Match placeholders are going to be matched, and are defined in the match
+    // block and then used in the substitution block
+    Match {
+        variant: PlaceholderVariant,
+        index: u32,
+    },
+    // Sub placeholders are invalid in the match block and can be used to generate
+    // values (currently only temporary variables), those are replaced at runtime
+    Sub {
+        variant: PlaceholderVariant,
+        index: u32,
+    },
 }
 
 impl fmt::Display for Placeholder {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         f.write_str(
             match self {
-                Self::Ident(n) => format!("%i.{}", n),
-                Self::Value(n) => format!("%v.{}", n),
-                Self::Atom(n) => format!("%a.{}", n),
-                Self::Any(n) => format!("%_.{}", n),
-                Self::Expr(n) => format!("%e.{}", n),
-                Self::Terms(n) => format!("%t.{}", n),
-                Self::Comp(n) => format!("%c.{}", n),
-                Self::Op(n) => format!("%o.{}", n),
-                Self::TempIdent(n) => format!("$t.{}", n),
+                Placeholder::Match { variant, index } => format!("%{}/{}", index, variant),
+                Placeholder::Sub { variant, index } => format!("${}/{}", index, variant),
             }
             .as_str(),
         )

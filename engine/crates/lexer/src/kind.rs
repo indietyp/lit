@@ -8,7 +8,7 @@ use regex::{Captures, Regex};
 use variants::uint::UInt;
 
 use crate::comp::Comp;
-use crate::dir::{Directive, MacroModifier, Placeholder};
+use crate::dir::{Directive, MacroModifier, Placeholder, PlaceholderVariant};
 use crate::op::Op;
 use crate::pair::Pair;
 use crate::Keyword;
@@ -16,7 +16,7 @@ use crate::Keyword;
 fn placeholder(lex: &mut Lexer<Kind>) -> Option<Directive> {
     lazy_static! {
         static ref TEMPLATE_REGEX: Result<Regex, regex::Error> =
-            Regex::new(r"([%$])([_a-z])\.([0-9]+)");
+            Regex::new(r"([%$])([0-9]+)\.([_a-z]+)");
     }
 
     let slice = lex.slice();
@@ -25,25 +25,28 @@ fn placeholder(lex: &mut Lexer<Kind>) -> Option<Directive> {
     let captures: Captures = regex.captures(slice)?;
 
     let scope = captures.get(1)?.as_str();
-    let type_ = captures.get(2)?.as_str();
-    let number = captures.get(3)?.as_str().parse::<u32>().ok()?;
+    let index = captures.get(2)?.as_str().parse::<u32>().ok()?;
+    let type_ = captures.get(3)?.as_str();
+
+    let variant = type_
+        .split("")
+        .into_iter()
+        .map(|t| match t {
+            "i" => PlaceholderVariant::IDENT,
+            "n" => PlaceholderVariant::NUMBER,
+            "p" => PlaceholderVariant::PRIMITIVE,
+            "e" => PlaceholderVariant::EXPR,
+            "b" => PlaceholderVariant::BLOCK,
+            "c" => PlaceholderVariant::COMP,
+            "o" => PlaceholderVariant::OP,
+            "_" => PlaceholderVariant::ANY,
+            _ => PlaceholderVariant::NONE,
+        })
+        .fold(PlaceholderVariant::NONE, |a, b| a | b);
 
     let ident = match scope {
-        "%" => match type_ {
-            "i" => Some(Placeholder::Ident(number)),
-            "a" => Some(Placeholder::Atom(number)),
-            "v" => Some(Placeholder::Value(number)),
-            "e" => Some(Placeholder::Expr(number)),
-            "t" => Some(Placeholder::Terms(number)),
-            "o" => Some(Placeholder::Op(number)),
-            "c" => Some(Placeholder::Comp(number)),
-            "_" => Some(Placeholder::Any(number)),
-            _ => None,
-        },
-        "$" => match type_ {
-            "i" => Some(Placeholder::TempIdent(number)),
-            _ => None,
-        },
+        "%" => Some(Placeholder::Match { variant, index }),
+        "$" => Some(Placeholder::Sub { variant, index }),
         _ => None,
     }?;
 
@@ -143,8 +146,8 @@ pub enum Kind {
     #[token("@if", | _ | Directive::If)]
     #[token("@else", | _ | Directive::Else)]
     #[token("@sep", | _ | Directive::Sep)]
-    #[regex(r"%[iavetco_]\.[0-9]+", placeholder)]
-    #[regex(r"\$(i)\.[0-9]+", placeholder)]
+    #[regex(r"%[0-9]+\.[inpebco_]+", placeholder)]
+    #[regex(r"\$[0-9]+\.[i]", placeholder)]
     Directive(Directive),
 
     #[token("=")]
@@ -297,40 +300,74 @@ mod tests {
         check_single_kind("@sep", Kind::Directive(Directive::Sep));
 
         check_single_kind(
-            "%i.1",
-            Kind::Directive(Directive::Placeholder(Placeholder::Ident(1))),
+            "%1.i",
+            Kind::Directive(Directive::Placeholder(Placeholder::Match {
+                index: 1,
+                variant: PlaceholderVariant::IDENT,
+            })),
         );
         check_single_kind(
-            "%a.1",
-            Kind::Directive(Directive::Placeholder(Placeholder::Atom(1))),
+            "%1.n",
+            Kind::Directive(Directive::Placeholder(Placeholder::Match {
+                index: 1,
+                variant: PlaceholderVariant::NUMBER,
+            })),
         );
         check_single_kind(
-            "%v.1",
-            Kind::Directive(Directive::Placeholder(Placeholder::Value(1))),
+            "%1.p",
+            Kind::Directive(Directive::Placeholder(Placeholder::Match {
+                index: 1,
+                variant: PlaceholderVariant::PRIMITIVE,
+            })),
         );
         check_single_kind(
-            "%e.1",
-            Kind::Directive(Directive::Placeholder(Placeholder::Expr(1))),
+            "%1.in",
+            Kind::Directive(Directive::Placeholder(Placeholder::Match {
+                index: 1,
+                variant: PlaceholderVariant::PRIMITIVE,
+            })),
         );
         check_single_kind(
-            "%t.1",
-            Kind::Directive(Directive::Placeholder(Placeholder::Terms(1))),
+            "%1.e",
+            Kind::Directive(Directive::Placeholder(Placeholder::Match {
+                index: 1,
+                variant: PlaceholderVariant::EXPR,
+            })),
         );
         check_single_kind(
-            "%c.1",
-            Kind::Directive(Directive::Placeholder(Placeholder::Comp(1))),
+            "%1.b",
+            Kind::Directive(Directive::Placeholder(Placeholder::Match {
+                index: 1,
+                variant: PlaceholderVariant::BLOCK,
+            })),
         );
         check_single_kind(
-            "%o.1",
-            Kind::Directive(Directive::Placeholder(Placeholder::Op(1))),
+            "%1.c",
+            Kind::Directive(Directive::Placeholder(Placeholder::Match {
+                index: 1,
+                variant: PlaceholderVariant::COMP,
+            })),
         );
         check_single_kind(
-            "%_.1",
-            Kind::Directive(Directive::Placeholder(Placeholder::Any(1))),
+            "%1.o",
+            Kind::Directive(Directive::Placeholder(Placeholder::Match {
+                index: 1,
+                variant: PlaceholderVariant::OP,
+            })),
         );
         check_single_kind(
-            "$i.1",
-            Kind::Directive(Directive::Placeholder(Placeholder::TempIdent(1))),
+            "%1._",
+            Kind::Directive(Directive::Placeholder(Placeholder::Match {
+                index: 1,
+                variant: PlaceholderVariant::ANY,
+            })),
+        );
+        check_single_kind(
+            "$1.i",
+            Kind::Directive(Directive::Placeholder(Placeholder::Sub {
+                index: 1,
+                variant: PlaceholderVariant::IDENT,
+            })),
         );
     }
 
