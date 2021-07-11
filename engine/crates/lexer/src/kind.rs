@@ -8,7 +8,7 @@ use regex::{Captures, Regex};
 use variants::uint::UInt;
 
 use crate::comp::Comp;
-use crate::dir::{Directive, MacroModifier, Placeholder, PlaceholderVariant};
+use crate::dir::{Directive, GroupQuantifier, MacroModifier, Placeholder, PlaceholderVariant};
 use crate::op::Op;
 use crate::pair::Pair;
 use crate::Keyword;
@@ -16,7 +16,7 @@ use crate::Keyword;
 fn placeholder(lex: &mut Lexer<Kind>) -> Option<Directive> {
     lazy_static! {
         static ref TEMPLATE_REGEX: Result<Regex, regex::Error> =
-            Regex::new(r"([%$])([0-9]+)\.([_a-z]+)");
+            Regex::new(r"^([%$])([0-9]+)\.([_a-z]+)$");
     }
 
     let slice = lex.slice();
@@ -57,7 +57,7 @@ fn placeholder(lex: &mut Lexer<Kind>) -> Option<Directive> {
 fn macro_start(lex: &mut Lexer<Kind>) -> Option<Directive> {
     lazy_static! {
         static ref MACRO_START_REGEX: Result<Regex, regex::Error> =
-            Regex::new(r"@macro(?:/(?P<flags>[i]*))?(?:/(?P<priority>[0-9]*))?");
+            Regex::new(r"^@macro(?:/(?P<flags>[i]*))?(?:/(?P<priority>[0-9]*))?$");
     }
 
     let slice = lex.slice();
@@ -77,6 +77,7 @@ fn macro_start(lex: &mut Lexer<Kind>) -> Option<Directive> {
                 .fold(MacroModifier::NONE, |a, b| a | b)
         })
         .unwrap_or(MacroModifier::NONE);
+
     let priority = captures
         .name("priority")
         .map(|priority| {
@@ -88,6 +89,36 @@ fn macro_start(lex: &mut Lexer<Kind>) -> Option<Directive> {
         .unwrap_or(0);
 
     Some(Directive::Macro { modifier, priority })
+}
+
+fn directive_group_end(lex: &mut Lexer<Kind>) -> Option<Directive> {
+    lazy_static! {
+        static ref GROUP_END_REGEX: Result<Regex, regex::Error> =
+            Regex::new(r"^@\)(?:(?P<quantifier1>\?)|(?P<separator>.?)(?P<quantifier2>[*+]))?$");
+    }
+
+    let slice = lex.slice();
+    let regex = GROUP_END_REGEX.as_ref().ok()?;
+    let captures: Captures = regex.captures(slice)?;
+
+    let sep = captures
+        .name("separator")
+        .map(|sep| sep.as_str().chars().next())
+        .flatten();
+
+    let quantifier = captures
+        .name("quantifier1")
+        .or_else(|| captures.name("quantifier2"))
+        .map(|quantifier| quantifier.as_str())
+        .map(|quantifier| match quantifier {
+            "?" => GroupQuantifier::Optional,
+            "*" => GroupQuantifier::ZeroOrMore(sep),
+            "+" => GroupQuantifier::OneOrMore(sep),
+            _ => GroupQuantifier::None,
+        })
+        .unwrap_or(GroupQuantifier::None);
+
+    Some(Directive::GroupEnd { quantifier })
 }
 
 fn line_comment(lex: &mut Lexer<Kind>) -> Option<()> {
@@ -148,12 +179,14 @@ pub enum Kind {
     #[token("<=", | _ | Comp::LessEqual)]
     Comp(Comp),
 
-    #[regex(r"@macro(/[i]*)?(/[0-9]*)?", macro_start)]
+    #[regex(r"@macro((/[0-9]*)|(/[i]*)|(/[i]*/[0-9]*))?", macro_start)]
     #[token("@sub", | _ | Directive::Sub)]
     #[token("@end", | _ | Directive::End)]
     #[token("@if", | _ | Directive::If)]
     #[token("@else", | _ | Directive::Else)]
     #[token("@sep", | _ | Directive::Sep)]
+    #[token("@(", | _ | Directive::GroupStart)]
+    #[regex(r"@\)(\?|.?[*+])?", directive_group_end)]
     #[regex(r"%[0-9]+\.[inpebtco_]+", placeholder)]
     #[regex(r"\$[0-9]+\.[i]+", placeholder)]
     Directive(Directive),
@@ -412,6 +445,43 @@ mod tests {
                 index: 1,
                 variant: PlaceholderVariant::IDENT,
             })),
+        );
+
+        check_single_kind("@(", Kind::Directive(Directive::GroupStart));
+
+        check_single_kind(
+            "@)",
+            Kind::Directive(Directive::GroupEnd {
+                quantifier: GroupQuantifier::None,
+            }),
+        );
+
+        check_single_kind(
+            "@)?",
+            Kind::Directive(Directive::GroupEnd {
+                quantifier: GroupQuantifier::Optional,
+            }),
+        );
+
+        check_single_kind(
+            "@)+",
+            Kind::Directive(Directive::GroupEnd {
+                quantifier: GroupQuantifier::OneOrMore(None),
+            }),
+        );
+
+        check_single_kind(
+            "@)*",
+            Kind::Directive(Directive::GroupEnd {
+                quantifier: GroupQuantifier::ZeroOrMore(None),
+            }),
+        );
+
+        check_single_kind(
+            "@),*",
+            Kind::Directive(Directive::GroupEnd {
+                quantifier: GroupQuantifier::ZeroOrMore(Some(',')),
+            }),
         );
     }
 

@@ -12,6 +12,31 @@ bitflags! {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
+pub enum GroupQuantifier {
+    None,
+    Optional,
+    ZeroOrMore(Option<char>),
+    OneOrMore(Option<char>),
+}
+
+impl fmt::Display for GroupQuantifier {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                GroupQuantifier::None => "".into(),
+                GroupQuantifier::Optional => "?".into(),
+                GroupQuantifier::ZeroOrMore(sep) =>
+                    format!("{}*", sep.map(|s| s.to_string()).unwrap_or_default()),
+                GroupQuantifier::OneOrMore(sep) =>
+                    format!("{}+", sep.map(|s| s.to_string()).unwrap_or_default()),
+            }
+        )
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Directive {
     Macro {
         modifier: MacroModifier,
@@ -27,6 +52,11 @@ pub enum Directive {
     Sep,
 
     Placeholder(Placeholder),
+
+    GroupStart,
+    GroupEnd {
+        quantifier: GroupQuantifier,
+    },
 }
 
 impl fmt::Display for Directive {
@@ -43,6 +73,8 @@ impl fmt::Display for Directive {
                 Self::Else => "‘@else‘".into(),
                 Self::Sep => "‘@sep‘".into(),
                 Self::Placeholder(placeholder) => format!("{}", placeholder),
+                Self::GroupStart => "‘@(‘".into(),
+                Self::GroupEnd { quantifier } => format!("‘@){}‘", quantifier),
             }
         )
     }
