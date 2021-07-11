@@ -1,3 +1,5 @@
+from std::macros import *
+
 fn max(a, b) -> c decl
     if a >= b then
         c := a

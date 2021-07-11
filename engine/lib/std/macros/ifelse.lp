@@ -1,4 +1,4 @@
-FROM std::macros::assign MACRO IMPORT *
+from std::macros::assign macro import *
 
 @macro/i/10 ifElseNotZero
     IF %1.i != %2.p THEN

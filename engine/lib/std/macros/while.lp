@@ -1,4 +1,4 @@
-FROM std::macros::ifelse MACRO IMPORT *
+from std::macros::ifelse macro import *
 
 @macro whileComp
     WHILE %1.p %2.c %3.p %4.b
