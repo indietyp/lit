@@ -94,7 +94,7 @@ fn macro_start(lex: &mut Lexer<Kind>) -> Option<Directive> {
 fn directive_group_end(lex: &mut Lexer<Kind>) -> Option<Directive> {
     lazy_static! {
         static ref GROUP_END_REGEX: Result<Regex, regex::Error> =
-            Regex::new(r"^@\)(?:(?P<quantifier1>\?)|(?P<separator>.?)(?P<quantifier2>[*+]))?$");
+            Regex::new(r"^@\)(?:(?P<quantifier1>\?)|(?P<separator>.??)(?P<quantifier2>[*+])?)?$");
     }
 
     let slice = lex.slice();
@@ -116,7 +116,10 @@ fn directive_group_end(lex: &mut Lexer<Kind>) -> Option<Directive> {
             "+" => GroupQuantifier::OneOrMore(sep),
             _ => GroupQuantifier::None,
         })
-        .unwrap_or(GroupQuantifier::None);
+        .unwrap_or_else(|| match sep {
+            Some(sep) => GroupQuantifier::Repetition(sep),
+            None => GroupQuantifier::None,
+        });
 
     Some(Directive::GroupEnd { quantifier })
 }
@@ -186,7 +189,7 @@ pub enum Kind {
     #[token("@else", | _ | Directive::Else)]
     #[token("@sep", | _ | Directive::Sep)]
     #[token("@(", | _ | Directive::GroupStart)]
-    #[regex(r"@\)(\?|.?[*+])?", directive_group_end)]
+    #[regex(r"@\)(\?|.?[*+]?)?", directive_group_end)]
     #[regex(r"%[0-9]+\.[inpebtco_]+", placeholder)]
     #[regex(r"\$[0-9]+\.[i]+", placeholder)]
     Directive(Directive),
@@ -481,6 +484,13 @@ mod tests {
             "@),*",
             Kind::Directive(Directive::GroupEnd {
                 quantifier: GroupQuantifier::ZeroOrMore(Some(',')),
+            }),
+        );
+
+        check_single_kind(
+            "@),",
+            Kind::Directive(Directive::GroupEnd {
+                quantifier: GroupQuantifier::Repetition(','),
             }),
         );
     }

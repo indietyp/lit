@@ -17,6 +17,7 @@ pub enum GroupQuantifier {
     Optional,
     ZeroOrMore(Option<char>),
     OneOrMore(Option<char>),
+    Repetition(char),
 }
 
 impl fmt::Display for GroupQuantifier {
@@ -31,6 +32,7 @@ impl fmt::Display for GroupQuantifier {
                     format!("{}*", sep.map(|s| s.to_string()).unwrap_or_default()),
                 GroupQuantifier::OneOrMore(sep) =>
                     format!("{}+", sep.map(|s| s.to_string()).unwrap_or_default()),
+                GroupQuantifier::Repetition(sep) => sep.to_string(),
             }
         )
     }
