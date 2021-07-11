@@ -37,6 +37,7 @@ fn placeholder(lex: &mut Lexer<Kind>) -> Option<Directive> {
             "p" => PlaceholderVariant::PRIMITIVE,
             "e" => PlaceholderVariant::EXPR,
             "b" => PlaceholderVariant::BLOCK,
+            "t" => PlaceholderVariant::TERMS,
             "c" => PlaceholderVariant::COMP,
             "o" => PlaceholderVariant::OP,
             "_" => PlaceholderVariant::ANY,
@@ -56,30 +57,37 @@ fn placeholder(lex: &mut Lexer<Kind>) -> Option<Directive> {
 fn macro_start(lex: &mut Lexer<Kind>) -> Option<Directive> {
     lazy_static! {
         static ref MACRO_START_REGEX: Result<Regex, regex::Error> =
-            Regex::new(r"@macro(?:/(?P<flags>[i]*))?");
+            Regex::new(r"@macro(?:/(?P<flags>[i]*))?(?:/(?P<priority>[0-9]*))?");
     }
 
     let slice = lex.slice();
     let regex = MACRO_START_REGEX.as_ref().ok()?;
     let captures: Captures = regex.captures(slice)?;
 
-    let flags = captures.name("flags");
-    if flags.is_none() {
-        return Some(Directive::Macro(MacroModifier::empty()));
-    }
-
-    let flags = flags.unwrap();
-    let modifiers = flags
-        .as_str()
-        .chars()
-        .into_iter()
-        .map(|char| match char {
-            'i' => MacroModifier::CASE_INSENSITIVE,
-            _ => MacroModifier::empty(),
+    let modifier = captures
+        .name("flags")
+        .map(|flag| {
+            flag.as_str()
+                .chars()
+                .into_iter()
+                .map(|char| match char {
+                    'i' => MacroModifier::CASE_INSENSITIVE,
+                    _ => MacroModifier::NONE,
+                })
+                .fold(MacroModifier::NONE, |a, b| a | b)
         })
-        .fold(MacroModifier::empty(), |a, b| a | b);
+        .unwrap_or(MacroModifier::NONE);
+    let priority = captures
+        .name("priority")
+        .map(|priority| {
+            priority
+                .as_str() //
+                .parse::<u32>()
+                .unwrap_or(0)
+        })
+        .unwrap_or(0);
 
-    Some(Directive::Macro(modifiers))
+    Some(Directive::Macro { modifier, priority })
 }
 
 fn line_comment(lex: &mut Lexer<Kind>) -> Option<()> {
@@ -140,14 +148,14 @@ pub enum Kind {
     #[token("<=", | _ | Comp::LessEqual)]
     Comp(Comp),
 
-    #[regex(r"@macro(/[i]*)?", macro_start)]
+    #[regex(r"@macro(/[i]*)?(/[0-9]*)?", macro_start)]
     #[token("@sub", | _ | Directive::Sub)]
     #[token("@end", | _ | Directive::End)]
     #[token("@if", | _ | Directive::If)]
     #[token("@else", | _ | Directive::Else)]
     #[token("@sep", | _ | Directive::Sep)]
-    #[regex(r"%[0-9]+\.[inpebco_]+", placeholder)]
-    #[regex(r"\$[0-9]+\.[i]", placeholder)]
+    #[regex(r"%[0-9]+\.[inpebtco_]+", placeholder)]
+    #[regex(r"\$[0-9]+\.[i]+", placeholder)]
     Directive(Directive),
 
     #[token("=")]
@@ -284,11 +292,40 @@ mod tests {
     fn lex_directive() {
         check_single_kind(
             "@macro",
-            Kind::Directive(Directive::Macro(MacroModifier::empty())),
+            Kind::Directive(Directive::Macro {
+                modifier: MacroModifier::empty(),
+                priority: 0,
+            }),
         );
         check_single_kind(
             "@macro/i",
-            Kind::Directive(Directive::Macro(MacroModifier::CASE_INSENSITIVE)),
+            Kind::Directive(Directive::Macro {
+                modifier: MacroModifier::CASE_INSENSITIVE,
+                priority: 0,
+            }),
+        );
+        check_single_kind(
+            "@macro/i/10",
+            Kind::Directive(Directive::Macro {
+                modifier: MacroModifier::CASE_INSENSITIVE,
+                priority: 10,
+            }),
+        );
+
+        check_single_kind(
+            "@macro//10",
+            Kind::Directive(Directive::Macro {
+                modifier: MacroModifier::NONE,
+                priority: 10,
+            }),
+        );
+
+        check_single_kind(
+            "@macro/10",
+            Kind::Directive(Directive::Macro {
+                modifier: MacroModifier::NONE,
+                priority: 10,
+            }),
         );
 
         check_single_kind("@sub", Kind::Directive(Directive::Sub));
@@ -339,6 +376,13 @@ mod tests {
             Kind::Directive(Directive::Placeholder(Placeholder::Match {
                 index: 1,
                 variant: PlaceholderVariant::BLOCK,
+            })),
+        );
+        check_single_kind(
+            "%1.t",
+            Kind::Directive(Directive::Placeholder(Placeholder::Match {
+                index: 1,
+                variant: PlaceholderVariant::TERMS,
             })),
         );
         check_single_kind(

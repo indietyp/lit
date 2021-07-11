@@ -5,13 +5,18 @@ use std::fmt::Formatter;
 
 bitflags! {
     pub struct MacroModifier: u16 {
+        const NONE = 0b0000;
+
         const CASE_INSENSITIVE = 0b0001;
     }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum Directive {
-    Macro(MacroModifier),
+    Macro {
+        modifier: MacroModifier,
+        priority: u32,
+    },
     // starts the substitution
     Sub,
     End,
@@ -30,7 +35,8 @@ impl fmt::Display for Directive {
             f,
             "{}",
             match self {
-                Self::Macro(modifier) => format!("‘@macro/[{:?}]‘", modifier),
+                Self::Macro { modifier, priority } =>
+                    format!("‘@macro/[{:?}]/{}‘", modifier, priority),
                 Self::Sub => "‘@sub‘".into(),
                 Self::End => "‘@end‘".into(),
                 Self::If => "‘@if‘".into(),
@@ -56,7 +62,9 @@ bitflags! {
         const OP   = 0b0010 << 4;
 
         const EXPR  = 0b0001 << 8;
+        // This is like terms, but encased in a DO/END statement
         const BLOCK = 0b0010 << 8;
+        const TERMS = 0b0100 << 8;
 
         const ANY = 0b1111_1111_1111_1111;
     }
@@ -65,13 +73,14 @@ bitflags! {
 impl fmt::Display for PlaceholderVariant {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         lazy_static! {
-            static ref MAPPING: [(PlaceholderVariant, &'static str); 6] = [
+            static ref MAPPING: [(PlaceholderVariant, &'static str); 7] = [
                 (PlaceholderVariant::IDENT, "i"),
                 (PlaceholderVariant::NUMBER, "n"),
                 (PlaceholderVariant::COMP, "c"),
                 (PlaceholderVariant::OP, "o"),
                 (PlaceholderVariant::EXPR, "e"),
                 (PlaceholderVariant::BLOCK, "b"),
+                (PlaceholderVariant::TERMS, "t"),
             ];
         }
 
