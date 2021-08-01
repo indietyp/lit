@@ -1,29 +1,31 @@
 import React, { createContext, useContext } from 'react';
 
 import './App.css';
-import { LoopEditor } from './components/loopEditor/LoopEditor';
+import { LoopEditor } from './components/loop-editor/LoopEditor';
 import { Editor } from './store/Editor';
+import { Result } from './components/result/Result';
 
 export const editor = new Editor();
 
 console.log('editor', editor);
 
-const TimerContext = createContext<Editor>(editor);
+const EditorContext = createContext<Editor>(editor);
 
-export const useEditor = () => useContext(TimerContext);
+export const useEditor = () => useContext(EditorContext);
 
 function App() {
     return (
-        <TimerContext.Provider value={editor}>
+        <EditorContext.Provider value={editor}>
             <div className={'container app pt-3'}>
-                <div className={'row'}>
-                    <div className={'col-xs-12 col-md-6'}>
+                <div className={'row d-flex flex-row justify-content-center'}>
+                    <div className={'col-md-6'}>
                         <h2>LOOP (Just) In Time</h2>
                         <LoopEditor/>
+                        <Result/>
                     </div>
                 </div>
             </div>
-        </TimerContext.Provider>
+        </EditorContext.Provider>
     );
 }
 

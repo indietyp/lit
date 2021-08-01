@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@codemirror/basic-setup": "^0.18.0",
-    "@loopit!/engine": "^0.1.8",
+    "@loopit!/engine": "^0.1.11",
     "halfmoon": "^1.1.1",
     "lezer": "^0.13.4",
     "material-design-icons": "^3.0.1",
